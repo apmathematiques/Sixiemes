@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Écrire les nombres</title>
+<style>
+:root{--accent:#EF713F;--success:#C8FE53;--ink:#121212}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}
+body{font-family:Arial,sans-serif;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{width:min(94vw,920px);height:min(94vh,650px);padding:16px}
+.hud{display:flex;justify-content:space-between;background:rgba(255,255,255,.86);border-radius:14px;padding:10px 16px;margin-bottom:14px;font-size:clamp(15px,2vw,21px);font-weight:bold}
+.card{background:rgba(255,255,255,.93);border-radius:24px;min-height:calc(100% - 58px);padding:clamp(15px,3vw,28px);box-shadow:0 10px 25px rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+.mode{font-size:clamp(15px,1.8vw,19px);font-weight:bold;color:#666}
+.prompt{font-size:clamp(19px,2.7vw,28px);margin:0}
+.value{font-size:clamp(27px,5vw,50px);font-weight:800;background:white;border:3px solid #f0f0f0;border-radius:20px;padding:16px 24px;box-shadow:0 8px 20px rgba(0,0,0,.06);max-width:100%;overflow-wrap:anywhere}
+input{width:min(90%,650px);height:58px;border:3px solid #ddd;border-radius:16px;text-align:center;font-size:clamp(17px,2.4vw,24px);padding:8px 14px;outline:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(239,113,63,.2)}
+input:disabled{background:#f5f5f5;color:#777}
+#feedback{display:none;width:100%;border-radius:16px;padding:12px 15px;font-size:clamp(15px,1.9vw,19px);line-height:1.4;white-space:pre-line}
+.success{display:block!important;background:var(--success);color:#2d4100;font-weight:bold}
+.hint{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.error{display:block!important;background:#FFF5F5;color:#9b2c2c;border:2px solid #FEB2B2}
+.action{border:0;border-radius:16px;padding:13px 25px;background:var(--accent);color:white;font-size:clamp(17px,2vw,21px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.15);min-width:220px}
+#final{display:none;background:rgba(255,255,255,.96);border-radius:24px;padding:34px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+#finalScore{font-size:clamp(52px,10vw,90px);font-weight:900;color:var(--accent);margin:20px 0}
+#advice{font-size:clamp(20px,3vw,28px);margin-bottom:26px}
+@media(max-height:570px){.card{gap:8px;padding:10px}.value{padding:9px 16px}.hud{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="game">
+<div class="hud"><span id="progress"></span><span id="score"></span></div>
+<div class="card">
+<div class="mode" id="mode"></div>
+<p class="prompt" id="prompt"></p>
+<div class="value" id="value"></div>
+<input id="answer" type="text" autocomplete="off" placeholder="Ta réponse">
+<div id="feedback"></div>
+<button class="action" id="actionBtn">Valider</button>
+</div>
+</div>
+<div id="final">
+<h1>Bilan</h1><div id="finalScore"></div><div id="advice"></div>
+<button class="action" id="restartBtn">Recommencer</button>
+</div>
+</div>
+
+<script>
+(function(){
+var units=["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","onze","douze","treize","quatorze","quinze","seize"];
+var tens=["","","vingt","trente","quarante","cinquante","soixante","","quatre-vingt"];
+
+function under100(n){
+ if(n<17)return units[n];
+ if(n<20)return "dix-"+units[n-10];
+ if(n<70){
+   var t=Math.floor(n/10),u=n%10;
+   if(u===0)return tens[t];
+   if(u===1)return tens[t]+"-et-un";
+   return tens[t]+"-"+units[u];
+ }
+ if(n<80){
+   if(n===71)return "soixante-et-onze";
+   return "soixante-"+under100(n-60);
+ }
+ if(n===80)return "quatre-vingts";
+ return "quatre-vingt-"+under100(n-80);
+}
+function under1000(n){
+ if(n<100)return under100(n);
+ var c=Math.floor(n/100),r=n%100,s=c===1?"cent":units[c]+"-cent";
+ if(r===0)return c>1?s+"s":s;
+ return s+"-"+under100(r);
+}
+function words(n){
+ if(n===0)return "zéro";
+ var groups=[
+   {v:1000000000,name:"milliard"},
+   {v:1000000,name:"million"},
+   {v:1000,name:"mille"}
+ ];
+ var parts=[],rest=n;
+ for(var i=0;i<groups.length;i++){
+   var count=Math.floor(rest/groups[i].v);
+   if(count){
+     if(groups[i].name==="mille"){
+       parts.push(count===1?"mille":under1000(count)+"-mille");
+     }else{
+       parts.push((count===1?"un":under1000(count))+"-"+groups[i].name+(count>1?"s":""));
+     }
+     rest%=groups[i].v;
+   }
+ }
+ if(rest)parts.push(under1000(rest));
+ return parts.join("-");
+}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+function normalizeBasic(s){return s.trim().toLowerCase().replace(/\s+/g," ")}
+function normalizeDigits(s){return s.replace(/\s/g,"")}
+function makeNumber(){
+ var digits=rand(2,12),s=String(rand(1,9));
+ for(var i=1;i<digits;i++)s+=String(rand(0,9));
+ return Number(s);
+}
+function makeQuestions(){
+ var a=[];
+ for(var i=0;i<5;i++){var n=makeNumber();a.push({type:"TO_WORDS",n:n,expected:words(n)})}
+ for(var j=0;j<5;j++){var m=makeNumber();a.push({type:"TO_DIGITS",n:m,expected:String(m)})}
+ return shuffle(a);
+}
+var qs=[],current=0,score=0,attempts=0,resolved=false,q=null;
+function el(id){return document.getElementById(id)}
+function update(){el("progress").textContent="Question "+(current+1)+" / 10";el("score").textContent="Score : "+String(score).replace(".",",")+" / 10"}
+function show(){
+ q=qs[current];attempts=0;resolved=false;update();
+ el("feedback").className="";el("feedback").style.display="none";el("feedback").textContent="";
+ el("answer").value="";el("answer").disabled=false;el("actionBtn").textContent="Valider";
+ if(q.type==="TO_WORDS"){
+   el("mode").textContent="Des chiffres vers les lettres";
+   el("prompt").textContent="Écris ce nombre en lettres.";
+   el("value").textContent=fmt(q.n);
+   el("answer").placeholder="Écris le nombre en lettres";
+ }else{
+   el("mode").textContent="Des lettres vers les chiffres";
+   el("prompt").textContent="Écris ce nombre en chiffres.";
+   el("value").textContent=words(q.n);
+   el("answer").placeholder="Écris le nombre en chiffres";
+ }
+ setTimeout(function(){el("answer").focus()},50);
+}
+function correctAnswer(){
+ var a=el("answer").value;
+ return q.type==="TO_WORDS" ? normalizeBasic(a)===normalizeBasic(q.expected) : normalizeDigits(a)===q.expected;
+}
+function sameWithoutHyphens(a,b){
+ return normalizeBasic(a).replace(/[- ]/g,"")===normalizeBasic(b).replace(/[- ]/g,"");
+}
+function singularized(s){
+ return normalizeBasic(s).replace(/vingts/g,"vingt").replace(/cents/g,"cent").replace(/millions/g,"million").replace(/milliards/g,"milliard");
+}
+function hintFor(a){
+ if(q.type==="TO_DIGITS")return "Indice : décompose le nombre en classes : milliards, millions, milliers et unités.";
+ if(sameWithoutHyphens(a,q.expected))return "Indice : les mots sont corrects. Vérifie précisément les traits d’union.";
+ if(singularized(a)===singularized(q.expected))return "Indice : vérifie les pluriels de « vingt », « cent », « million » et « milliard ».";
+ return "Indice : décompose le nombre en classes, puis vérifie chaque groupe de trois chiffres et les règles d’écriture.";
+}
+function validate(){
+ if(resolved){
+   if(current<9){current++;show()}else finalScreen();
+   return;
+ }
+ if(!el("answer").value.trim())return;
+ var fb=el("feedback");
+ if(correctAnswer()){
+   resolved=true;el("answer").disabled=true;
+   if(attempts===0){score+=1;fb.className="success";fb.textContent="Bravo ! Bonne réponse."}
+   else{score+=.5;fb.className="success";fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai."}
+   update();el("actionBtn").textContent="Question suivante";
+ }else{
+   attempts++;
+   if(attempts===1){
+     fb.className="hint";fb.textContent=hintFor(el("answer").value);el("answer").value="";el("answer").focus();
+   }else{
+     resolved=true;el("answer").disabled=true;fb.className="error";
+     fb.textContent="Correction : "+(q.type==="TO_WORDS"?q.expected:fmt(q.n));
+     el("actionBtn").textContent="Question suivante";
+   }
+ }
+}
+function finalScreen(){
+ el("game").style.display="none";el("final").style.display="block";
+ el("finalScore").textContent=String(score).replace(".",",")+"/10";
+ var m=score<=4.5?"Revois les règles et la décomposition en classes, puis recommence.":score<=7.5?"C’est en bonne voie ! Encore un peu d’entraînement.":score<=9.5?"Très bon travail !":"Excellent ! Tu maîtrises l’écriture des nombres.";
+ el("advice").textContent=m;
+}
+function restart(){current=0;score=0;qs=makeQuestions();el("final").style.display="none";el("game").style.display="block";show()}
+el("actionBtn").onclick=validate;
+el("restartBtn").onclick=restart;
+el("answer").onkeydown=function(e){if(e.key==="Enter")validate()};
+restart();
+})();
+</script>
+</body>
+</html>
