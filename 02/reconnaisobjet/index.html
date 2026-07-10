@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reconnais l'objet géométrique</title>
+<style>
+:root{
+  --accent:#2F6FED;
+  --accent2:#EF713F;
+  --success:#C8FE53;
+  --ink:#151515;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+#app{width:min(96vw,940px);height:min(96vh,680px);padding:14px}
+.hud{
+  display:flex;
+  justify-content:space-between;
+  background:rgba(255,253,246,.92);
+  border:2px solid #efe7d2;
+  border-radius:16px;
+  padding:10px 16px;
+  margin-bottom:12px;
+  font-size:clamp(15px,2vw,21px);
+  font-weight:bold;
+}
+.card{
+  background:transparent;
+  border:none;
+  border-radius:24px;
+  padding:22px;
+  box-shadow:none;
+  text-align:center;
+  min-height:calc(100% - 58px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+#final{
+  display:none;
+  background:rgba(255,255,255,.90);
+  border:2px solid #efe7d2;
+  border-radius:24px;
+  padding:34px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  text-align:center;
+}
+h1{margin:0;font-size:clamp(22px,3vw,32px);color:#24334a}
+.prompt{font-size:clamp(16px,2vw,20px);color:#555}
+.figure{
+  width:min(96%,680px);
+  height:230px;
+  background:white;
+  border:2px solid #d9e4f5;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 7px 16px rgba(47,111,237,.10);
+  position:relative;
+}
+.figure:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:16px;
+  background:radial-gradient(circle, rgba(47,111,237,.16) 1px, transparent 1.4px);
+  background-size:18px 18px;
+  opacity:.65;
+  pointer-events:none;
+}
+svg{width:94%;height:90%;overflow:visible;position:relative;z-index:2}
+.answers{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  width:min(96%,680px);
+}
+.choice{
+  border:2px solid #e8dfc7;
+  background:#fffaf0;
+  border-radius:15px;
+  padding:13px;
+  font-size:clamp(18px,2.2vw,24px);
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.12);
+}
+.choice:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.choice.correct{background:var(--success);border-color:var(--success)}
+.choice.wrong{background:#FFD9D9;border-color:#FEB2B2}
+.choice:disabled{cursor:default;opacity:1}
+#feedback{
+  display:none;
+  width:min(96%,680px);
+  border-radius:15px;
+  padding:12px 14px;
+  font-size:clamp(14px,1.8vw,18px);
+  line-height:1.35;
+}
+.success{display:block!important;background:var(--success);font-weight:bold;color:#2d4100}
+.explain{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.action{
+  display:none;
+  border:0;
+  border-radius:15px;
+  padding:12px 24px;
+  background:var(--accent);
+  color:white;
+  font-size:20px;
+  font-weight:bold;
+  cursor:pointer;
+  min-width:220px;
+  box-shadow:0 4px 0 rgba(0,0,0,.18);
+}
+#finalScore{font-size:80px;font-weight:900;color:var(--accent);margin:20px}
+#restartBtn{display:inline-block;background:var(--accent)}
+@media(max-width:650px){.answers{grid-template-columns:1fr}.figure{height:170px}}
+@media(max-height:620px){.card{gap:7px;padding:10px}.figure{height:155px}.choice{padding:8px}.hud{margin-bottom:6px}}
+</style>
+</head>
+
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud"><span id="progress"></span><span id="score"></span></div>
+    <div class="card">
+      <h1>Reconnais l’objet géométrique</h1>
+      <div class="prompt">Observe la figure, puis clique sur sa bonne notation.</div>
+      <div class="figure" id="figure"></div>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore"></div>
+    <div id="advice"></div><br>
+    <button class="action" id="restartBtn">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+var types=["point","droite","segment","demiAB","demiBA"],qs=[],current=0,score=0,answered=false;
+
+function E(x){return document.getElementById(x)}
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=R(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function letters(){var s="ABCDEFGHJKLMNPRSTUV",a=s[R(0,s.length-1)],b=a;while(b===a)b=s[R(0,s.length-1)];return[a,b]}
+
+function make(){
+  var list=[];
+  for(var i=0;i<10;i++){
+    var l=letters();
+    list.push({type:types[i%5],A:l[0],B:l[1],tilt:R(-22,22)});
+  }
+  return sh(list);
+}
+
+function note(q,t){
+  if(t==="point") return q.A;
+  if(t==="droite") return "("+q.A+q.B+")";
+  if(t==="segment") return "["+q.A+q.B+"]";
+  if(t==="demiAB") return "["+q.A+q.B+")";
+  return "["+q.B+q.A+")";
+}
+
+function pointMark(x,label){
+  return '<line x1="'+x+'" y1="86" x2="'+x+'" y2="114" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+         '<text x="'+x+'" y="72" text-anchor="middle" font-size="23" font-weight="bold" font-family="Arial">'+label+'</text>';
+}
+
+function fig(q){
+  if(q.type==="point"){
+    return '<svg viewBox="0 0 600 200">'+
+           '<g transform="rotate('+q.tilt+' 300 100)">'+
+           '<line x1="288" y1="88" x2="312" y2="112" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+           '<line x1="288" y1="112" x2="312" y2="88" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+           '<text x="325" y="82" text-anchor="middle" font-size="25" font-weight="bold" font-family="Arial">'+q.A+'</text>'+
+           '</g></svg>';
+  }
+
+  // Repère local : les points A et B sont toujours sur la même droite.
+  var ax=210, bx=390;
+  var x1, x2;
+
+  if(q.type==="droite"){
+    // La droite dépasse des deux côtés des deux points.
+    x1=45; x2=555;
+  } else if(q.type==="segment"){
+    // Le segment commence au premier point et finit au second.
+    x1=ax; x2=bx;
+  } else if(q.type==="demiAB"){
+    // Demi-droite [AB) : origine A, puis elle passe par B et continue après B.
+    x1=ax; x2=555;
+  } else {
+    // Demi-droite [BA) : origine B, puis elle passe par A et continue après A.
+    x1=45; x2=bx;
+  }
+
+  return '<svg viewBox="0 0 600 200">'+
+         '<g transform="rotate('+q.tilt+' 300 100)">'+
+         '<line x1="'+x1+'" y1="100" x2="'+x2+'" y2="100" stroke="#2F6FED" stroke-width="5" stroke-linecap="round"/>'+
+         pointMark(ax,q.A)+pointMark(bx,q.B)+
+         '</g></svg>';
+}
+
+function exp(q){
+  var good=note(q,q.type);
+  if(q.type==="point") return "C’est le point "+q.A+". Un point se désigne par une lettre majuscule : "+good+".";
+  if(q.type==="droite") return "C’est une droite : elle dépasse des deux côtés. Elle se note "+good+".";
+  if(q.type==="segment") return "C’est un segment : il est limité par ses deux extrémités. Il se note "+good+".";
+  if(q.type==="demiAB") return "C’est une demi-droite d’origine "+q.A+" passant par "+q.B+" : elle se note "+good+".";
+  return "C’est une demi-droite d’origine "+q.B+" passant par "+q.A+" : elle se note "+good+".";
+}
+
+function hud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+}
+
+function show(){
+  answered=false;
+  hud();
+  var q=qs[current];
+  E("figure").innerHTML=fig(q);
+
+  var box=E("answers");
+  box.innerHTML="";
+  var proposalTypes;
+  if(q.type==="point"){
+    proposalTypes=["point","pointParen","pointCrochet","pointDemi"];
+  }else{
+    proposalTypes=["droite","segment","demiAB","demiBA"];
+  }
+
+  sh(proposalTypes.slice()).forEach(function(t){
+    var b=document.createElement("button");
+    b.className="choice";
+
+    if(t==="pointParen") b.textContent="("+q.A+")";
+    else if(t==="pointCrochet") b.textContent="["+q.A+"]";
+    else if(t==="pointDemi") b.textContent="["+q.A+")";
+    else b.textContent=note(q,t);
+
+    b.dataset.t=t;
+    b.onclick=function(){choose(this)};
+    box.appendChild(b);
+  });
+
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("nextBtn").style.display="none";
+}
+
+function choose(btn){
+  if(answered)return;
+  answered=true;
+  var q=qs[current];
+  var ok=btn.dataset.t===q.type;
+  var buttons=E("answers").querySelectorAll("button");
+
+  for(var i=0;i<buttons.length;i++){
+    buttons[i].disabled=true;
+    if(buttons[i].dataset.t===q.type) buttons[i].classList.add("correct");
+  }
+
+  var f=E("feedback");
+  if(ok){
+    score++;
+    hud();
+    f.className="success";
+    f.textContent="Bravo ! Bonne réponse.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.textContent=exp(q);
+  }
+
+  E("nextBtn").style.display="inline-block";
+}
+
+function next(){
+  if(current<9){current++;show()}
+  else done();
+}
+
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="block";
+  E("finalScore").textContent=score+"/10";
+  E("advice").textContent=
+    score<=4 ? "Revois les symboles utilisés pour noter les objets géométriques." :
+    score<=7 ? "C’est en bonne voie ! Attention aux crochets, aux parenthèses et à l’origine des demi-droites." :
+    score<=9 ? "Très bon travail !" :
+    "Excellent ! Tu maîtrises les notations.";
+}
+
+function restart(){
+  current=0;
+  score=0;
+  qs=make();
+  E("final").style.display="none";
+  E("game").style.display="block";
+  show();
+}
+
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+restart();
+})();
+</script>
+</body>
+</html>
