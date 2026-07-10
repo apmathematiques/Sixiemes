@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Décomposition additive</title>
+<style>
+:root{--accent:#EF713F;--success:#C8FE53;--ink:#121212;--blue:#EBF4FF}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{font-family:Arial,sans-serif;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{width:min(96vw,980px);height:min(96vh,680px);padding:14px}
+.hud{display:flex;justify-content:space-between;background:rgba(255,255,255,.86);border-radius:14px;padding:10px 16px;margin-bottom:12px;font-size:clamp(15px,2vw,21px);font-weight:bold}
+.card{background:rgba(255,255,255,.93);border-radius:24px;min-height:calc(100% - 56px);padding:clamp(12px,2.4vw,24px);box-shadow:0 10px 25px rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+.question{font-size:clamp(18px,2.5vw,26px);margin:0}
+.number{font-size:clamp(34px,6vw,60px);font-weight:900;background:white;border:3px solid #f0f0f0;border-radius:20px;padding:10px 24px;box-shadow:0 7px 18px rgba(0,0,0,.06)}
+.help{font-size:clamp(13px,1.6vw,17px);color:#666}
+.blocks{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%}
+.block{border:3px solid #eee;background:white;color:#121212;border-radius:14px;padding:10px 14px;font-size:clamp(15px,2vw,21px);font-weight:bold;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.block:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.block.selected{background:#FFE3D5;border-color:var(--accent)}
+.block:disabled{cursor:default}
+.answer-zone{width:100%;min-height:66px;border:3px dashed #ddd;border-radius:17px;padding:10px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;background:rgba(255,255,255,.65)}
+.answer-zone.empty:after{content:"Clique sur les termes de la décomposition";color:#999;font-style:italic;font-size:clamp(14px,1.7vw,17px)}
+.term{background:white;border:2px solid var(--accent);border-radius:12px;padding:7px 10px;font-size:clamp(15px,1.9vw,20px);font-weight:bold}
+.plus{font-size:clamp(19px,2.4vw,25px);font-weight:bold}
+#feedback{display:none;width:100%;border-radius:15px;padding:10px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.35}
+.success{display:block!important;background:var(--success);color:#2d4100;font-weight:bold}
+.hint{display:block!important;background:var(--blue);color:#2c5282;border:2px solid #D0E3F7}
+.error{display:block!important;background:#FFF5F5;color:#9b2c2c;border:2px solid #FEB2B2}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.action{border:0;border-radius:15px;padding:11px 22px;background:var(--accent);color:white;font-size:clamp(16px,1.9vw,20px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.15);min-width:180px}
+.secondary{background:#777}
+#nextBtn{display:none}
+#final{display:none;background:rgba(255,255,255,.96);border-radius:24px;padding:34px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+#finalScore{font-size:clamp(52px,10vw,90px);font-weight:900;color:var(--accent);margin:20px 0}
+#advice{font-size:clamp(20px,3vw,28px);margin-bottom:26px}
+@media(max-height:610px){.card{gap:7px;padding:8px}.number{padding:5px 18px}.block{padding:7px 10px}.answer-zone{min-height:52px;padding:6px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="game">
+  <div class="hud"><span id="progress"></span><span id="score"></span></div>
+  <div class="card">
+    <p class="question">Construis la <strong>décomposition additive</strong> de :</p>
+    <div class="number" id="number"></div>
+    <div class="help">Sélectionne uniquement les termes utiles. Clique de nouveau sur un terme pour le retirer.</div>
+    <div class="blocks" id="blocks"></div>
+    <div class="answer-zone empty" id="answerZone"></div>
+    <div id="feedback"></div>
+    <div class="actions">
+      <button class="action secondary" id="clearBtn">Effacer</button>
+      <button class="action" id="validateBtn">Valider</button>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+</div>
+<div id="final">
+  <h1>Bilan</h1>
+  <div id="finalScore"></div>
+  <div id="advice"></div>
+  <button class="action" id="restartBtn">Recommencer</button>
+</div>
+</div>
+
+<script>
+(function(){
+var questions=[],current=0,score=0,attempts=0,resolved=false,q=null,selected=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+
+function generateNumber(){
+  var digits=rand(4,12),s=String(rand(1,9));
+  for(var i=1;i<digits;i++)s+=String(rand(0,9));
+  // On favorise quelques zéros internes pour rendre la lecture de position intéressante.
+  if(digits>=6 && Math.random()<0.75){
+    var zeroCount=rand(1,Math.min(3,digits-2));
+    for(var z=0;z<zeroCount;z++){
+      var p=rand(1,digits-2);
+      s=s.slice(0,p)+"0"+s.slice(p+1);
+    }
+  }
+  return s;
+}
+
+function correctTerms(s){
+  var terms=[];
+  for(var i=0;i<s.length;i++){
+    var d=Number(s[i]);
+    if(d!==0)terms.push(d*Math.pow(10,s.length-1-i));
+  }
+  return terms;
+}
+
+function makeTrapTerms(s,correct){
+  var traps=[];
+  var len=s.length;
+
+  // Piège 1 : bonne valeur de rang mais mauvais chiffre (décalage d'une unité).
+  for(var i=0;i<len;i++){
+    var d=Number(s[i]);
+    if(d>0){
+      var power=len-1-i;
+      var wrongDigit=d===9?8:d+1;
+      var t=wrongDigit*Math.pow(10,power);
+      if(correct.indexOf(t)<0)traps.push(t);
+    }
+  }
+
+  // Piège 2 : bon chiffre placé un rang trop à droite ou trop à gauche.
+  for(var j=0;j<len;j++){
+    var dj=Number(s[j]);
+    if(dj>0){
+      var pj=len-1-j;
+      if(pj>0){
+        var right=dj*Math.pow(10,pj-1);
+        if(correct.indexOf(right)<0)traps.push(right);
+      }
+      if(pj<len-1){
+        var left=dj*Math.pow(10,pj+1);
+        if(correct.indexOf(left)<0)traps.push(left);
+      }
+    }
+  }
+
+  // Pièges liés aux zéros : proposer une valeur qui n'existe pas à un rang nul.
+  for(var k=0;k<len;k++){
+    if(s[k]==="0"){
+      var pk=len-1-k;
+      var fake=rand(1,9)*Math.pow(10,pk);
+      if(correct.indexOf(fake)<0)traps.push(fake);
+    }
+  }
+
+  // Dédupliquer puis garder 3 ou 4 intrus.
+  var unique=[];
+  traps.forEach(function(x){if(unique.indexOf(x)<0)unique.push(x)});
+  shuffle(unique);
+  return unique.slice(0,Math.min(4,unique.length));
+}
+
+function makeQuestion(){
+  var s=generateNumber();
+  var correct=correctTerms(s);
+  var traps=makeTrapTerms(s,correct);
+  return {s:s,correct:correct,options:shuffle(correct.concat(traps))};
+}
+
+function makeQuestions(){
+  var a=[];for(var i=0;i<10;i++)a.push(makeQuestion());return a;
+}
+
+function sameSet(a,b){
+  if(a.length!==b.length)return false;
+  var x=a.slice().sort(function(m,n){return m-n});
+  var y=b.slice().sort(function(m,n){return m-n});
+  for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;
+  return true;
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+}
+
+function showQuestion(){
+  q=questions[current];attempts=0;resolved=false;selected=[];updateHud();
+  el("number").textContent=fmt(q.s);
+  el("feedback").className="";el("feedback").style.display="none";el("feedback").innerHTML="";
+  el("validateBtn").style.display="inline-block";el("clearBtn").style.display="inline-block";el("nextBtn").style.display="none";
+  renderBlocks();renderAnswer();
+}
+
+function renderBlocks(){
+  var box=el("blocks");box.innerHTML="";
+  q.options.forEach(function(value){
+    var b=document.createElement("button");
+    b.className="block"+(selected.indexOf(value)>=0?" selected":"");
+    b.textContent=fmt(value);
+    b.disabled=resolved;
+    b.onclick=function(){
+      var idx=selected.indexOf(value);
+      if(idx>=0)selected.splice(idx,1);else selected.push(value);
+      renderBlocks();renderAnswer();
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderAnswer(){
+  var zone=el("answerZone");zone.innerHTML="";
+  if(selected.length===0){zone.className="answer-zone empty";return}
+  zone.className="answer-zone";
+  var ordered=selected.slice().sort(function(a,b){return b-a});
+  ordered.forEach(function(v,i){
+    if(i>0){var p=document.createElement("span");p.className="plus";p.textContent="+";zone.appendChild(p)}
+    var t=document.createElement("span");t.className="term";t.textContent=fmt(v);zone.appendChild(t);
+  });
+}
+
+function hint(){
+  var missing=q.correct.filter(function(x){return selected.indexOf(x)<0});
+  var extras=selected.filter(function(x){return q.correct.indexOf(x)<0});
+  if(extras.length>0 && missing.length===0)return "Indice : tu as sélectionné au moins un terme en trop. Un chiffre 0 n'ajoute aucun terme à la décomposition.";
+  if(missing.length>0 && extras.length===0)return "Indice : il manque au moins une valeur. Pour chaque chiffre non nul, demande-toi quelle valeur il représente selon son rang.";
+  return "Indice : vérifie chaque chiffre non nul et son rang. Attention aux décalages d’un rang et aux zéros, qui ne donnent aucun terme.";
+}
+
+function validate(){
+  if(resolved)return;
+  if(selected.length===0)return;
+  var fb=el("feedback");
+  if(sameSet(selected,q.correct)){
+    resolved=true;
+    if(attempts===0){score+=1;fb.className="success";fb.textContent="Bravo ! Bonne décomposition."}
+    else{score+=.5;fb.className="success";fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai."}
+    finish();
+  }else{
+    attempts++;
+    if(attempts===1){
+      fb.className="hint";fb.textContent=hint();
+    }else{
+      resolved=true;fb.className="error";
+      fb.innerHTML="Correction : <strong>"+q.correct.map(fmt).join(" + ")+"</strong>";
+      finish();
+    }
+  }
+}
+
+function finish(){
+  updateHud();renderBlocks();
+  el("validateBtn").style.display="none";el("clearBtn").style.display="none";el("nextBtn").style.display="inline-block";
+}
+
+function clearSelection(){
+  if(resolved)return;
+  selected=[];renderBlocks();renderAnswer();
+}
+
+function next(){
+  if(current<9){current++;showQuestion()}else showFinal();
+}
+
+function showFinal(){
+  el("game").style.display="none";el("final").style.display="block";
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+  var m=score<=4.5?"Revois la valeur des chiffres selon leur rang, puis recommence.":score<=7.5?"C’est en bonne voie ! Attention aux zéros et aux changements de rang.":score<=9.5?"Très bon travail !":"Excellent ! Tu maîtrises la décomposition additive.";
+  el("advice").textContent=m;
+}
+
+function restart(){
+  current=0;score=0;attempts=0;resolved=false;questions=makeQuestions();
+  el("final").style.display="none";el("game").style.display="block";showQuestion();
+}
+
+el("validateBtn").onclick=validate;
+el("clearBtn").onclick=clearSelection;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+restart();
+})();
+</script>
+</body>
+</html>
