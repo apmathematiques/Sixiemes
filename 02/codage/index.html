@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lire les codages</title>
+<style>
+:root{--b:#2F6FED;--o:#EF713F;--g:#C8FE53;--i:#151515}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--i);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden
+}
+#app{width:min(96vw,960px);height:min(96vh,690px);padding:14px}
+.hud{
+  display:flex;justify-content:space-between;
+  background:#fffdf6eb;border:2px solid #efe7d2;border-radius:16px;
+  padding:10px 16px;margin-bottom:12px;
+  font-size:clamp(15px,2vw,21px);font-weight:bold
+}
+.card{
+  min-height:calc(100% - 58px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center
+}
+.instruction{
+  font-size:clamp(18px,2.5vw,27px);font-weight:bold;
+  width:min(96%,760px);background:#ffffffe8;border-radius:17px;padding:14px 18px
+}
+.figure{
+  width:min(96%,760px);height:300px;background:white;
+  border:2px solid #d9e4f5;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 7px 16px #2f6fed1a;position:relative
+}
+.figure:before{
+  content:"";position:absolute;inset:0;border-radius:16px;
+  background:radial-gradient(circle,#2f6fed26 1px,transparent 1.4px);
+  background-size:18px 18px;opacity:.6
+}
+svg{width:96%;height:93%;position:relative;z-index:2;overflow:visible}
+.answers{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:11px;width:min(96%,760px)
+}
+.choice{
+  border:2px solid #e8dfc7;background:#fffaf0;border-radius:15px;
+  padding:12px;font-size:clamp(17px,2.2vw,23px);font-weight:bold;
+  cursor:pointer;box-shadow:0 4px 0 #0002
+}
+.choice:hover:not(:disabled){border-color:var(--b);transform:translateY(-1px)}
+.choice.correct{background:var(--g);border-color:var(--g)}
+.choice.wrong{background:#FFD9D9;border-color:#FEB2B2}
+.choice:disabled{opacity:1;cursor:default}
+#feedback{
+  display:none;width:min(96%,760px);border-radius:15px;
+  padding:11px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.35
+}
+.success{display:block!important;background:var(--g);font-weight:bold}
+.explain{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.action{
+  display:none;border:0;border-radius:15px;padding:12px 24px;
+  background:var(--o);color:white;font-size:20px;font-weight:bold;
+  cursor:pointer;min-width:220px;box-shadow:0 4px 0 #0003
+}
+#final{
+  display:none;background:#fffffff0;border:2px solid #efe7d2;
+  border-radius:24px;padding:34px;text-align:center
+}
+#finalScore{font-size:80px;font-weight:900;color:var(--b);margin:20px}
+#restartBtn{display:inline-block;background:var(--b)}
+@media(max-height:620px){
+  .card{gap:7px}.figure{height:220px}.instruction{padding:8px}.choice{padding:8px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud"><span id="progress"></span><span id="score"></span></div>
+    <div class="card">
+      <div class="instruction">Quelle égalité peut-on affirmer grâce aux codages ?</div>
+      <div class="figure" id="figure"></div>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore"></div>
+    <div id="advice"></div><br>
+    <button class="action" id="restartBtn">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+var current=0,score=0,answered=false,questions=[];
+
+function E(id){return document.getElementById(id)}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function tickOn(x1,y1,x2,y2,n){
+  var mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1;
+  var len=Math.sqrt(dx*dx+dy*dy),nx=-dy/len,ny=dx/len,s="";
+  for(var i=0;i<n;i++){
+    var off=(i-(n-1)/2)*10;
+    var cx=mx+dx/len*off,cy=my+dy/len*off;
+    s+='<line x1="'+(cx-nx*12)+'" y1="'+(cy-ny*12)+'" x2="'+(cx+nx*12)+'" y2="'+(cy+ny*12)+'" stroke="#151515" stroke-width="3"/>';
+  }
+  return s;
+}
+function point(x,y,l,dx,dy){
+  dx=dx===undefined?20:dx; dy=dy===undefined?-14:dy;
+  return '<line x1="'+(x-9)+'" y1="'+(y-9)+'" x2="'+(x+9)+'" y2="'+(y+9)+'" stroke="#151515" stroke-width="3"/>'+
+         '<line x1="'+(x-9)+'" y1="'+(y+9)+'" x2="'+(x+9)+'" y2="'+(y-9)+'" stroke="#151515" stroke-width="3"/>'+
+         '<text x="'+(x+dx)+'" y="'+(y+dy)+'" font-size="21" font-weight="bold" font-family="Arial">'+l+'</text>';
+}
+function segment(x1,y1,x2,y2,code){
+  var s='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#2F6FED" stroke-width="5"/>';
+  if(code>0)s+=tickOn(x1,y1,x2,y2,code);
+  return s;
+}
+
+function q1(){
+  var svg=
+    segment(110,175,315,55,2)+
+    segment(315,55,520,175,1)+
+    segment(520,175,110,175,2)+
+    point(110,175,"A",-28,28)+point(315,55,"B",18,-12)+point(520,175,"C",18,28);
+  return {
+    svg:svg,
+    good:"AB = AC",
+    options:["AB = AC","AB = BC","AC = BC","AB = BA"],
+    explanation:"Les côtés [AB] et [AC] portent le même double codage."
+  };
+}
+function q2(){
+  var svg=
+    segment(95,155,225,75,1)+
+    segment(225,75,365,155,1)+
+    segment(365,155,535,95,2)+
+    point(95,155,"D",-28,24)+point(225,75,"E",15,-14)+point(365,155,"F",15,25)+point(535,95,"G",15,-14);
+  return {
+    svg:svg,
+    good:"DE = EF",
+    options:["DE = EF","EF = FG","DE = FG","DF = EG"],
+    explanation:"Les segments [DE] et [EF] portent le même codage simple."
+  };
+}
+function q3(){
+  var svg=
+    segment(85,130,220,90,2)+
+    segment(220,90,350,130,1)+
+    segment(350,130,520,80,2)+
+    point(85,130,"H",-28,22)+point(220,90,"I",15,-14)+point(350,130,"J",15,24)+point(520,80,"K",15,-14);
+  return {
+    svg:svg,
+    good:"HI = JK",
+    options:["HI = JK","IJ = JK","HI = IJ","HJ = IK"],
+    explanation:"Les segments [HI] et [JK] portent le même double codage."
+  };
+}
+function q4(){
+  var svg=
+    segment(115,85,300,60,1)+
+    segment(300,60,525,115,2)+
+    segment(525,115,395,205,1)+
+    segment(395,205,170,190,3)+
+    segment(170,190,115,85,2)+
+    point(115,85,"L",-28,-12)+point(300,60,"M",14,-14)+point(525,115,"N",14,-14)+
+    point(395,205,"P",14,28)+point(170,190,"Q",-28,28);
+  return {
+    svg:svg,
+    good:"LM = NP",
+    options:["LM = NP","MN = QL","PQ = LM","MN = NP"],
+    explanation:"Les segments [LM] et [NP] portent le même codage simple."
+  };
+}
+function q5(){
+  var svg=
+    segment(100,180,250,75,2)+
+    segment(250,75,400,180,2)+
+    segment(400,180,545,90,1)+
+    point(100,180,"R",-28,28)+point(250,75,"S",14,-14)+point(400,180,"T",14,28)+point(545,90,"U",14,-14);
+  return {
+    svg:svg,
+    good:"RS = ST",
+    options:["RS = ST","ST = TU","RS = TU","RT = SU"],
+    explanation:"Les segments [RS] et [ST] portent le même double codage."
+  };
+}
+function q6(){
+  var svg=
+    segment(95,95,260,70,3)+
+    segment(260,70,450,110,1)+
+    segment(450,110,540,205,3)+
+    point(95,95,"A",-28,-12)+point(260,70,"B",14,-14)+point(450,110,"C",14,-14)+point(540,205,"D",14,28);
+  return {
+    svg:svg,
+    good:"AB = CD",
+    options:["AB = CD","AB = BC","BC = CD","AC = BD"],
+    explanation:"Les segments [AB] et [CD] portent le même triple codage."
+  };
+}
+function q7(){
+  var svg=
+    segment(120,170,260,70,1)+
+    segment(260,70,430,100,2)+
+    segment(430,100,540,190,1)+
+    point(120,170,"E",-28,28)+point(260,70,"F",14,-14)+point(430,100,"G",14,-14)+point(540,190,"H",14,28);
+  return {
+    svg:svg,
+    good:"EF = GH",
+    options:["EF = GH","FG = GH","EF = FG","EG = FH"],
+    explanation:"Les segments [EF] et [GH] portent le même codage simple."
+  };
+}
+function q8(){
+  var svg=
+    segment(100,120,250,60,2)+
+    segment(250,60,400,120,3)+
+    segment(400,120,550,60,2)+
+    point(100,120,"I",-28,22)+point(250,60,"J",14,-14)+point(400,120,"K",14,24)+point(550,60,"L",14,-14);
+  return {
+    svg:svg,
+    good:"IJ = KL",
+    options:["IJ = KL","JK = KL","IJ = JK","IK = JL"],
+    explanation:"Les segments [IJ] et [KL] portent le même double codage."
+  };
+}
+function q9(){
+  var svg=
+    segment(120,185,270,75,1)+
+    segment(270,75,430,185,2)+
+    segment(430,185,535,95,1)+
+    point(120,185,"M",-28,28)+point(270,75,"N",14,-14)+point(430,185,"P",14,28)+point(535,95,"Q",14,-14);
+  return {
+    svg:svg,
+    good:"MN = PQ",
+    options:["MN = PQ","NP = PQ","MN = NP","MP = NQ"],
+    explanation:"Les segments [MN] et [PQ] portent le même codage simple."
+  };
+}
+function q10(){
+  var svg=
+    segment(95,150,225,75,2)+
+    segment(225,75,355,150,1)+
+    segment(355,150,500,80,2)+
+    segment(500,80,565,170,3)+
+    point(95,150,"R",-28,24)+point(225,75,"S",14,-14)+point(355,150,"T",14,24)+
+    point(500,80,"U",14,-14)+point(565,170,"V",14,28);
+  return {
+    svg:svg,
+    good:"RS = TU",
+    options:["RS = TU","ST = TU","RS = UV","ST = UV"],
+    explanation:"Les segments [RS] et [TU] portent le même double codage."
+  };
+}
+
+function makeQuestions(){
+  return shuffle([q1(),q2(),q3(),q4(),q5(),q6(),q7(),q8(),q9(),q10()]);
+}
+function renderFigure(q){
+  return '<svg viewBox="0 0 640 250">'+q.svg+'</svg>';
+}
+function updateHud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+}
+function show(){
+  answered=false;updateHud();
+  var q=questions[current];
+  E("figure").innerHTML=renderFigure(q);
+  var box=E("answers");box.innerHTML="";
+  shuffle(q.options.slice()).forEach(function(o){
+    var b=document.createElement("button");
+    b.className="choice";b.textContent=o;b.dataset.v=o;
+    b.onclick=function(){choose(this)};
+    box.appendChild(b);
+  });
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("feedback").textContent="";
+  E("nextBtn").style.display="none";
+}
+function choose(btn){
+  if(answered)return;
+  answered=true;
+  var q=questions[current];
+  var ok=btn.dataset.v===q.good;
+  var buttons=E("answers").querySelectorAll("button");
+  for(var i=0;i<buttons.length;i++){
+    buttons[i].disabled=true;
+    if(buttons[i].dataset.v===q.good)buttons[i].classList.add("correct");
+  }
+  var f=E("feedback");
+  if(ok){
+    score++;updateHud();
+    f.className="success";
+    f.textContent="Bravo ! Tu as bien lu le codage.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.textContent=q.explanation+" La bonne égalité est : "+q.good+".";
+  }
+  E("nextBtn").style.display="inline-block";
+}
+function next(){
+  if(current<9){current++;show()}
+  else done();
+}
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="block";
+  E("finalScore").textContent=score+"/10";
+  E("advice").textContent=
+    score<=4?"Observe bien les petits traits : seuls des codages identiques permettent d’affirmer que deux longueurs sont égales.":
+    score<=7?"C’est en bonne voie ! Lis les codages avant de te fier à l’apparence de la figure.":
+    score<=9?"Très bon travail !":
+    "Excellent ! Tu sais lire les codages.";
+}
+function restart(){
+  current=0;score=0;questions=makeQuestions();
+  E("final").style.display="none";
+  E("game").style.display="block";
+  show();
+}
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+restart();
+})();
+</script>
+</body>
+</html>
