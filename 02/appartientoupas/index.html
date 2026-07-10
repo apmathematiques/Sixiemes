@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Appartenance</title>
+<style>
+:root{--blue:#2F6FED;--orange:#EF713F;--green:#C8FE53;--ink:#151515}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}
+body{font-family:Arial,sans-serif;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{width:min(96vw,940px);height:min(96vh,680px);padding:14px}
+.hud{display:flex;justify-content:space-between;background:rgba(255,253,246,.92);border:2px solid #efe7d2;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:clamp(15px,2vw,21px);font-weight:bold}
+.card{min-height:calc(100% - 58px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.instruction{font-size:clamp(18px,2.5vw,27px);font-weight:bold;width:min(96%,720px);background:rgba(255,255,255,.9);border-radius:17px;padding:14px 18px}
+.figure{width:min(96%,720px);height:270px;background:white;border:2px solid #d9e4f5;border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 7px 16px rgba(47,111,237,.10);position:relative}
+.figure:before{content:"";position:absolute;inset:0;border-radius:16px;background:radial-gradient(circle,rgba(47,111,237,.15) 1px,transparent 1.4px);background-size:18px 18px;opacity:.6;pointer-events:none}
+svg{width:95%;height:92%;overflow:visible;position:relative;z-index:2}
+.answers{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.choice{border:2px solid #e8dfc7;background:#fffaf0;border-radius:15px;padding:14px 30px;font-size:clamp(25px,4vw,42px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.12);min-width:150px}
+.choice:hover:not(:disabled){border-color:var(--blue);transform:translateY(-1px)}
+.choice.correct{background:var(--green);border-color:var(--green)}
+.choice.wrong{background:#FFD9D9;border-color:#FEB2B2}
+.choice:disabled{cursor:default;opacity:1}
+#feedback{display:none;width:min(96%,720px);border-radius:15px;padding:12px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.35}
+.success{display:block!important;background:var(--green);font-weight:bold;color:#2d4100}
+.explain{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.action{display:none;border:0;border-radius:15px;padding:12px 24px;background:var(--orange);color:white;font-size:20px;font-weight:bold;cursor:pointer;min-width:220px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+#final{display:none;background:rgba(255,255,255,.92);border:2px solid #efe7d2;border-radius:24px;padding:34px;text-align:center}
+#finalScore{font-size:clamp(55px,10vw,90px);font-weight:900;color:var(--blue);margin:20px}
+#restartBtn{display:inline-block;background:var(--blue)}
+@media(max-height:620px){.card{gap:8px}.figure{height:210px}.instruction{padding:9px}.choice{padding:10px 24px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="game">
+<div class="hud"><span id="progress"></span><span id="score"></span></div>
+<div class="card">
+<div class="instruction" id="instruction"></div>
+<div class="figure" id="figure"></div>
+<div class="answers">
+<button class="choice" id="inBtn">∈</button>
+<button class="choice" id="notBtn">∉</button>
+</div>
+<div id="feedback"></div>
+<button class="action" id="nextBtn">Question suivante</button>
+</div>
+</div>
+<div id="final">
+<h1>Bilan</h1><div id="finalScore"></div><div id="advice"></div><br>
+<button class="action" id="restartBtn">Recommencer</button>
+</div>
+</div>
+
+<script>
+(function(){
+var qs=[],current=0,score=0,answered=false;
+var letters="ABCDEFGHJKLMNPRSTUV";
+
+function E(id){return document.getElementById(id)}
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=R(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function pickLetters(n){var arr=sh(letters.split("")),out=[];for(var i=0;i<n;i++)out.push(arr[i]);return out}
+
+function makeQuestion(kind){
+ var L=pickLetters(3), A=L[0], B=L[1], P=L[2];
+ var scenario=kind || ["droite","segment","demi"][R(0,2)];
+ var truth=Math.random()<0.5;
+ return {scenario:scenario,A:A,B:B,P:P,truth:truth,tilt:R(-18,18)};
+}
+
+function makeQuestions(){
+ var base=["droite","droite","droite","segment","segment","segment","demi","demi","demi","demi"];
+ return sh(base.map(makeQuestion));
+}
+
+function notation(q){
+ if(q.scenario==="droite") return "("+q.A+q.B+")";
+ if(q.scenario==="segment") return "["+q.A+q.B+"]";
+ return "["+q.A+q.B+")";
+}
+
+function pointMark(x,y,label,onLine){
+ if(onLine){
+  return '<line x1="'+x+'" y1="'+(y-14)+'" x2="'+x+'" y2="'+(y+14)+'" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+         '<text x="'+x+'" y="'+(y-22)+'" text-anchor="middle" font-size="23" font-weight="bold" font-family="Arial">'+label+'</text>';
+ }
+ return '<line x1="'+(x-12)+'" y1="'+(y-12)+'" x2="'+(x+12)+'" y2="'+(y+12)+'" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+        '<line x1="'+(x-12)+'" y1="'+(y+12)+'" x2="'+(x+12)+'" y2="'+(y-12)+'" stroke="#151515" stroke-width="4" stroke-linecap="round"/>'+
+        '<text x="'+(x+22)+'" y="'+(y-16)+'" text-anchor="middle" font-size="23" font-weight="bold" font-family="Arial">'+label+'</text>';
+}
+
+function fig(q){
+ var ax=210,bx=410;
+ var px,py,onLine=false;
+ var x1,x2;
+
+ if(q.scenario==="droite"){
+   x1=55;x2=565;
+   if(q.truth){px=R(130,480);py=100;onLine=true}else{px=R(150,460);py=R(35,70);onLine=false}
+ }else if(q.scenario==="segment"){
+   x1=ax;x2=bx;
+   if(q.truth){px=R(ax+30,bx-30);py=100;onLine=true}
+   else{
+     if(Math.random()<0.5){px=R(70,170);py=100;onLine=true}else{px=R(240,380);py=R(35,70);onLine=false}
+   }
+ }else{
+   // Demi-droite [AB) : origine A, passant par B, prolongée après B.
+   x1=ax;x2=565;
+   if(q.truth){px=R(ax,bx+120);py=100;onLine=true}
+   else{
+     if(Math.random()<0.5){px=R(70,ax-30);py=100;onLine=true}else{px=R(250,470);py=R(35,70);onLine=false}
+   }
+ }
+
+ return '<svg viewBox="0 0 620 220"><g transform="rotate('+q.tilt+' 310 110)">'+
+        '<line x1="'+x1+'" y1="100" x2="'+x2+'" y2="100" stroke="#2F6FED" stroke-width="5" stroke-linecap="round"/>'+
+        pointMark(ax,100,q.A,true)+pointMark(bx,100,q.B,true)+pointMark(px,py,q.P,onLine)+
+        '</g></svg>';
+}
+
+function explanation(q){
+ var obj=notation(q);
+ if(q.truth) return "Le point "+q.P+" est bien sur "+obj+" : on écrit "+q.P+" ∈ "+obj+".";
+ if(q.scenario==="droite") return "Le point "+q.P+" n’est pas sur la droite "+obj+" : on écrit "+q.P+" ∉ "+obj+".";
+ if(q.scenario==="segment") return "Pour appartenir au segment "+obj+", le point doit être entre "+q.A+" et "+q.B+". Ici, on écrit "+q.P+" ∉ "+obj+".";
+ return "Pour appartenir à la demi-droite "+obj+", le point doit être du bon côté de l’origine "+q.A+". Ici, on écrit "+q.P+" ∉ "+obj+".";
+}
+
+function updateHud(){
+ E("progress").textContent="Question "+(current+1)+" / 10";
+ E("score").textContent="Score : "+score+" / 10";
+}
+
+function show(){
+ answered=false;updateHud();
+ var q=qs[current];
+ E("instruction").innerHTML="Complète : <strong>"+q.P+" ... "+notation(q)+"</strong>";
+ E("figure").innerHTML=fig(q);
+ E("feedback").className="";E("feedback").style.display="none";E("feedback").textContent="";
+ E("nextBtn").style.display="none";
+ var buttons=[E("inBtn"),E("notBtn")];
+ buttons.forEach(function(b){b.disabled=false;b.className="choice"});
+}
+
+function choose(isIn,btn){
+ if(answered)return;
+ answered=true;
+ var q=qs[current], ok=(isIn===q.truth);
+ var goodBtn=q.truth?E("inBtn"):E("notBtn");
+ goodBtn.classList.add("correct");
+ E("inBtn").disabled=true;E("notBtn").disabled=true;
+ var fb=E("feedback");
+ if(ok){score++;updateHud();fb.className="success";fb.textContent="Bravo ! Bonne réponse."}
+ else{btn.classList.add("wrong");fb.className="explain";fb.textContent=explanation(q)}
+ E("nextBtn").style.display="inline-block";
+}
+
+function next(){if(current<9){current++;show()}else done()}
+function done(){
+ E("game").style.display="none";E("final").style.display="block";E("finalScore").textContent=score+"/10";
+ E("advice").textContent=score<=4?"Revois les symboles ∈ et ∉, puis recommence.":score<=7?"C’est en bonne voie ! Attention aux segments et aux demi-droites.":score<=9?"Très bon travail !":"Excellent ! Tu maîtrises l’appartenance.";
+}
+function restart(){current=0;score=0;qs=makeQuestions();E("final").style.display="none";E("game").style.display="block";show()}
+
+E("inBtn").onclick=function(){choose(true,this)};
+E("notBtn").onclick=function(){choose(false,this)};
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+restart();
+})();
+</script>
+</body>
+</html>
