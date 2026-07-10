@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retrouve le nombre</title>
+<style>
+:root{--accent:#EF713F;--success:#C8FE53;--ink:#121212;--blue:#EBF4FF}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{font-family:Arial,sans-serif;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{width:min(96vw,1020px);height:min(96vh,700px);padding:14px}
+.hud{display:flex;justify-content:space-between;background:rgba(255,255,255,.86);border-radius:14px;padding:10px 16px;margin-bottom:12px;font-size:clamp(15px,2vw,21px);font-weight:bold}
+.card{background:rgba(255,255,255,.93);border-radius:24px;min-height:calc(100% - 56px);padding:clamp(12px,2.4vw,24px);box-shadow:0 10px 25px rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.question{font-size:clamp(18px,2.5vw,26px);margin:0}
+.mode{font-size:clamp(14px,1.7vw,18px);font-weight:bold;color:#666}
+.expr{font-size:clamp(18px,2.7vw,30px);font-weight:800;background:white;border:3px solid #f0f0f0;border-radius:20px;padding:16px 22px;box-shadow:0 7px 18px rgba(0,0,0,.06);max-width:100%;line-height:1.4}
+input{width:min(90%,420px);height:58px;border:3px solid #ddd;border-radius:16px;text-align:center;font-size:clamp(22px,3vw,30px);padding:8px 14px;outline:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(239,113,63,.2)}
+input:disabled{background:#f5f5f5;color:#777}
+#feedback{display:none;width:100%;border-radius:15px;padding:11px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.35;white-space:pre-line}
+.success{display:block!important;background:var(--success);color:#2d4100;font-weight:bold}
+.hint{display:block!important;background:var(--blue);color:#2c5282;border:2px solid #D0E3F7}
+.error{display:block!important;background:#FFF5F5;color:#9b2c2c;border:2px solid #FEB2B2}
+.action{border:0;border-radius:15px;padding:12px 24px;background:var(--accent);color:white;font-size:clamp(17px,2vw,21px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.15);min-width:220px}
+#final{display:none;background:rgba(255,255,255,.96);border-radius:24px;padding:34px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+#finalScore{font-size:clamp(52px,10vw,90px);font-weight:900;color:var(--accent);margin:20px 0}
+#advice{font-size:clamp(20px,3vw,28px);margin-bottom:26px}
+@media(max-height:600px){.card{gap:8px;padding:9px}.expr{padding:9px 14px}.hud{margin-bottom:6px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="game">
+  <div class="hud"><span id="progress"></span><span id="score"></span></div>
+  <div class="card">
+    <p class="question">Retrouve le nombre.</p>
+    <div class="mode" id="mode"></div>
+    <div class="expr" id="expr"></div>
+    <input id="answer" type="text" inputmode="numeric" autocomplete="off" placeholder="Réponse en chiffres">
+    <div id="feedback"></div>
+    <button class="action" id="actionBtn">Valider</button>
+  </div>
+</div>
+<div id="final">
+  <h1>Bilan</h1>
+  <div id="finalScore"></div>
+  <div id="advice"></div>
+  <button class="action" id="restartBtn">Recommencer</button>
+</div>
+</div>
+
+<script>
+(function(){
+var questions=[],current=0,score=0,attempts=0,resolved=false,q=null;
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+function clean(s){return String(s).replace(/\s/g,"")}
+
+function generateNumber(){
+  var digits=rand(4,12),s=String(rand(1,9));
+  for(var i=1;i<digits;i++)s+=String(rand(0,9));
+  if(digits>=6 && Math.random()<0.75){
+    var zeroCount=rand(1,Math.min(3,digits-2));
+    for(var z=0;z<zeroCount;z++){
+      var p=rand(1,digits-2);
+      s=s.slice(0,p)+"0"+s.slice(p+1);
+    }
+  }
+  return Number(s);
+}
+
+function additiveTerms(n){
+  var s=String(n),terms=[];
+  for(var i=0;i<s.length;i++){
+    var d=Number(s[i]);
+    if(d!==0)terms.push(d*Math.pow(10,s.length-1-i));
+  }
+  return terms;
+}
+
+function decimalTerms(n){
+  var s=String(n),terms=[];
+  for(var i=0;i<s.length;i++){
+    var d=Number(s[i]);
+    if(d!==0){
+      var place=Math.pow(10,s.length-1-i);
+      terms.push(d+" × "+fmt(place));
+    }
+  }
+  return terms;
+}
+
+function makeQuestion(type){
+  var n=generateNumber();
+  if(type==="ADD"){
+    var addTerms=additiveTerms(n).map(fmt);
+    shuffle(addTerms);
+    return {type:type,n:n,expr:addTerms.join(" + ")};
+  }else{
+    var decTerms=decimalTerms(n);
+    shuffle(decTerms);
+    return {type:type,n:n,expr:decTerms.join(" + ")};
+  }
+}
+
+function makeQuestions(){
+  var a=[];
+  for(var i=0;i<5;i++)a.push(makeQuestion("ADD"));
+  for(var j=0;j<5;j++)a.push(makeQuestion("DEC"));
+  return shuffle(a);
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+}
+
+function showQuestion(){
+  q=questions[current];attempts=0;resolved=false;updateHud();
+  el("mode").textContent=q.type==="ADD"?"Décomposition additive":"Décomposition décimale";
+  el("expr").textContent=q.expr;
+  el("answer").value="";el("answer").disabled=false;
+  el("feedback").className="";el("feedback").style.display="none";el("feedback").textContent="";
+  el("actionBtn").textContent="Valider";
+  setTimeout(function(){el("answer").focus()},50);
+}
+
+function validate(){
+  if(resolved){
+    if(current<9){current++;showQuestion()}else showFinal();
+    return;
+  }
+  var user=clean(el("answer").value);
+  if(!user)return;
+  var fb=el("feedback");
+  if(Number(user)===q.n){
+    resolved=true;el("answer").disabled=true;
+    if(attempts===0){score+=1;fb.className="success";fb.textContent="Bravo ! Bonne réponse."}
+    else{score+=.5;fb.className="success";fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai."}
+    updateHud();el("actionBtn").textContent="Question suivante";
+  }else{
+    attempts++;
+    if(attempts===1){
+      fb.className="hint";
+      if(q.type==="ADD"){
+        fb.textContent="Indice : additionne les termes. Chaque terme correspond à la valeur d’un chiffre non nul.";
+      }else{
+        fb.textContent="Indice : calcule chaque produit, puis additionne les résultats. Chaque terme correspond à chiffre × valeur du rang.";
+      }
+      el("answer").value="";el("answer").focus();
+    }else{
+      resolved=true;el("answer").disabled=true;fb.className="error";
+      fb.innerHTML="Correction : le nombre était <strong>"+fmt(q.n)+"</strong>.";
+      el("actionBtn").textContent="Question suivante";
+    }
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";el("final").style.display="block";
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+  var m=score<=4.5?"Revois les décompositions, puis recommence pour progresser.":score<=7.5?"C’est en bonne voie ! Continue à t’entraîner.":score<=9.5?"Très bon travail !":"Excellent ! Tu sais retrouver un nombre à partir de sa décomposition.";
+  el("advice").textContent=m;
+}
+
+function restart(){
+  current=0;score=0;attempts=0;resolved=false;questions=makeQuestions();
+  el("final").style.display="none";el("game").style.display="block";showQuestion();
+}
+
+el("actionBtn").onclick=validate;
+el("restartBtn").onclick=restart;
+el("answer").onkeydown=function(e){if(e.key==="Enter")validate()};
+restart();
+})();
+</script>
+</body>
+</html>
