@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Milieu d'un segment</title>
+<style>
+:root{--b:#2F6FED;--o:#EF713F;--g:#C8FE53;--i:#151515}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--i);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden
+}
+#app{width:min(96vw,960px);height:min(96vh,690px);padding:14px}
+.hud{
+  display:flex;justify-content:space-between;
+  background:#fffdf6eb;border:2px solid #efe7d2;border-radius:16px;
+  padding:10px 16px;margin-bottom:12px;
+  font-size:clamp(15px,2vw,21px);font-weight:bold
+}
+.card{
+  min-height:calc(100% - 58px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center
+}
+.instruction{
+  font-size:clamp(18px,2.5vw,27px);font-weight:bold;
+  width:min(96%,760px);background:#ffffffe8;border-radius:17px;padding:14px 18px
+}
+.figure{
+  width:min(96%,760px);height:300px;background:white;
+  border:2px solid #d9e4f5;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 7px 16px #2f6fed1a;position:relative
+}
+.figure:before{
+  content:"";position:absolute;inset:0;border-radius:16px;
+  background:radial-gradient(circle,#2f6fed26 1px,transparent 1.4px);
+  background-size:18px 18px;opacity:.6
+}
+svg{width:96%;height:93%;position:relative;z-index:2;overflow:visible}
+.answers{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.choice{
+  border:2px solid #e8dfc7;background:#fffaf0;border-radius:15px;
+  padding:14px 30px;font-size:clamp(22px,3.3vw,34px);font-weight:bold;
+  cursor:pointer;box-shadow:0 4px 0 #0002;min-width:150px
+}
+.choice:hover:not(:disabled){border-color:var(--b);transform:translateY(-1px)}
+.choice.correct{background:var(--g);border-color:var(--g)}
+.choice.wrong{background:#FFD9D9;border-color:#FEB2B2}
+.choice:disabled{opacity:1;cursor:default}
+#feedback{
+  display:none;width:min(96%,760px);border-radius:15px;
+  padding:11px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.4
+}
+.success{display:block!important;background:var(--g);font-weight:bold}
+.explain{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.action{
+  display:none;border:0;border-radius:15px;padding:12px 24px;
+  background:var(--o);color:white;font-size:20px;font-weight:bold;
+  cursor:pointer;min-width:220px;box-shadow:0 4px 0 #0003
+}
+#final{
+  display:none;background:#fffffff0;border:2px solid #efe7d2;
+  border-radius:24px;padding:34px;text-align:center
+}
+#finalScore{font-size:80px;font-weight:900;color:var(--b);margin:20px}
+#restartBtn{display:inline-block;background:var(--b)}
+@media(max-height:620px){
+  .card{gap:7px}.figure{height:220px}.instruction{padding:8px}.choice{padding:10px 24px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud"><span id="progress"></span><span id="score"></span></div>
+    <div class="card">
+      <div class="instruction" id="instruction"></div>
+      <div class="figure" id="figure"></div>
+      <div class="answers">
+        <button class="choice" id="yesBtn">Oui</button>
+        <button class="choice" id="noBtn">Non</button>
+      </div>
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore"></div>
+    <div id="advice"></div><br>
+    <button class="action" id="restartBtn">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+var current=0,score=0,answered=false,questions=[];
+
+function E(id){return document.getElementById(id)}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function pointTick(x,y,label,dx,dy){
+  dx=dx===undefined?0:dx;dy=dy===undefined?-18:dy;
+  return '<line x1="'+x+'" y1="'+(y-12)+'" x2="'+x+'" y2="'+(y+12)+'" stroke="#151515" stroke-width="4"/>'+
+         '<text x="'+(x+dx)+'" y="'+(y+dy)+'" text-anchor="middle" font-size="22" font-weight="bold">'+label+'</text>';
+}
+function cross(x,y,label){
+  return '<line x1="'+(x-10)+'" y1="'+(y-10)+'" x2="'+(x+10)+'" y2="'+(y+10)+'" stroke="#151515" stroke-width="4"/>'+
+         '<line x1="'+(x-10)+'" y1="'+(y+10)+'" x2="'+(x+10)+'" y2="'+(y-10)+'" stroke="#151515" stroke-width="4"/>'+
+         '<text x="'+(x+20)+'" y="'+(y-14)+'" font-size="22" font-weight="bold">'+label+'</text>';
+}
+function tickOn(x1,y1,x2,y2,n){
+  var mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1;
+  var len=Math.sqrt(dx*dx+dy*dy),nx=-dy/len,ny=dx/len,s="";
+  for(var i=0;i<n;i++){
+    var off=(i-(n-1)/2)*10,cx=mx+dx/len*off,cy=my+dy/len*off;
+    s+='<line x1="'+(cx-nx*12)+'" y1="'+(cy-ny*12)+'" x2="'+(cx+nx*12)+'" y2="'+(cy+ny*12)+'" stroke="#151515" stroke-width="3"/>';
+  }
+  return s;
+}
+function seg(x1,y1,x2,y2){
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#2F6FED" stroke-width="5"/>';
+}
+function prolongement(x1,y1,x2,y2){
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#8A94A6" stroke-width="4" stroke-dasharray="9 8"/>';
+}
+
+function makeQuestions(){
+  var q=[];
+
+  q.push({
+    point:"M",a:"A",b:"B",truth:true,
+    svg:seg(110,135,530,135)+pointTick(110,135,"A",-20,28)+pointTick(320,135,"M",0,-18)+pointTick(530,135,"B",20,28)+tickOn(110,135,320,135,2)+tickOn(320,135,530,135,2),
+    reason:"M appartient à [AB] et les codages indiquent AM = MB."
+  });
+
+  q.push({
+    point:"R",a:"S",b:"P",truth:false,
+    svg:seg(100,145,540,145)+pointTick(100,145,"S",-20,28)+pointTick(300,145,"R",0,-18)+pointTick(540,145,"P",20,28)+tickOn(100,145,300,145,1)+tickOn(300,145,540,145,2),
+    reason:"R appartient bien à [SP], mais SR et RP ne portent pas le même codage."
+  });
+
+  q.push({
+    point:"I",a:"C",b:"D",truth:false,
+    svg:seg(110,155,530,155)+pointTick(110,155,"C",-20,28)+pointTick(530,155,"D",20,28)+
+        seg(110,155,320,70)+seg(320,70,530,155)+cross(320,70,"I")+
+        tickOn(110,155,320,70,2)+tickOn(320,70,530,155,2),
+    reason:"IC = ID, mais I n’appartient pas au segment [CD]."
+  });
+
+  q.push({
+    point:"N",a:"E",b:"F",truth:true,
+    svg:seg(120,170,520,80)+pointTick(120,170,"E",-20,28)+pointTick(320,125,"N",0,-20)+pointTick(520,80,"F",20,-18)+
+        tickOn(120,170,320,125,1)+tickOn(320,125,520,80,1),
+    reason:"N appartient à [EF] et EN = NF."
+  });
+
+  q.push({
+    point:"T",a:"G",b:"H",truth:false,
+    svg:seg(90,135,330,135)+prolongement(330,135,500,135)+
+        pointTick(90,135,"G",-20,28)+pointTick(330,135,"H",0,-18)+pointTick(500,135,"T",0,-18)+
+        tickOn(90,135,330,135,1)+tickOn(330,135,500,135,1),
+    reason:"T n’appartient pas au segment [GH] : il est situé au-delà de H."
+  });
+
+  q.push({
+    point:"O",a:"J",b:"K",truth:false,
+    svg:seg(120,145,520,145)+pointTick(120,145,"J",-20,28)+pointTick(320,145,"O",0,-18)+pointTick(520,145,"K",20,28),
+    reason:"O appartient à [JK], mais aucun codage ni aucune longueur ne permet d’affirmer JO = OK."
+  });
+
+  q.push({
+    point:"U",a:"L",b:"M",truth:true,
+    svg:seg(115,85,525,190)+pointTick(115,85,"L",-20,-18)+pointTick(320,138,"U",0,-18)+pointTick(525,190,"M",20,28)+
+        tickOn(115,85,320,138,3)+tickOn(320,138,525,190,3),
+    reason:"U appartient à [LM] et LU = UM."
+  });
+
+  q.push({
+    point:"V",a:"P",b:"Q",truth:false,
+    svg:seg(100,150,540,150)+pointTick(100,150,"P",-20,28)+pointTick(285,150,"V",0,-18)+pointTick(540,150,"Q",20,28)+
+        tickOn(100,150,285,150,2)+tickOn(285,150,540,150,1),
+    reason:"V appartient à [PQ], mais PV ≠ VQ d’après les codages."
+  });
+
+  q.push({
+    point:"X",a:"R",b:"S",truth:true,
+    svg:seg(110,190,530,70)+pointTick(110,190,"R",-20,28)+pointTick(320,130,"X",0,-18)+pointTick(530,70,"S",20,-18)+
+        tickOn(110,190,320,130,2)+tickOn(320,130,530,70,2),
+    reason:"X appartient à [RS] et RX = XS."
+  });
+
+  q.push({
+    point:"Y",a:"A",b:"C",truth:false,
+    svg:seg(95,145,300,145)+prolongement(300,145,480,145)+
+        pointTick(95,145,"A",-20,28)+pointTick(300,145,"C",0,-18)+pointTick(480,145,"Y",0,-18)+
+        tickOn(95,145,300,145,2)+tickOn(300,145,480,145,2),
+    reason:"Y est à égale distance de A et C dans la figure codée, mais Y n’appartient pas au segment [AC] : il est au-delà de C."
+  });
+
+  return shuffle(q);
+}
+
+function updateHud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+}
+function show(){
+  answered=false;updateHud();
+  var q=questions[current];
+  E("instruction").innerHTML="Le point <strong>"+q.point+"</strong> est-il le milieu du segment <strong>["+q.a+q.b+"]</strong> ?";
+  E("figure").innerHTML='<svg viewBox="0 0 640 260">'+q.svg+'</svg>';
+
+  [E("yesBtn"),E("noBtn")].forEach(function(b){
+    b.disabled=false;b.className="choice";
+  });
+
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("feedback").textContent="";
+  E("nextBtn").style.display="none";
+}
+function choose(value,btn){
+  if(answered)return;
+  answered=true;
+  var q=questions[current];
+  var ok=value===q.truth;
+  var correctBtn=q.truth?E("yesBtn"):E("noBtn");
+  correctBtn.classList.add("correct");
+  E("yesBtn").disabled=true;
+  E("noBtn").disabled=true;
+
+  var f=E("feedback");
+  if(ok){
+    score++;updateHud();
+    f.className="success";
+    f.textContent="Bravo ! Bonne réponse.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.textContent=q.reason;
+  }
+  E("nextBtn").style.display="inline-block";
+}
+function next(){
+  if(current<9){current++;show()}
+  else done();
+}
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="block";
+  E("finalScore").textContent=score+"/10";
+  E("advice").textContent=
+    score<=4?"Rappelle-toi : un milieu doit appartenir au segment et être à égale distance des deux extrémités.":
+    score<=7?"C’est en bonne voie ! Vérifie toujours les deux conditions.":
+    score<=9?"Très bon travail !":
+    "Excellent ! Tu sais reconnaître le milieu d’un segment.";
+}
+function restart(){
+  current=0;score=0;questions=makeQuestions();
+  E("final").style.display="none";
+  E("game").style.display="block";
+  show();
+}
+
+E("yesBtn").onclick=function(){choose(true,this)};
+E("noBtn").onclick=function(){choose(false,this)};
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+restart();
+})();
+</script>
+</body>
+</html>
