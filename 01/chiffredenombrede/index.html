@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chiffre de / Nombre de</title>
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: transparent;
+    color: #121212;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #app {
+    width: min(92vw, 850px);
+    height: min(92vh, 600px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    background: rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    font-size: clamp(16px, 2vw, 22px);
+  }
+
+  .card {
+    background: rgba(255,255,255,0.9);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  #number {
+    font-size: clamp(34px, 7vw, 64px);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  #question {
+    font-size: clamp(20px, 3vw, 30px);
+    line-height: 1.35;
+  }
+
+  input {
+    width: min(320px, 80%);
+    margin: 0 auto;
+    height: 58px;
+    border-radius: 16px;
+    border: 3px solid #ddd;
+    text-align: center;
+    font-size: 28px;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #EF713F;
+    box-shadow: 0 0 0 4px rgba(239,113,63,0.2);
+  }
+
+  button {
+    width: fit-content;
+    min-width: 220px;
+    margin: 0 auto;
+    border: 0;
+    border-radius: 16px;
+    padding: 14px 24px;
+    background: #EF713F;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+
+  #feedback {
+    min-height: 80px;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: clamp(17px, 2.2vw, 22px);
+    line-height: 1.35;
+    display: none;
+    white-space: pre-line;
+  }
+
+  .success {
+    display: block !important;
+    background: #C8FE53;
+    color: #2d4100;
+    font-weight: bold;
+  }
+
+  .hint {
+    display: block !important;
+    background: #EBF4FF;
+    color: #2c5282;
+    border: 2px solid #D0E3F7;
+  }
+
+  .error {
+    display: block !important;
+    background: #FFF5F5;
+    color: #9b2c2c;
+    border: 2px solid #FEB2B2;
+  }
+
+  #final {
+    display: none;
+    background: rgba(255,255,255,0.95);
+    border-radius: 24px;
+    padding: 34px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  }
+
+  #finalScore {
+    font-size: clamp(52px, 10vw, 90px);
+    font-weight: 900;
+    color: #EF713F;
+    margin: 20px 0;
+  }
+
+  #advice {
+    font-size: clamp(20px, 3vw, 30px);
+    margin-bottom: 26px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress">Question 1 / 10</span>
+      <span id="score">Score : 0 / 10</span>
+    </div>
+
+    <div class="card">
+      <div id="number">---</div>
+      <div id="question">---</div>
+      <input id="answer" type="text" inputmode="numeric" placeholder="Réponse">
+      <div id="feedback"></div>
+      <button id="mainBtn" type="button">Valider</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore">0/10</div>
+    <div id="advice"></div>
+    <button id="restartBtn" type="button">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var ranks = [
+    { name: "unités", val: 1, weight: 1 },
+    { name: "dizaines", val: 10, weight: 1 },
+    { name: "centaines", val: 100, weight: 1 },
+    { name: "unités de milliers", val: 1000, weight: 3 },
+    { name: "dizaines de milliers", val: 10000, weight: 3 },
+    { name: "centaines de milliers", val: 100000, weight: 3 },
+    { name: "unités de millions", val: 1000000, weight: 4 },
+    { name: "dizaines de millions", val: 10000000, weight: 4 },
+    { name: "centaines de millions", val: 100000000, weight: 4 },
+    { name: "unités de milliards", val: 1000000000, weight: 5 }
+  ];
+
+  var maxQuestions = 10;
+  var score = 0;
+  var current = 1;
+  var attempts = 0;
+  var resolved = false;
+  var q = null;
+
+  function el(id) { return document.getElementById(id); }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function formatNumber(n) {
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  function clean(s) {
+    return String(s).replace(/\s/g, "");
+  }
+
+  function generateNumber() {
+    var digits = rand(3, 12);
+    var s = String(rand(1, 9));
+    for (var i = 1; i < digits; i++) {
+      s += String(rand(0, 9));
+    }
+    return Number(s);
+  }
+
+  function generateQuestion() {
+    var n = generateNumber();
+    var possible = [];
+    for (var i = 0; i < ranks.length; i++) {
+      if (ranks[i].val <= n) possible.push(ranks[i]);
+    }
+
+    // Choix pondéré : les rangs des milliers, millions et milliards
+    // apparaissent nettement plus souvent que unités, dizaines et centaines.
+    var weighted = [];
+    for (var j = 0; j < possible.length; j++) {
+      var w = possible[j].weight || 1;
+      for (var k = 0; k < w; k++) weighted.push(possible[j]);
+    }
+    var rank = weighted[rand(0, weighted.length - 1)];
+    var type = Math.random() < 0.5 ? "CHIFFRE" : "NOMBRE";
+    var answer;
+
+    if (type === "CHIFFRE") {
+      answer = Math.floor(n / rank.val) % 10;
+    } else {
+      answer = Math.floor(n / rank.val);
+    }
+
+    return {
+      n: n,
+      rank: rank,
+      type: type,
+      answer: answer
+    };
+  }
+
+  function updateScore() {
+    var scoreText = String(score).replace(".", ",");
+    el("score").textContent = "Score : " + scoreText + " / 10";
+  }
+
+  function showQuestion() {
+    q = generateQuestion();
+    attempts = 0;
+    resolved = false;
+
+    el("progress").textContent = "Question " + current + " / 10";
+    updateScore();
+
+    el("number").textContent = formatNumber(q.n);
+
+    if (q.type === "CHIFFRE") {
+      el("question").innerHTML = "Quel est le <strong>chiffre des " + q.rank.name + "</strong> ?";
+    } else {
+      el("question").innerHTML = "Quel est le <strong>nombre de " + q.rank.name + "</strong> ?";
+    }
+
+    el("answer").value = "";
+    el("answer").disabled = false;
+
+    el("feedback").className = "";
+    el("feedback").style.display = "none";
+    el("feedback").innerHTML = "";
+
+    el("mainBtn").textContent = "Valider";
+
+    setTimeout(function() { el("answer").focus(); }, 50);
+  }
+
+  function validate() {
+    if (resolved) {
+      if (current < maxQuestions) {
+        current++;
+        showQuestion();
+      } else {
+        showFinal();
+      }
+      return;
+    }
+
+    var user = clean(el("answer").value);
+    if (user === "") return;
+
+    if (Number(user) === q.answer) {
+      resolved = true;
+      el("answer").disabled = true;
+
+      if (attempts === 0) {
+        score += 1;
+        el("feedback").className = "success";
+        el("feedback").textContent = "Bravo ! Bonne réponse.";
+      } else {
+        score += 0.5;
+        el("feedback").className = "success";
+        el("feedback").textContent = "Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+      }
+
+      updateScore();
+      el("mainBtn").textContent = "Question suivante";
+      return;
+    }
+
+    attempts++;
+    el("answer").value = "";
+
+    if (attempts === 1) {
+      el("feedback").className = "hint";
+
+      if (q.type === "CHIFFRE") {
+        el("feedback").textContent =
+          "Le chiffre des " + q.rank.name + " est le chiffre qui se trouve au rang des " + q.rank.name + ".";
+      } else {
+        el("feedback").textContent =
+          "Lorsque je souhaite le nombre de " + q.rank.name + ", je garde tous les chiffres jusqu’au rang des " + q.rank.name + ", en partant de la gauche.\n\n" +
+          "Il s’agit du nombre de " + q.rank.name + " que contient notre nombre.";
+      }
+
+      el("answer").focus();
+    } else {
+      resolved = true;
+      el("answer").disabled = true;
+      el("feedback").className = "error";
+
+      if (q.type === "CHIFFRE") {
+        el("feedback").innerHTML =
+          "Correction : le chiffre des " + q.rank.name + " est <strong>" + q.answer + "</strong>.";
+      } else {
+        var s = String(q.n);
+        var zeros = String(q.rank.val).length - 1;
+        var cut = s.length - zeros;
+        var left = s.slice(0, cut);
+        var right = s.slice(cut);
+
+        el("feedback").innerHTML =
+          "Correction : on garde tous les chiffres jusqu’au rang des " + q.rank.name + " :<br>" +
+          "<strong>" + formatNumber(left) + " | " + right + "</strong><br>" +
+          "On obtient <strong>" + formatNumber(q.answer) + "</strong>.";
+      }
+
+      el("mainBtn").textContent = "Question suivante";
+    }
+  }
+
+  function showFinal() {
+    el("game").style.display = "none";
+    el("final").style.display = "block";
+
+    el("finalScore").textContent = String(score).replace(".", ",") + "/10";
+
+    var msg;
+    if (score <= 4.5) msg = "Tu peux revoir la méthode et recommencer pour progresser.";
+    else if (score <= 7.5) msg = "C’est en bonne voie ! Encore un peu d’entraînement.";
+    else if (score <= 9.5) msg = "Très bon travail !";
+    else msg = "Excellent ! Tu maîtrises la distinction entre chiffre de et nombre de.";
+
+    el("advice").textContent = msg;
+  }
+
+  function restart() {
+    score = 0;
+    current = 1;
+    attempts = 0;
+    resolved = false;
+    q = null;
+
+    el("final").style.display = "none";
+    el("game").style.display = "block";
+
+    showQuestion();
+  }
+
+  el("mainBtn").onclick = validate;
+  el("restartBtn").onclick = restart;
+  el("answer").onkeydown = function(e) {
+    e = e || window.event;
+    if (e.key === "Enter" || e.keyCode === 13) validate();
+  };
+
+  restart();
+})();
+</script>
+</body>
+</html>
