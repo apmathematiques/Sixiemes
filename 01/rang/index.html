@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le rang d’un chiffre</title>
+
+<style>
+:root {
+  --accent: #EF713F;
+  --success: #C8FE53;
+  --ink: #121212;
+  --soft-blue: #EBF4FF;
+  --soft-red: #FFF5F5;
+  --line: #dddddd;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#app {
+  width: min(96vw, 1040px);
+  height: min(96vh, 700px);
+  padding: 14px;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  background: rgba(255,255,255,.86);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  font-size: clamp(15px, 2vw, 21px);
+}
+
+.card {
+  background: rgba(255,255,255,.92);
+  border-radius: 24px;
+  padding: clamp(12px, 2.5vw, 24px);
+  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+  text-align: center;
+  min-height: calc(100% - 58px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.question {
+  font-size: clamp(19px, 2.8vw, 29px);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.number-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(2px,.6vw,7px);
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 5px 2px;
+}
+
+.digit {
+  border: 3px solid #eeeeee;
+  background: white;
+  color: #121212;
+  border-radius: 13px;
+  min-width: clamp(32px, 4.6vw, 52px);
+  height: clamp(46px, 6.6vw, 66px);
+  font-size: clamp(24px, 3.8vw, 39px);
+  font-weight: 800;
+  padding: 0;
+  box-shadow: 0 3px 0 rgba(0,0,0,.10);
+}
+
+.digit:hover:not(:disabled) { border-color: var(--accent); cursor: pointer; }
+.digit:disabled { opacity: 1; color: #121212; }
+
+.space {
+  width: clamp(6px, 1.4vw, 16px);
+  flex: 0 0 auto;
+}
+
+.rank-choices {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rank-btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 13px;
+  background: var(--accent);
+  color: white;
+  font-size: clamp(13px, 1.65vw, 18px);
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,.15);
+  min-width: 145px;
+}
+
+.rank-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.rank-btn:disabled { opacity: .65; cursor: default; }
+
+#feedback {
+  display: none;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-size: clamp(15px, 1.9vw, 19px);
+  line-height: 1.35;
+}
+
+.success {
+  display: block !important;
+  background: var(--success);
+  color: #2d4100;
+  font-weight: bold;
+}
+
+.hint {
+  display: block !important;
+  background: var(--soft-blue);
+  color: #2c5282;
+  border: 2px solid #D0E3F7;
+}
+
+.error {
+  display: block !important;
+  background: var(--soft-red);
+  color: #9b2c2c;
+  border: 2px solid #FEB2B2;
+}
+
+#placeTable {
+  display: none;
+  overflow-x: auto;
+  padding: 2px 0 4px 0;
+}
+
+.place-table {
+  border-collapse: collapse;
+  margin: auto;
+  font-size: clamp(10px, 1.35vw, 15px);
+  background: white;
+}
+
+.place-table th,
+.place-table td {
+  border: 2px solid var(--line);
+  padding: 6px 8px;
+  min-width: clamp(42px, 5.2vw, 58px);
+  text-align: center;
+}
+
+.place-table th {
+  font-weight: bold;
+  background: #fafafa;
+}
+
+.place-table .target {
+  background: var(--success);
+  font-weight: 800;
+}
+
+.action {
+  border: 0;
+  border-radius: 16px;
+  padding: 13px 24px;
+  background: var(--accent);
+  color: white;
+  font-size: clamp(17px, 2vw, 21px);
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,.15);
+  min-width: 220px;
+  margin: 0 auto;
+}
+
+.action:hover { transform: translateY(-2px); }
+.action:active { transform: translateY(0); }
+
+#nextBtn { display: none; }
+
+#final {
+  display: none;
+  background: rgba(255,255,255,.96);
+  border-radius: 24px;
+  padding: 34px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+}
+
+#finalScore {
+  font-size: clamp(52px,10vw,90px);
+  font-weight: 900;
+  color: var(--accent);
+  margin: 20px 0;
+}
+
+#advice {
+  font-size: clamp(20px,3vw,28px);
+  margin-bottom: 26px;
+}
+
+@media(max-height:620px) {
+  .card { gap: 7px; padding: 10px; }
+  .place-table th, .place-table td { padding: 4px 6px; }
+  .hud { margin-bottom: 6px; }
+  #feedback { padding: 8px 10px; }
+}
+</style>
+</head>
+
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress"></span>
+      <span id="score"></span>
+    </div>
+
+    <div class="card">
+      <p class="question" id="question"></p>
+      <div class="number-row" id="numberRow"></div>
+      <div class="rank-choices" id="rankChoices"></div>
+      <div id="feedback"></div>
+      <div id="placeTable"></div>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore"></div>
+    <div id="advice"></div>
+    <button class="action" id="restartBtn">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  /*
+    Les rangs sont indexés de droite à gauche :
+    U = 10^0, D = 10^1, C = 10^2, etc.
+    On va jusqu'aux centaines de milliards pour les nombres à 12 chiffres.
+  */
+  var ranks = [
+    { name:"unités", short:"U", power:0, weight:1 },
+    { name:"dizaines", short:"D", power:1, weight:1 },
+    { name:"centaines", short:"C", power:2, weight:1 },
+    { name:"unités de milliers", short:"UM", power:3, weight:3 },
+    { name:"dizaines de milliers", short:"DM", power:4, weight:3 },
+    { name:"centaines de milliers", short:"CM", power:5, weight:3 },
+    { name:"unités de millions", short:"UMi", power:6, weight:4 },
+    { name:"dizaines de millions", short:"DMi", power:7, weight:4 },
+    { name:"centaines de millions", short:"CMi", power:8, weight:4 },
+    { name:"unités de milliards", short:"UMd", power:9, weight:5 },
+    { name:"dizaines de milliards", short:"DMd", power:10, weight:5 },
+    { name:"centaines de milliards", short:"CMd", power:11, weight:5 }
+  ];
+
+  var questions = [];
+  var current = 0;
+  var score = 0;
+  var attempts = 0;
+  var resolved = false;
+  var q = null;
+
+  function el(id) { return document.getElementById(id); }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shuffle(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = rand(0, i);
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+    return array;
+  }
+
+  function generateDigits() {
+    var len = rand(3, 12);
+    var s = String(rand(1, 9));
+    for (var i = 1; i < len; i++) {
+      s += String(rand(0, 9));
+    }
+    return s;
+  }
+
+  function compatibleRanks(s) {
+    return ranks.filter(function(r) {
+      return r.power < s.length;
+    });
+  }
+
+  function chooseWeightedRank(possible) {
+    var bag = [];
+    possible.forEach(function(r) {
+      for (var i = 0; i < r.weight; i++) {
+        bag.push(r);
+      }
+    });
+    return bag[rand(0, bag.length - 1)];
+  }
+
+  function positionFromRank(s, rank) {
+    return s.length - 1 - rank.power;
+  }
+
+  function makeQuestion(type) {
+    var s = generateDigits();
+    var possible = compatibleRanks(s);
+    var rank = chooseWeightedRank(possible);
+    var pos = positionFromRank(s, rank);
+
+    // Pour les questions inverses, le chiffre demandé doit apparaître une seule fois.
+    if (type === "INVERSE") {
+      var tries = 0;
+      while (countChar(s, s[pos]) !== 1 && tries < 100) {
+        s = generateDigits();
+        possible = compatibleRanks(s);
+        rank = chooseWeightedRank(possible);
+        pos = positionFromRank(s, rank);
+        tries++;
+      }
+    }
+
+    return {
+      type: type,
+      s: s,
+      rank: rank,
+      pos: pos,
+      digit: s[pos]
+    };
+  }
+
+  function countChar(s, char) {
+    var count = 0;
+    for (var i = 0; i < s.length; i++) {
+      if (s[i] === char) count++;
+    }
+    return count;
+  }
+
+  function makeQuestions() {
+    var list = [];
+    for (var i = 0; i < 5; i++) list.push(makeQuestion("CLIC"));
+    for (var j = 0; j < 5; j++) list.push(makeQuestion("INVERSE"));
+    return shuffle(list);
+  }
+
+  function formatScore(value) {
+    return String(value).replace(".", ",");
+  }
+
+  function addSpacedDigits(row, s, clickable) {
+    row.innerHTML = "";
+
+    for (var i = 0; i < s.length; i++) {
+      var b = document.createElement("button");
+      b.className = "digit";
+      b.textContent = s[i];
+      b.dataset.pos = i;
+
+      if (clickable) {
+        b.onclick = function() {
+          answerClick(Number(this.dataset.pos));
+        };
+      } else {
+        b.disabled = true;
+      }
+
+      row.appendChild(b);
+
+      var remaining = s.length - i - 1;
+      if (remaining > 0 && remaining % 3 === 0) {
+        var sp = document.createElement("span");
+        sp.className = "space";
+        row.appendChild(sp);
+      }
+    }
+  }
+
+  function renderRankOptions() {
+    var box = el("rankChoices");
+    box.innerHTML = "";
+
+    if (q.type !== "INVERSE") {
+      box.style.display = "none";
+      return;
+    }
+
+    box.style.display = "flex";
+
+    var possible = compatibleRanks(q.s);
+    var options = [q.rank];
+
+    var pool = shuffle(possible.filter(function(r) {
+      return r.name !== q.rank.name;
+    }));
+
+    for (var i = 0; i < pool.length && options.length < 4; i++) {
+      options.push(pool[i]);
+    }
+
+    shuffle(options).forEach(function(r) {
+      var b = document.createElement("button");
+      b.className = "rank-btn";
+      b.textContent = r.name;
+      b.onclick = function() {
+        answerRank(r.name);
+      };
+      box.appendChild(b);
+    });
+  }
+
+  function updateHud() {
+    el("progress").textContent = "Question " + (current + 1) + " / 10";
+    el("score").textContent = "Score : " + formatScore(score) + " / 10";
+  }
+
+  function showQuestion() {
+    q = questions[current];
+    attempts = 0;
+    resolved = false;
+
+    updateHud();
+
+    el("feedback").className = "";
+    el("feedback").style.display = "none";
+    el("feedback").innerHTML = "";
+
+    el("placeTable").style.display = "none";
+    el("placeTable").innerHTML = "";
+
+    el("nextBtn").style.display = "none";
+
+    if (q.type === "CLIC") {
+      el("question").innerHTML = "Clique sur le chiffre des <strong>" + q.rank.name + "</strong>.";
+      addSpacedDigits(el("numberRow"), q.s, true);
+    } else {
+      el("question").innerHTML = "Quel est le rang du chiffre <strong>" + q.digit + "</strong> ?";
+      addSpacedDigits(el("numberRow"), q.s, false);
+    }
+
+    renderRankOptions();
+  }
+
+  function handleAnswer(isCorrect) {
+    if (resolved) return;
+
+    var fb = el("feedback");
+
+    if (isCorrect) {
+      resolved = true;
+
+      if (attempts === 0) {
+        score += 1;
+        fb.className = "success";
+        fb.textContent = "Bravo ! Bonne réponse.";
+      } else {
+        score += 0.5;
+        fb.className = "success";
+        fb.textContent = "Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+      }
+
+      finishQuestion();
+      return;
+    }
+
+    attempts++;
+
+    if (attempts === 1) {
+      fb.className = "hint";
+      fb.textContent =
+        "Indice : repère la position du chiffre dans le nombre en partant de la droite, puis associe cette position à son rang.";
+    } else {
+      resolved = true;
+      fb.className = "error";
+
+      if (q.type === "CLIC") {
+        fb.innerHTML =
+          "Correction : le chiffre des <strong>" + q.rank.name + "</strong> est <strong>" + q.digit + "</strong>.";
+      } else {
+        fb.innerHTML =
+          "Correction : le chiffre <strong>" + q.digit + "</strong> est au rang des <strong>" + q.rank.name + "</strong>.";
+      }
+
+      finishQuestion();
+    }
+  }
+
+  function answerClick(pos) {
+    handleAnswer(pos === q.pos);
+  }
+
+  function answerRank(name) {
+    handleAnswer(name === q.rank.name);
+  }
+
+  function finishQuestion() {
+    updateHud();
+    disableInputs();
+    showPlaceTable();
+    el("nextBtn").style.display = "block";
+  }
+
+  function disableInputs() {
+    var buttons = document.querySelectorAll(".digit,.rank-btn");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+    }
+  }
+
+  function showPlaceTable() {
+    var headers = [];
+    var values = [];
+
+    // On parcourt les chiffres de gauche à droite.
+    // Pour chaque chiffre, son rang est déterminé par sa distance à la droite.
+    for (var i = 0; i < q.s.length; i++) {
+      var power = q.s.length - 1 - i;
+      headers.push(ranks[power]);
+      values.push(q.s[i]);
+    }
+
+    var html = "<table class='place-table'><tr>";
+
+    for (var h = 0; h < headers.length; h++) {
+      html += "<th class='" + (headers[h].name === q.rank.name ? "target" : "") + "'>" +
+              headers[h].short +
+              "</th>";
+    }
+
+    html += "</tr><tr>";
+
+    for (var v = 0; v < values.length; v++) {
+      html += "<td class='" + (headers[v].name === q.rank.name ? "target" : "") + "'>" +
+              values[v] +
+              "</td>";
+    }
+
+    html += "</tr></table>";
+
+    el("placeTable").innerHTML = html;
+    el("placeTable").style.display = "block";
+  }
+
+  function nextQuestion() {
+    if (current < 9) {
+      current++;
+      showQuestion();
+    } else {
+      showFinal();
+    }
+  }
+
+  function showFinal() {
+    el("game").style.display = "none";
+    el("final").style.display = "block";
+
+    el("finalScore").textContent = formatScore(score) + "/10";
+
+    var message;
+    if (score <= 4.5) {
+      message = "Tu peux revoir le tableau de numération et recommencer pour progresser.";
+    } else if (score <= 7.5) {
+      message = "C’est en bonne voie ! Encore un peu d’entraînement.";
+    } else if (score <= 9.5) {
+      message = "Très bon travail !";
+    } else {
+      message = "Excellent ! Tu maîtrises le rang des chiffres.";
+    }
+
+    el("advice").textContent = message;
+  }
+
+  function restart() {
+    score = 0;
+    current = 0;
+    attempts = 0;
+    resolved = false;
+    questions = makeQuestions();
+
+    el("final").style.display = "none";
+    el("game").style.display = "block";
+
+    showQuestion();
+  }
+
+  el("nextBtn").onclick = nextQuestion;
+  el("restartBtn").onclick = restart;
+
+  restart();
+})();
+</script>
+</body>
+</html>
