@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maîtrise les notations</title>
+<style>
+:root{--blue:#2F6FED;--orange:#EF713F;--green:#C8FE53;--ink:#151515}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}
+body{font-family:Arial,sans-serif;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app{width:min(96vw,940px);height:min(96vh,680px);padding:14px}
+.hud{display:flex;justify-content:space-between;background:rgba(255,253,246,.92);border:2px solid #efe7d2;border-radius:16px;padding:10px 16px;margin-bottom:12px;font-size:clamp(15px,2vw,21px);font-weight:bold}
+.card{min-height:calc(100% - 58px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+h1{margin:0;color:#24334a;font-size:clamp(22px,3vw,32px)}
+.instruction{font-size:clamp(18px,2.4vw,25px);font-weight:bold;width:min(96%,720px);background:rgba(255,255,255,.9);border-radius:17px;padding:14px 18px}
+.workspace{width:min(96%,720px);background:white;border:2px solid #d9e4f5;border-radius:18px;padding:18px;box-shadow:0 7px 16px rgba(47,111,237,.10);position:relative}
+.workspace:before{content:"";position:absolute;inset:0;border-radius:16px;background:radial-gradient(circle,rgba(47,111,237,.15) 1px,transparent 1.4px);background-size:18px 18px;opacity:.6;pointer-events:none}
+.answer{position:relative;z-index:2;min-height:72px;border:3px dashed #cfd8e6;border-radius:15px;background:rgba(255,255,255,.88);display:flex;align-items:center;justify-content:center;font-size:clamp(31px,5vw,50px);font-weight:bold;letter-spacing:3px}
+.answer.empty:after{content:"Construis ta notation";font-size:clamp(16px,2vw,20px);font-weight:normal;letter-spacing:0;color:#999;font-style:italic}
+.tiles{position:relative;z-index:2;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+.tile{min-width:60px;border:2px solid #e8dfc7;background:#fffaf0;border-radius:13px;padding:10px 15px;font-size:clamp(23px,3vw,31px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.tile:hover:not(:disabled){border-color:var(--blue);transform:translateY(-1px)}
+.tile:disabled{opacity:.45;cursor:default}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.action{border:0;border-radius:15px;padding:11px 22px;color:white;font-size:clamp(16px,2vw,20px);font-weight:bold;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.16);min-width:170px}
+.clear{background:#777}.validate{background:var(--blue)}#nextBtn{display:none;background:var(--orange)}
+#feedback{display:none;width:min(96%,720px);border-radius:15px;padding:11px 14px;font-size:clamp(14px,1.8vw,18px);line-height:1.35}
+.success{display:block!important;background:var(--green);color:#2d4100;font-weight:bold}
+.hint{display:block!important;background:#EBF4FF;color:#2c5282;border:2px solid #D0E3F7}
+.error{display:block!important;background:#FFF5F5;color:#9b2c2c;border:2px solid #FEB2B2}
+#final{display:none;background:rgba(255,255,255,.92);border:2px solid #efe7d2;border-radius:24px;padding:34px;text-align:center}
+#finalScore{font-size:clamp(55px,10vw,90px);font-weight:900;color:var(--blue);margin:20px}
+#restartBtn{background:var(--blue)}
+@media(max-height:620px){.card{gap:7px}.workspace{padding:10px}.answer{min-height:52px}.tiles{margin-top:8px}.tile{padding:6px 12px}.instruction{padding:8px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="game">
+<div class="hud"><span id="progress"></span><span id="score"></span></div>
+<div class="card">
+<h1>Maîtrise les notations</h1>
+<div class="instruction" id="instruction"></div>
+<div class="workspace">
+<div class="answer empty" id="answer"></div>
+<div class="tiles" id="tiles"></div>
+</div>
+<div id="feedback"></div>
+<div class="actions">
+<button class="action clear" id="clearBtn">Effacer</button>
+<button class="action validate" id="validateBtn">Valider</button>
+<button class="action" id="nextBtn">Question suivante</button>
+</div>
+</div>
+</div>
+<div id="final">
+<h1>Bilan</h1><div id="finalScore"></div><div id="advice"></div><br>
+<button class="action" id="restartBtn">Recommencer</button>
+</div>
+</div>
+
+<script>
+(function(){
+var current=0,score=0,attempts=0,resolved=false,answer=[],questions=[];
+function E(x){return document.getElementById(x)}
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=R(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function letters(){var s="ABCDEFGHJKLMNPRSTUV",a=s[R(0,s.length-1)],b=a;while(b===a)b=s[R(0,s.length-1)];return[a,b]}
+
+function makeQ(type){
+ var l=letters(),A=l[0],B=l[1];
+ if(type==="point")return{type:type,A:A,B:B,text:"Écris la notation du point "+A+".",valid:[A],tiles:[A,"(",")","[","]"]};
+ if(type==="droite")return{type:type,A:A,B:B,text:"Écris la notation de la droite passant par "+A+" et "+B+".",valid:["("+A+B+")","("+B+A+")"],tiles:["(",")","[","]",A,B]};
+ if(type==="segment")return{type:type,A:A,B:B,text:"Écris la notation du segment d’extrémités "+A+" et "+B+".",valid:["["+A+B+"]","["+B+A+"]"],tiles:["(",")","[","]",A,B]};
+ // origine A, passage B : [AB) ou (BA]
+ return{type:type,A:A,B:B,text:"Écris la notation de la demi-droite d’origine "+A+" passant par "+B+".",valid:["["+A+B+")","("+B+A+"]"],tiles:["(",")","[","]",A,B]};
+}
+function makeQuestions(){
+ var t=["point","point","droite","droite","segment","segment","demi","demi","demi","demi"];
+ return sh(t.map(makeQ));
+}
+function hud(){E("progress").textContent="Question "+(current+1)+" / 10";E("score").textContent="Score : "+String(score).replace(".",",")+" / 10"}
+function renderAnswer(){var a=E("answer");a.textContent=answer.join("");a.className=answer.length?"answer":"answer empty"}
+function renderTiles(){
+ var box=E("tiles");box.innerHTML="";
+ sh(questions[current].tiles.slice()).forEach(function(v){
+  var b=document.createElement("button");b.className="tile";b.textContent=v;
+  b.onclick=function(){if(!resolved){answer.push(v);renderAnswer()}};
+  box.appendChild(b);
+ });
+}
+function show(){
+ attempts=0;resolved=false;answer=[];hud();
+ var q=questions[current];E("instruction").textContent=q.text;renderAnswer();renderTiles();
+ E("feedback").className="";E("feedback").style.display="none";E("feedback").textContent="";
+ E("validateBtn").style.display="inline-block";E("clearBtn").style.display="inline-block";E("nextBtn").style.display="none";
+}
+function hint(q,s){
+ if(q.type==="point")return"Indice : un point se désigne simplement par sa lettre majuscule.";
+ if(q.type==="droite")return"Indice : une droite se note avec deux parenthèses. L’ordre des lettres n’a pas d’importance.";
+ if(q.type==="segment")return"Indice : un segment se note avec deux crochets. L’ordre des lettres n’a pas d’importance.";
+ return"Indice : le crochet fermé doit être du côté de l’origine. La même demi-droite peut s’écrire dans les deux sens.";
+}
+function validate(){
+ if(resolved||answer.length===0)return;
+ var q=questions[current],s=answer.join(""),ok=q.valid.indexOf(s)>=0,f=E("feedback");
+ if(ok){
+  resolved=true;
+  if(attempts===0){score+=1;f.className="success";f.textContent="Bravo ! Bonne notation."}
+  else{score+=.5;f.className="success";f.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai."}
+  finish();
+ }else{
+  attempts++;
+  if(attempts===1){f.className="hint";f.textContent=hint(q,s);answer=[];renderAnswer()}
+  else{resolved=true;f.className="error";f.textContent="Correction : "+q.valid.join(" ou ");finish()}
+ }
+}
+function finish(){
+ hud();E("validateBtn").style.display="none";E("clearBtn").style.display="none";E("nextBtn").style.display="inline-block";
+ var bs=E("tiles").querySelectorAll("button");for(var i=0;i<bs.length;i++)bs[i].disabled=true;
+}
+function clear(){if(!resolved){answer=[];renderAnswer()}}
+function next(){if(current<9){current++;show()}else done()}
+function done(){
+ E("game").style.display="none";E("final").style.display="block";E("finalScore").textContent=String(score).replace(".",",")+"/10";
+ E("advice").textContent=score<=4.5?"Revois les symboles et le rôle de l’origine d’une demi-droite.":score<=7.5?"C’est en bonne voie ! Attention au crochet placé du côté de l’origine.":score<=9.5?"Très bon travail !":"Excellent ! Tu maîtrises les notations géométriques.";
+}
+function restart(){current=0;score=0;questions=makeQuestions();E("final").style.display="none";E("game").style.display="block";show()}
+E("clearBtn").onclick=clear;E("validateBtn").onclick=validate;E("nextBtn").onclick=next;E("restartBtn").onclick=restart;restart();
+})();
+</script>
+</body>
+</html>
