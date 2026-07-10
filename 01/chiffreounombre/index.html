@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chiffre ou nombre ?</title>
+<style>
+  :root {
+    --accent: #EF713F;
+    --success: #C8FE53;
+    --ink: #121212;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: transparent;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #app {
+    width: min(92vw, 850px);
+    height: min(92vh, 600px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    background: rgba(255,255,255,0.85);
+    border-radius: 14px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    font-size: clamp(16px, 2vw, 22px);
+  }
+
+  .card {
+    background: rgba(255,255,255,0.9);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .instruction {
+    font-size: clamp(18px, 2.5vw, 26px);
+    margin: 0;
+  }
+
+  .item-box {
+    background: white;
+    border: 3px solid #f0f0f0;
+    border-radius: 20px;
+    padding: 18px 28px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  #item {
+    font-size: clamp(48px, 9vw, 86px);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .choice-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    border: 0;
+    border-radius: 16px;
+    padding: 14px 28px;
+    background: var(--accent);
+    color: white;
+    font-size: clamp(18px, 2.4vw, 24px);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    min-width: 210px;
+  }
+
+  button:hover { transform: translateY(-2px); }
+  button:active { transform: translateY(0); }
+
+  #feedback {
+    min-height: 105px;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: clamp(16px, 2vw, 21px);
+    line-height: 1.4;
+    display: none;
+  }
+
+  .success {
+    display: block !important;
+    background: var(--success);
+    color: #2d4100;
+    font-weight: bold;
+  }
+
+  .error {
+    display: block !important;
+    background: #EBF4FF;
+    color: #2c5282;
+    border: 2px solid #D0E3F7;
+  }
+
+  #nextBtn { display: none; margin: 0 auto; }
+
+  #final {
+    display: none;
+    background: rgba(255,255,255,0.95);
+    border-radius: 24px;
+    padding: 34px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  }
+
+  #finalScore {
+    font-size: clamp(52px, 10vw, 90px);
+    font-weight: 900;
+    color: var(--accent);
+    margin: 20px 0;
+  }
+
+  #advice {
+    font-size: clamp(20px, 3vw, 30px);
+    margin-bottom: 26px;
+  }
+
+  @media (max-width: 600px) {
+    #app { padding: 8px; }
+    .card { padding: 16px; gap: 12px; }
+    button { min-width: 150px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress">Question 1 / 10</span>
+      <span id="score">Score : 0 / 10</span>
+    </div>
+
+    <div class="card">
+      <p class="instruction">Clique sur la bonne réponse.<br><span style="font-size:0.78em; font-weight:400;">Dans cet exercice, une écriture composée d’un seul chiffre est à classer dans <strong>CHIFFRE</strong> et non dans <strong>NOMBRE</strong>.</span></p>
+
+      <div class="item-box">
+        <div id="item">---</div>
+      </div>
+
+      <div class="choice-row" id="choices">
+        <button type="button" data-choice="CHIFFRE">CHIFFRE</button>
+        <button type="button" data-choice="NOMBRE">NOMBRE</button>
+      </div>
+
+      <div id="feedback"></div>
+      <button id="nextBtn" type="button">Question suivante</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore">0/10</div>
+    <div id="advice"></div>
+    <button id="restartBtn" type="button">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var maxQuestions = 10;
+  var score = 0;
+  var current = 0;
+  var questions = [];
+  var answered = false;
+
+  function el(id) { return document.getElementById(id); }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shuffle(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = rand(0, i);
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+    return array;
+  }
+
+  function formatNumberString(s) {
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  function randomNumberString() {
+    var digits = rand(2, 12);
+    var s = String(rand(1, 9));
+    for (var i = 1; i < digits; i++) {
+      s += String(rand(0, 9));
+    }
+    return formatNumberString(s);
+  }
+
+  function makeQuestions() {
+    var list = [];
+
+    // Exactement 3 chiffres.
+    var digitPool = shuffle(["0","1","2","3","4","5","6","7","8","9"].slice());
+    for (var i = 0; i < 3; i++) {
+      list.push({ display: digitPool[i], type: "CHIFFRE" });
+    }
+
+    // 6 nombres aléatoires ordinaires.
+    for (var j = 0; j < 6; j++) {
+      list.push({ display: randomNumberString(), type: "NOMBRE" });
+    }
+
+    // 1 piège avec zéros initiaux, différent à chaque partie.
+    var traps = ["007", "003", "0008", "042", "009", "0015"];
+    list.push({
+      display: traps[rand(0, traps.length - 1)],
+      type: "NOMBRE",
+      trap: true
+    });
+
+    return shuffle(list);
+  }
+
+  function updateHud() {
+    el("progress").textContent = "Question " + (current + 1) + " / " + maxQuestions;
+    el("score").textContent = "Score : " + score + " / 10";
+  }
+
+  function showQuestion() {
+    answered = false;
+    updateHud();
+
+    var q = questions[current];
+    el("item").textContent = q.display;
+
+    el("feedback").className = "";
+    el("feedback").style.display = "none";
+    el("feedback").innerHTML = "";
+
+    el("choices").style.display = "flex";
+    el("nextBtn").style.display = "none";
+  }
+
+  function choose(choice) {
+    if (answered) return;
+    answered = true;
+
+    var q = questions[current];
+    var feedback = el("feedback");
+
+    if (choice === q.type) {
+      score++;
+      el("score").textContent = "Score : " + score + " / 10";
+      feedback.className = "success";
+      feedback.textContent = "Bravo ! Bonne réponse.";
+    } else {
+      feedback.className = "error";
+
+      var correction;
+      if (q.type === "CHIFFRE") {
+        correction = q.display + " est un chiffre.";
+      } else if (q.trap) {
+        correction = q.display + " est écrit avec plusieurs chiffres : on le classe ici parmi les nombres.";
+      } else {
+        correction = q.display + " est un nombre.";
+      }
+
+      feedback.innerHTML =
+        "<strong>Quelle est la différence entre un chiffre et un nombre ?</strong><br><br>" +
+        "Indice : les chiffres sont les équivalents des lettres pour écrire les nombres.<br><br>" +
+        
+        "<strong>Correction :</strong> " + correction;
+    }
+
+    el("choices").style.display = "none";
+    el("nextBtn").style.display = "block";
+  }
+
+  function next() {
+    if (current < maxQuestions - 1) {
+      current++;
+      showQuestion();
+    } else {
+      showFinal();
+    }
+  }
+
+  function showFinal() {
+    el("game").style.display = "none";
+    el("final").style.display = "block";
+    el("finalScore").textContent = score + "/10";
+
+    var msg;
+    if (score <= 4) msg = "Tu peux revoir la différence entre chiffre et nombre, puis recommencer.";
+    else if (score <= 7) msg = "C’est en bonne voie ! Encore un peu d’entraînement.";
+    else if (score <= 9) msg = "Très bon travail !";
+    else msg = "Excellent ! Tu maîtrises la différence entre chiffre et nombre.";
+
+    el("advice").textContent = msg;
+  }
+
+  function restart() {
+    score = 0;
+    current = 0;
+    answered = false;
+    questions = makeQuestions();
+
+    el("final").style.display = "none";
+    el("game").style.display = "block";
+
+    showQuestion();
+  }
+
+  var buttons = document.querySelectorAll("[data-choice]");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].onclick = function() {
+      choose(this.getAttribute("data-choice"));
+    };
+  }
+
+  el("nextBtn").onclick = next;
+  el("restartBtn").onclick = restart;
+
+  restart();
+})();
+</script>
+</body>
+</html>
