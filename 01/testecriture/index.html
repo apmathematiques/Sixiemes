@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Se tester sur les règles</title>
+<style>
+:root{
+  --accent:#EF713F;
+  --success:#C8FE53;
+  --ink:#121212;
+  --blue:#EBF4FF;
+  --red:#FFF5F5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+#app{
+  width:min(94vw,900px);
+  height:min(94vh,640px);
+  padding:16px;
+}
+.hud{
+  display:flex;
+  justify-content:space-between;
+  background:rgba(255,255,255,.86);
+  border-radius:14px;
+  padding:10px 16px;
+  margin-bottom:14px;
+  font-size:clamp(15px,2vw,21px);
+  font-weight:bold;
+}
+.card{
+  background:rgba(255,255,255,.93);
+  border-radius:24px;
+  min-height:calc(100% - 58px);
+  padding:clamp(16px,3vw,28px);
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  text-align:center;
+}
+.title{
+  margin:0;
+  font-size:clamp(20px,3vw,30px);
+}
+.prompt{
+  font-size:clamp(17px,2.2vw,22px);
+  color:#444;
+}
+.choices{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.choice{
+  border:3px solid #f0f0f0;
+  background:white;
+  color:#121212;
+  border-radius:18px;
+  padding:20px 16px;
+  min-height:95px;
+  font-size:clamp(18px,2.6vw,27px);
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 5px 0 rgba(0,0,0,.10);
+  line-height:1.35;
+}
+.choice:hover:not(:disabled){
+  border-color:var(--accent);
+  transform:translateY(-2px);
+}
+.choice:disabled{cursor:default;opacity:1}
+.choice.correct{background:var(--success);border-color:var(--success)}
+.choice.wrong{background:#FFD9D9;border-color:#FEB2B2}
+#feedback{
+  display:none;
+  width:100%;
+  border-radius:16px;
+  padding:13px 16px;
+  font-size:clamp(15px,1.9vw,19px);
+  line-height:1.4;
+}
+.success{
+  display:block!important;
+  background:var(--success);
+  color:#2d4100;
+  font-weight:bold;
+}
+.explain{
+  display:block!important;
+  background:var(--blue);
+  color:#2c5282;
+  border:2px solid #D0E3F7;
+}
+.action{
+  border:0;
+  border-radius:16px;
+  padding:13px 25px;
+  background:var(--accent);
+  color:white;
+  font-size:clamp(17px,2vw,21px);
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);
+  min-width:220px;
+}
+#nextBtn{display:none}
+#final{
+  display:none;
+  background:rgba(255,255,255,.96);
+  border-radius:24px;
+  padding:34px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+#finalScore{
+  font-size:clamp(52px,10vw,90px);
+  font-weight:900;
+  color:var(--accent);
+  margin:20px 0;
+}
+#advice{
+  font-size:clamp(20px,3vw,28px);
+  margin-bottom:26px;
+}
+@media(max-width:650px){
+  .choices{grid-template-columns:1fr;gap:10px}
+  .choice{min-height:70px;padding:13px}
+}
+@media(max-height:560px){
+  .card{gap:9px;padding:10px}
+  .choice{min-height:65px;padding:10px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress"></span>
+      <span id="score"></span>
+    </div>
+
+    <div class="card">
+      <h1 class="title">Quelle écriture est correcte ?</h1>
+      <div class="prompt">Clique sur la bonne proposition.</div>
+
+      <div class="choices">
+        <button class="choice" id="choiceA"></button>
+        <button class="choice" id="choiceB"></button>
+      </div>
+
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn">Question suivante</button>
+    </div>
+  </div>
+
+  <div id="final">
+    <h1>Bilan</h1>
+    <div id="finalScore"></div>
+    <div id="advice"></div>
+    <button class="action" id="restartBtn">Recommencer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  /*
+    Banque de questions.
+    La règle des traits d'union utilisée ici suit la convention :
+    les éléments d'un nombre composé sont reliés par des traits d'union.
+    million et milliard restent des noms.
+  */
+  var bank = [
+    {
+      good:"quatre-vingt-trois",
+      bad:"quatre-vingts-trois",
+      rule:"« vingt » ne prend pas de s lorsqu’il est suivi d’un autre nombre."
+    },
+    {
+      good:"quatre-vingts",
+      bad:"quatre-vingt",
+      rule:"« vingt » prend un s lorsqu’il est multiplié et qu’il termine le nombre."
+    },
+    {
+      good:"deux-cents",
+      bad:"deux-cent",
+      rule:"« cent » prend un s lorsqu’il est multiplié et qu’il termine le nombre."
+    },
+    {
+      good:"deux-cent-trois",
+      bad:"deux-cents-trois",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi d’un autre nombre."
+    },
+    {
+      good:"trois-mille",
+      bad:"trois-milles",
+      rule:"« mille » est invariable : il ne prend jamais de s."
+    },
+    {
+      good:"deux-millions",
+      bad:"deux-million",
+      rule:"« million » est un nom : il prend un s au pluriel."
+    },
+    {
+      good:"trois-milliards",
+      bad:"trois-milliard",
+      rule:"« milliard » est un nom : il prend un s au pluriel."
+    },
+    {
+      good:"cent-mille",
+      bad:"cents-mille",
+      rule:"Dans « cent-mille », « cent » n’est pas multiplié : il reste au singulier."
+    },
+    {
+      good:"deux-cent-mille",
+      bad:"deux-cents-mille",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi de « mille »."
+    },
+    {
+      good:"quatre-vingt-mille",
+      bad:"quatre-vingts-mille",
+      rule:"« vingt » ne prend pas de s lorsqu’il est suivi de « mille »."
+    },
+    {
+      good:"soixante-et-onze",
+      bad:"soixante et onze",
+      rule:"Les éléments du nombre composé sont reliés par des traits d’union."
+    },
+    {
+      good:"trente-et-un",
+      bad:"trente et un",
+      rule:"Les éléments du nombre composé sont reliés par des traits d’union."
+    },
+    {
+      good:"neuf-cent-quatre-vingt-douze",
+      bad:"neuf-cents-quatre-vingts-douze",
+      rule:"« cent » et « vingt » restent au singulier lorsqu’ils sont suivis d’un autre nombre."
+    },
+    {
+      good:"un-million-deux-cent-mille",
+      bad:"un-millions-deux-cents-mille",
+      rule:"« million » reste au singulier avec un ; « cent » ne prend pas de s devant « mille »."
+    },
+    {
+      good:"deux-milliards-trois-millions",
+      bad:"deux-milliard-trois-million",
+      rule:"« million » et « milliard » sont des noms : ils prennent un s au pluriel."
+    },
+    {
+      good:"huit-cent-millions",
+      bad:"huit-cents-millions",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi de « millions »."
+    }
+  ];
+
+  var questions=[];
+  var current=0;
+  var score=0;
+  var answered=false;
+
+  function el(id){return document.getElementById(id)}
+
+  function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    for(var i=array.length-1;i>0;i--){
+      var j=rand(0,i);
+      var t=array[i];
+      array[i]=array[j];
+      array[j]=t;
+    }
+    return array;
+  }
+
+  function makeQuestions(){
+    return shuffle(bank.slice()).slice(0,10);
+  }
+
+  function updateHud(){
+    el("progress").textContent="Question "+(current+1)+" / 10";
+    el("score").textContent="Score : "+score+" / 10";
+  }
+
+  function showQuestion(){
+    answered=false;
+    updateHud();
+
+    var q=questions[current];
+    var order=Math.random()<0.5;
+
+    el("choiceA").textContent=order?q.good:q.bad;
+    el("choiceA").dataset.correct=order?"yes":"no";
+
+    el("choiceB").textContent=order?q.bad:q.good;
+    el("choiceB").dataset.correct=order?"no":"yes";
+
+    el("choiceA").disabled=false;
+    el("choiceB").disabled=false;
+    el("choiceA").className="choice";
+    el("choiceB").className="choice";
+
+    el("feedback").className="";
+    el("feedback").style.display="none";
+    el("feedback").innerHTML="";
+
+    el("nextBtn").style.display="none";
+  }
+
+  function choose(button){
+    if(answered)return;
+    answered=true;
+
+    var q=questions[current];
+    var correct=button.dataset.correct==="yes";
+    var buttons=[el("choiceA"),el("choiceB")];
+
+    for(var i=0;i<buttons.length;i++){
+      buttons[i].disabled=true;
+      if(buttons[i].dataset.correct==="yes"){
+        buttons[i].classList.add("correct");
+      }
+    }
+
+    var fb=el("feedback");
+
+    if(correct){
+      score++;
+      updateHud();
+      fb.className="success";
+      fb.textContent="Bravo ! Bonne réponse.";
+    }else{
+      button.classList.add("wrong");
+      fb.className="explain";
+      fb.innerHTML="<strong>Règle :</strong> "+q.rule;
+    }
+
+    el("nextBtn").style.display="block";
+  }
+
+  function next(){
+    if(current<9){
+      current++;
+      showQuestion();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+    el("game").style.display="none";
+    el("final").style.display="block";
+    el("finalScore").textContent=score+"/10";
+
+    var msg;
+    if(score<=4)msg="Certaines règles sont encore à revoir. Tu peux recommencer pour t’entraîner.";
+    else if(score<=7)msg="C’est en bonne voie ! Encore quelques pièges à déjouer.";
+    else if(score<=9)msg="Très bon travail ! Tu connais bien les règles d’écriture.";
+    else msg="Excellent ! Les règles d’écriture n’ont plus de secret pour toi.";
+
+    el("advice").textContent=msg;
+  }
+
+  function restart(){
+    current=0;
+    score=0;
+    answered=false;
+    questions=makeQuestions();
+
+    el("final").style.display="none";
+    el("game").style.display="block";
+
+    showQuestion();
+  }
+
+  el("choiceA").onclick=function(){choose(this)};
+  el("choiceB").onclick=function(){choose(this)};
+  el("nextBtn").onclick=next;
+  el("restartBtn").onclick=restart;
+
+  restart();
+})();
+</script>
+</body>
+</html>
