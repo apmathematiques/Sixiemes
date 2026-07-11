@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercice interactif</title>
+<style>
+:root{
+  --accent:#2F7F89;
+  --success:#C8FE53;
+  --success-ink:#294100;
+  --hint:#EBF4FF;
+  --hint-ink:#2C5282;
+  --error:#FFF1EF;
+  --error-ink:#8D2F24;
+  --error-border:#F3A89F;
+  --ink:#171717;
+  --muted:#666;
+  --point:#D84635;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+button{font:inherit}
+#app{width:min(96vw,1020px);height:min(96vh,700px);padding:14px}
+.hud{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  background:rgba(255,255,255,.88);
+  border-radius:14px;
+  padding:10px 16px;
+  margin-bottom:12px;
+  font-size:clamp(15px,2vw,21px);
+  font-weight:bold;
+  box-shadow:0 5px 16px rgba(0,0,0,.05)
+}
+.card{
+  background:rgba(255,255,255,.94);
+  border-radius:24px;
+  min-height:calc(100% - 56px);
+  padding:clamp(12px,2.1vw,22px);
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  text-align:center
+}
+.question{font-size:clamp(20px,2.7vw,29px);margin:0}
+.target{
+  font-size:clamp(26px,4vw,42px);
+  font-weight:900;
+  background:white;
+  border:3px solid #ECECEC;
+  border-radius:18px;
+  padding:8px 20px;
+  box-shadow:0 5px 14px rgba(0,0,0,.05)
+}
+.figure-wrap{
+  width:min(100%,760px);
+  min-height:190px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.72);
+  border:3px solid #ECECEC;
+  border-radius:22px;
+  padding:8px 10px;
+}
+.figure-wrap svg{width:100%;max-width:620px;height:auto;display:block;touch-action:manipulation}
+.help{font-size:clamp(13px,1.6vw,16px);color:var(--muted)}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.action{
+  border:0;
+  border-radius:15px;
+  padding:10px 22px;
+  background:var(--accent);
+  color:white;
+  font-size:clamp(16px,1.9vw,20px);
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);
+  min-width:190px
+}
+.action:disabled{opacity:.55;cursor:default}
+#nextBtn{display:none}
+#feedback{
+  display:none;
+  width:min(100%,760px);
+  border-radius:15px;
+  padding:10px 14px;
+  font-size:clamp(14px,1.8vw,18px);
+  line-height:1.38
+}
+#feedback.success{
+  display:block;
+  background:var(--success);
+  color:var(--success-ink);
+  font-weight:bold
+}
+#feedback.hint{
+  display:block;
+  background:var(--hint);
+  color:var(--hint-ink);
+  border:2px solid #D0E3F7
+}
+#feedback.error{
+  display:block;
+  background:var(--error);
+  color:var(--error-ink);
+  border:2px solid var(--error-border)
+}
+.tick-hit{cursor:pointer}
+.tick-hit:hover + .tick-visible{stroke:var(--accent);stroke-width:7}
+.tick-hit:focus{outline:none}
+#final{
+  display:none;
+  height:100%;
+  background:rgba(255,255,255,.96);
+  border-radius:24px;
+  padding:34px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.08)
+}
+#finalInner{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px
+}
+#final h1{margin:0;font-size:clamp(28px,4vw,42px)}
+#finalScore{font-size:clamp(54px,10vw,90px);font-weight:900;color:var(--accent)}
+#advice{font-size:clamp(20px,3vw,28px);max-width:760px;line-height:1.35}
+#restartBtn{display:inline-block}
+@media(max-width:620px){
+  #app{padding:8px}
+  .card{gap:9px;padding:9px}
+  .figure-wrap{min-height:165px}
+}
+@media(max-height:650px){
+  .card{gap:7px;padding:7px}
+  .figure-wrap{min-height:145px}
+  .target{padding:5px 16px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress"></span>
+      <span id="score"></span>
+    </div>
+
+    <div class="card">
+      <p class="question">Place le point A d’abscisse :</p>
+      <div class="target" id="target"></div>
+
+      <div class="figure-wrap" id="figureWrap"></div>
+
+      <div class="help">Clique sur la graduation choisie, puis valide.</div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="validateBtn">Valider</button>
+        <button class="action" id="nextBtn">Question suivante</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="final">
+    <div id="finalInner">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn">Recommencer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,attempts=0,resolved=false,selectedIndex=null,questions=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function gcd(a,b){while(b){var t=b;b=a%b;a=t}return Math.abs(a)}
+
+function formatFraction(n,d){
+  return d===1?String(n):n+"/"+d;
+}
+
+function makeQuestion(mode){
+  var fractional=Math.random()<0.65;
+  var stepNum,stepDen;
+
+  if(mode==="zeroOne"){
+    stepNum=1;
+    stepDen=rand(2,8);
+  }else if(fractional){
+    stepNum=1;
+    stepDen=rand(2,8);
+  }else{
+    stepNum=rand(1,4);
+    stepDen=1;
+  }
+
+  var firstLabelIndex;
+  var firstLabelValue;
+  var secondLabelValue;
+  var labelledGap;
+
+  if(mode==="zeroOne"){
+    firstLabelIndex=0;
+    firstLabelValue=0;
+    secondLabelValue=1;
+    labelledGap=stepDen;
+  }else if(mode==="zeroOther"){
+    firstLabelIndex=0;
+    firstLabelValue=0;
+    secondLabelValue=rand(2,8);
+
+    if(stepDen===1){
+      stepNum=choice([1,2]);
+      if(secondLabelValue%stepNum!==0)stepNum=1;
+      labelledGap=secondLabelValue/stepNum;
+    }else{
+      labelledGap=secondLabelValue*stepDen;
+      if(labelledGap>12){
+        stepDen=choice([2,3,4]);
+        labelledGap=secondLabelValue*stepDen;
+      }
+    }
+  }else{
+    firstLabelIndex=rand(2,5);
+    firstLabelValue=rand(1,7);
+
+    if(stepDen===1){
+      labelledGap=rand(2,5);
+      secondLabelValue=firstLabelValue+labelledGap*stepNum;
+    }else{
+      labelledGap=stepDen;
+      secondLabelValue=firstLabelValue+1;
+    }
+  }
+
+  var secondLabelIndex=firstLabelIndex+labelledGap;
+  var totalIntervals=Math.max(secondLabelIndex+rand(2,4),10);
+  totalIntervals=Math.min(totalIntervals,18);
+  if(secondLabelIndex>totalIntervals-2)totalIntervals=secondLabelIndex+2;
+
+  var possible=[];
+  for(var i=0;i<=totalIntervals;i++){
+    var valueNum=firstLabelValue*stepDen+(i-firstLabelIndex)*stepNum;
+    if(valueNum>=0 && i!==firstLabelIndex && i!==secondLabelIndex){
+      possible.push(i);
+    }
+  }
+
+  var targetIndex=choice(possible);
+  var targetNum=firstLabelValue*stepDen+(targetIndex-firstLabelIndex)*stepNum;
+  var targetDen=stepDen;
+  var g=gcd(targetNum,targetDen);
+  targetNum/=g;
+  targetDen/=g;
+
+  return{
+    mode:mode,
+    stepNum:stepNum,
+    stepDen:stepDen,
+    firstLabelIndex:firstLabelIndex,
+    secondLabelIndex:secondLabelIndex,
+    firstLabelValue:firstLabelValue,
+    secondLabelValue:secondLabelValue,
+    totalIntervals:totalIntervals,
+    targetIndex:targetIndex,
+    targetNum:targetNum,
+    targetDen:targetDen
+  };
+}
+
+function buildQuestions(){
+  var modes=[
+    "zeroOne","zeroOne","zeroOne",
+    "zeroOther","zeroOther","zeroOther",
+    "nonZero","nonZero","nonZero","nonZero"
+  ];
+
+  for(var i=modes.length-1;i>0;i--){
+    var j=rand(0,i),t=modes[i];modes[i]=modes[j];modes[j]=t;
+  }
+
+  var out=[],seen={};
+  modes.forEach(function(mode){
+    var q,key;
+    do{
+      q=makeQuestion(mode);
+      key=[
+        mode,q.stepNum,q.stepDen,q.firstLabelValue,q.secondLabelValue,
+        q.firstLabelIndex,q.secondLabelIndex,q.targetIndex
+      ].join("-");
+    }while(seen[key]);
+    seen[key]=true;
+    out.push(q);
+  });
+
+  return out;
+}
+
+function drawAxis(q,showCorrection){
+  var x0=40,x1=640,y=108,arrowEnd=675;
+  var step=(x1-x0)/q.totalIntervals;
+  var parts=[];
+
+  var lineStart=(q.firstLabelValue===0 && q.firstLabelIndex===0)?x0:(x0-20);
+  parts.push(`<line x1="${lineStart}" y1="${y}" x2="${arrowEnd}" y2="${y}" stroke="#202020" stroke-width="5" stroke-linecap="round"/>`);
+  parts.push(`<path d="M ${arrowEnd-16} ${y-11} L ${arrowEnd} ${y} L ${arrowEnd-16} ${y+11}" fill="none" stroke="#202020" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+  for(var i=0;i<=q.totalIntervals;i++){
+    var x=x0+i*step;
+    parts.push(`<line class="tick-hit" data-index="${i}" x1="${x}" y1="${y-30}" x2="${x}" y2="${y+30}" stroke="transparent" stroke-width="18"/>`);
+    parts.push(`<line class="tick-visible" x1="${x}" y1="${y-15}" x2="${x}" y2="${y+15}" stroke="#202020" stroke-width="4" pointer-events="none"/>`);
+  }
+
+  var xL1=x0+q.firstLabelIndex*step;
+  var xL2=x0+q.secondLabelIndex*step;
+  parts.push(`<text x="${xL1}" y="${y+48}" text-anchor="middle" font-size="26" font-weight="700" fill="#171717">${q.firstLabelValue}</text>`);
+  parts.push(`<text x="${xL2}" y="${y+48}" text-anchor="middle" font-size="26" font-weight="700" fill="#171717">${q.secondLabelValue}</text>`);
+
+  if(selectedIndex!==null){
+    var xs=x0+selectedIndex*step;
+    parts.push(`<line x1="${xs-8}" y1="${y-8}" x2="${xs+8}" y2="${y+8}" stroke="var(--point)" stroke-width="5" stroke-linecap="round" pointer-events="none"/>`);
+    parts.push(`<line x1="${xs-8}" y1="${y+8}" x2="${xs+8}" y2="${y-8}" stroke="var(--point)" stroke-width="5" stroke-linecap="round" pointer-events="none"/>`);
+    parts.push(`<text x="${xs}" y="${y-28}" text-anchor="middle" font-size="25" font-weight="800" fill="#A63225" pointer-events="none">A</text>`);
+  }
+
+  if(showCorrection && selectedIndex!==q.targetIndex){
+    var xc=x0+q.targetIndex*step;
+    parts.push(`<circle cx="${xc}" cy="${y}" r="11" fill="none" stroke="#2F7F89" stroke-width="5" pointer-events="none"/>`);
+    parts.push(`<text x="${xc}" y="${y-32}" text-anchor="middle" font-size="22" font-weight="800" fill="#2F7F89" pointer-events="none">bonne position</text>`);
+  }
+
+  return `<svg viewBox="0 0 700 205" role="img" aria-label="Demi-droite graduée">${parts.join("")}</svg>`;
+}
+
+function bindTicks(){
+  var q=questions[current];
+  var nodes=el("figureWrap").querySelectorAll(".tick-hit");
+  nodes.forEach(function(node){
+    node.addEventListener("click",function(){
+      if(resolved)return;
+      selectedIndex=Number(node.getAttribute("data-index"));
+      el("figureWrap").innerHTML=drawAxis(q,false);
+      bindTicks();
+    });
+  });
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+}
+
+function showQuestion(){
+  attempts=0;
+  resolved=false;
+  selectedIndex=null;
+  updateHud();
+
+  var q=questions[current];
+  el("target").textContent=formatFraction(q.targetNum,q.targetDen);
+  el("figureWrap").innerHTML=drawAxis(q,false);
+  bindTicks();
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("validateBtn").disabled=false;
+  el("validateBtn").style.display="inline-block";
+  el("nextBtn").style.display="none";
+}
+
+function validate(){
+  if(resolved)return;
+
+  var fb=el("feedback");
+  var q=questions[current];
+
+  if(selectedIndex===null){
+    fb.className="error";
+    fb.textContent="Clique d’abord sur une graduation.";
+    fb.style.display="block";
+    return;
+  }
+
+  if(selectedIndex===q.targetIndex){
+    resolved=true;
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! Le point A est correctement placé.";
+    }else{
+      score+=0.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+    }
+    finish(false);
+    return;
+  }
+
+  attempts++;
+
+  if(attempts===1){
+    fb.className="hint";
+    fb.textContent="Indice : détermine le pas, puis pars d’une graduation numérotée pour compter les intervalles.";
+    fb.style.display="block";
+  }else{
+    resolved=true;
+    fb.className="error";
+    fb.innerHTML="Correction : le point A devait être placé sur la graduation d’abscisse <strong>"+formatFraction(q.targetNum,q.targetDen)+"</strong>.";
+    finish(true);
+  }
+}
+
+function finish(showCorrection){
+  updateHud();
+  var q=questions[current];
+  el("figureWrap").innerHTML=drawAxis(q,showCorrection);
+  el("validateBtn").disabled=true;
+  el("validateBtn").style.display="none";
+  el("nextBtn").style.display="inline-block";
+  el("feedback").style.display="block";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="block";
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var advice=score<=4.5
+    ?"Revois le pas et le comptage des intervalles, puis recommence."
+    :score<=7.5
+    ?"C’est en bonne voie ! Pars toujours d’une graduation numérotée."
+    :score<=9.5
+    ?"Très bon travail !"
+    :"Excellent ! Tu sais placer un point sur une demi-droite graduée.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="block";
+  showQuestion();
+}
+
+el("validateBtn").onclick=validate;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>
