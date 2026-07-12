@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --green:#2f9e44;
+      --green-soft:#eaf8ee;
+      --red:#d64545;
+      --red-soft:#fdecec;
+      --ink:#22252a;
+      --line:#e4e6ea;
+      --card:rgba(255,255,255,.96);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:transparent;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--ink);
+    }
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+    }
+    .app{
+      width:min(100%,960px);
+      aspect-ratio:16/9;
+      max-height:calc(100vh - 16px);
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+    #quizSection{
+      height:100%;
+      display:grid;
+      grid-template-rows:56px 1fr;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:center;
+      padding:10px 18px;
+      border-bottom:1px solid var(--line);
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .progress-track{
+      flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden
+    }
+    .progress-fill{
+      width:10%;height:100%;background:var(--blue);border-radius:inherit;
+      transition:width .2s ease
+    }
+    .progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+    .score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+    .content{
+      min-height:0;
+      display:grid;
+      grid-template-columns:1.12fr .88fr;
+      grid-template-rows:auto 1fr 44px 48px;
+      grid-template-areas:
+        "instruction instruction"
+        "question keypad"
+        "feedback feedback"
+        "actions actions";
+      gap:10px 14px;
+      padding:14px 18px 16px;
+    }
+    .instruction{
+      grid-area:instruction;
+      margin:0;
+      text-align:center;
+      font-size:clamp(.95rem,1.8vw,1.18rem);
+      font-weight:700;
+      line-height:1.2;
+    }
+    .question-panel{
+      grid-area:question;
+      min-height:0;
+      display:grid;
+      grid-template-rows:1fr 92px;
+      gap:12px;
+    }
+    .prompt-card{
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px solid #dbeafe;
+      border-radius:14px;
+      background:#f8fbff;
+      color:#000;
+      padding:12px;
+      text-align:center;
+    }
+    .decimal-prompt{
+      font-size:clamp(2.3rem,5.8vw,4.6rem);
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+    .fraction{
+      color:#000;
+      display:inline-grid;
+      grid-template-rows:auto 3px auto;
+      align-items:center;
+      justify-items:center;
+      min-width:110px;
+      font-size:clamp(2rem,5vw,3.8rem);
+      line-height:1;
+      font-weight:800;
+      vertical-align:middle;
+    }
+    .fraction .bar{
+      width:100%;
+      min-width:100px;
+      height:3px;
+      background:currentColor;
+      margin:7px 0;
+    }
+    .answer-area{
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .answer-display{
+      width:100%;
+      height:70px;
+      border:2px solid var(--blue);
+      border-radius:14px;
+      background:#fff;
+      color:#000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:clamp(1.8rem,4vw,3rem);
+      font-weight:800;
+      letter-spacing:.03em;
+      box-shadow:inset 0 0 0 3px rgba(37,99,235,.08);
+      overflow:hidden;
+      padding:8px 14px;
+    }
+    .answer-display.placeholder{color:#9aa1aa;font-weight:600}
+    .fraction-entry{
+      display:grid;
+      grid-template-rows:1fr 3px 1fr;
+      width:min(82%,340px);
+      height:92px;
+      align-items:center;
+      justify-items:stretch;
+    }
+    .fraction-entry .line{
+      height:3px;
+      background:#000;
+      width:100%;
+    }
+    .fraction-field{
+      border:2px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:clamp(1.25rem,2.8vw,2rem);
+      font-weight:800;
+      color:#000;
+      min-height:0;
+      cursor:pointer;
+      user-select:none;
+    }
+    .fraction-field.active{
+      border-color:var(--blue);
+      background:var(--blue-soft);
+      box-shadow:0 0 0 2px rgba(37,99,235,.13);
+    }
+    .fraction-field.placeholder{color:#9aa1aa;font-weight:600}
+    .keypad{
+      grid-area:keypad;
+      min-height:0;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(5,1fr);
+      gap:8px;
+    }
+    .key{
+      border:2px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:#000;
+      font-size:clamp(1.1rem,2.3vw,1.55rem);
+      font-weight:800;
+      cursor:pointer;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease,opacity .1s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .key:hover:not(:disabled){transform:translateY(-1px);border-color:var(--blue);background:var(--blue-soft)}
+    .key:active:not(:disabled){transform:translateY(0)}
+    .key.wide{grid-column:1 / span 3}
+    .key.utility{font-size:clamp(.9rem,1.8vw,1.1rem);font-weight:700}
+    .key:disabled{opacity:.35;cursor:not-allowed}
+    .feedback{
+      grid-area:feedback;
+      height:44px;
+      min-height:44px;
+      margin:0;
+      padding:8px 12px;
+      border-radius:11px;
+      font-size:clamp(.78rem,1.4vw,.95rem);
+      line-height:1.2;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+    .feedback:empty{visibility:hidden}
+    .feedback.show{visibility:visible}
+    .feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+    .feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+    .feedback strong{display:inline;margin-right:6px}
+    .feedback .fraction{
+      min-width:42px;
+      font-size:1rem;
+      grid-template-rows:auto 2px auto;
+    }
+    .feedback .fraction .bar{
+      min-width:38px;
+      height:2px;
+      margin:2px 0;
+    }
+    .actions{
+      grid-area:actions;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:0;
+    }
+    .main-button{
+      min-width:170px;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:var(--blue);
+      color:#fff;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      padding:8px 20px;
+      transition:background .1s ease,transform .1s ease,opacity .1s ease
+    }
+    .main-button:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px)}
+    .main-button:disabled{cursor:not-allowed;opacity:.45}
+    .final{
+      display:none;
+      height:100%;
+      text-align:center;
+      padding:28px 24px;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+    .final.show{display:flex}
+    .final-score{
+      font-size:clamp(2rem,5vw,3.5rem);
+      color:var(--blue-dark);
+      font-weight:800;
+      margin:6px 0 10px
+    }
+    .final-text{
+      max-width:680px;
+      margin:0 auto 18px;
+      font-size:1rem;
+      line-height:1.35
+    }
+    @media(max-width:760px){
+      body{padding:4px}
+      .app{max-height:calc(100vh - 8px);border-radius:13px}
+      .topbar{padding:8px 12px}
+      .content{
+        grid-template-columns:1fr .86fr;
+        grid-template-rows:auto 1fr 40px 44px;
+        gap:7px 9px;
+        padding:10px 12px 12px;
+      }
+      .question-panel{grid-template-rows:1fr 76px;gap:8px}
+      .answer-display{height:58px}
+      .fraction-entry{height:76px}
+      .keypad{gap:5px}
+      .key{border-radius:9px}
+      .feedback{height:40px;min-height:40px;padding:6px 9px}
+      .main-button{height:42px}
+    }
+  </style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 10</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 10</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction" id="instruction"></p>
+
+      <div class="question-panel">
+        <div class="prompt-card" id="promptCard"></div>
+        <div class="answer-area" id="answerArea"></div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button class="key" data-value="7">7</button>
+        <button class="key" data-value="8">8</button>
+        <button class="key" data-value="9">9</button>
+        <button class="key" data-value="4">4</button>
+        <button class="key" data-value="5">5</button>
+        <button class="key" data-value="6">6</button>
+        <button class="key" data-value="1">1</button>
+        <button class="key" data-value="2">2</button>
+        <button class="key" data-value="3">3</button>
+        <button class="key" data-value="0">0</button>
+        <button class="key" id="commaKey" data-value=",">,</button>
+        <button class="key utility" data-action="backspace">⌫</button>
+        <button class="key utility wide" data-action="clear">Effacer</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="actions">
+        <button class="main-button" id="mainButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div>Exercice terminé</div>
+    <div class="final-score" id="finalScore">0 / 10</div>
+    <p class="final-text" id="finalText"></p>
+    <button class="main-button" id="restartButton">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+  const DENOMINATORS = [10,100,1000,10000];
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function fractionHTML(n,d){
+    return `<span class="fraction"><span>${Number(n).toLocaleString("fr-FR")}</span><span class="bar"></span><span>${Number(d).toLocaleString("fr-FR")}</span></span>`;
+  }
+
+  function makeNumeratorForDenominator(d){
+    const digits = Math.log10(d);
+    const max = Math.min(d * 9 - 1, 99999);
+    let n;
+    do{
+      n = randomInt(1,max);
+    }while(n % 10 === 0);
+    return n;
+  }
+
+  function fractionToDecimalString(n,d){
+    const digits = Math.log10(d);
+    const integerPart = Math.floor(n/d);
+    const remainder = n % d;
+    return `${integerPart},${String(remainder).padStart(digits,"0")}`;
+  }
+
+  function decimalQuestion(){
+    const d = DENOMINATORS[randomInt(0,DENOMINATORS.length-1)];
+    const n = makeNumeratorForDenominator(d);
+    const decimal = fractionToDecimalString(n,d);
+    return {
+      type:"fractionToDecimal",
+      numerator:String(n),
+      denominator:String(d),
+      decimal,
+      instruction:"Écris ce nombre sous forme décimale.",
+      explanation:`${fractionHTML(n,d)}&nbsp;=&nbsp;<strong>${decimal}</strong>. Le dénominateur ${d.toLocaleString("fr-FR")} impose ${Math.log10(d)} chiffre${Math.log10(d)>1?"s":""} après la virgule.`
+    };
+  }
+
+  function makeDecimalWithExactDigits(){
+    const digits = randomInt(1,4);
+    const integerPart = randomInt(0,999);
+    let decimalDigits = "";
+    for(let i=0;i<digits;i++){
+      decimalDigits += String(i === digits-1 ? randomInt(1,9) : randomInt(0,9));
+    }
+    const decimal = `${integerPart},${decimalDigits}`;
+    const denominator = 10 ** digits;
+    const numerator = integerPart * denominator + Number(decimalDigits);
+    return {decimal,numerator:String(numerator),denominator:String(denominator),digits};
+  }
+
+  function fractionQuestion(){
+    const data = makeDecimalWithExactDigits();
+    return {
+      type:"decimalToFraction",
+      decimal:data.decimal,
+      numerator:data.numerator,
+      denominator:data.denominator,
+      instruction:"Écris ce nombre sous forme de fraction décimale.",
+      explanation:`<strong>${data.decimal}</strong>&nbsp;=&nbsp;${fractionHTML(data.numerator,data.denominator)}. Il y a ${data.digits} chiffre${data.digits>1?"s":""} après la virgule.`
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      decimalQuestion(),
+      decimalQuestion(),
+      decimalQuestion(),
+      decimalQuestion(),
+      decimalQuestion(),
+      fractionQuestion(),
+      fractionQuestion(),
+      fractionQuestion(),
+      fractionQuestion(),
+      fractionQuestion()
+    ]);
+  }
+
+  let questions = buildQuestions();
+  let index = 0;
+  let score = 0;
+  let locked = false;
+  let decimalAnswer = "";
+  let numeratorAnswer = "";
+  let denominatorAnswer = "";
+  let activeField = "numerator";
+
+  const quizSection = document.getElementById("quizSection");
+  const finalSection = document.getElementById("finalSection");
+  const instruction = document.getElementById("instruction");
+  const promptCard = document.getElementById("promptCard");
+  const answerArea = document.getElementById("answerArea");
+  const keypad = document.getElementById("keypad");
+  const commaKey = document.getElementById("commaKey");
+  const feedback = document.getElementById("feedback");
+  const mainButton = document.getElementById("mainButton");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const scoreLabel = document.getElementById("scoreLabel");
+  const finalScore = document.getElementById("finalScore");
+  const finalText = document.getElementById("finalText");
+  const restartButton = document.getElementById("restartButton");
+
+  function currentQuestion(){
+    return questions[index];
+  }
+
+  function renderPrompt(q){
+    if(q.type === "fractionToDecimal"){
+      promptCard.innerHTML = fractionHTML(q.numerator,q.denominator);
+      promptCard.classList.remove("decimal-prompt");
+    }else{
+      promptCard.textContent = q.decimal;
+      promptCard.classList.add("decimal-prompt");
+    }
+  }
+
+  function renderAnswerArea(q){
+    answerArea.innerHTML = "";
+    if(q.type === "fractionToDecimal"){
+      const display = document.createElement("div");
+      display.id = "decimalDisplay";
+      display.className = "answer-display placeholder";
+      display.textContent = "Ta réponse";
+      answerArea.appendChild(display);
+      commaKey.disabled = false;
+    }else{
+      const entry = document.createElement("div");
+      entry.className = "fraction-entry";
+
+      const num = document.createElement("div");
+      num.id = "numeratorField";
+      num.className = "fraction-field active placeholder";
+      num.textContent = "numérateur";
+      num.addEventListener("click",()=>setActiveField("numerator"));
+
+      const line = document.createElement("div");
+      line.className = "line";
+
+      const den = document.createElement("div");
+      den.id = "denominatorField";
+      den.className = "fraction-field placeholder";
+      den.textContent = "dénominateur";
+      den.addEventListener("click",()=>setActiveField("denominator"));
+
+      entry.append(num,line,den);
+      answerArea.appendChild(entry);
+      commaKey.disabled = true;
+    }
+  }
+
+  function updateDisplays(){
+    const q = currentQuestion();
+    if(q.type === "fractionToDecimal"){
+      const display = document.getElementById("decimalDisplay");
+      if(decimalAnswer){
+        display.textContent = decimalAnswer;
+        display.classList.remove("placeholder");
+      }else{
+        display.textContent = "Ta réponse";
+        display.classList.add("placeholder");
+      }
+    }else{
+      const num = document.getElementById("numeratorField");
+      const den = document.getElementById("denominatorField");
+
+      num.textContent = numeratorAnswer || "numérateur";
+      den.textContent = denominatorAnswer || "dénominateur";
+      num.classList.toggle("placeholder",!numeratorAnswer);
+      den.classList.toggle("placeholder",!denominatorAnswer);
+      num.classList.toggle("active",activeField==="numerator");
+      den.classList.toggle("active",activeField==="denominator");
+    }
+    mainButton.disabled = locked || !isAnswerComplete();
+  }
+
+  function isAnswerComplete(){
+    const q = currentQuestion();
+    return q.type === "fractionToDecimal"
+      ? decimalAnswer.length > 0
+      : numeratorAnswer.length > 0 && denominatorAnswer.length > 0;
+  }
+
+  function setActiveField(field){
+    if(locked || currentQuestion().type !== "decimalToFraction") return;
+    activeField = field;
+    updateDisplays();
+  }
+
+  function appendValue(value){
+    if(locked) return;
+    const q = currentQuestion();
+
+    if(q.type === "fractionToDecimal"){
+      if(decimalAnswer.length >= 12) return;
+      if(value === ","){
+        if(decimalAnswer.includes(",")) return;
+        if(decimalAnswer === "") decimalAnswer = "0";
+        decimalAnswer += ",";
+      }else{
+        if(decimalAnswer === "0" && !decimalAnswer.includes(",")){
+          decimalAnswer = value;
+        }else{
+          decimalAnswer += value;
+        }
+      }
+    }else{
+      if(value === ",") return;
+      if(activeField === "numerator"){
+        if(numeratorAnswer.length >= 8) return;
+        numeratorAnswer = numeratorAnswer === "0" ? value : numeratorAnswer + value;
+      }else{
+        if(denominatorAnswer.length >= 6) return;
+        denominatorAnswer = denominatorAnswer === "0" ? value : denominatorAnswer + value;
+      }
+    }
+    updateDisplays();
+  }
+
+  function backspace(){
+    if(locked) return;
+    const q = currentQuestion();
+    if(q.type === "fractionToDecimal"){
+      decimalAnswer = decimalAnswer.slice(0,-1);
+    }else if(activeField === "numerator"){
+      numeratorAnswer = numeratorAnswer.slice(0,-1);
+    }else{
+      denominatorAnswer = denominatorAnswer.slice(0,-1);
+    }
+    updateDisplays();
+  }
+
+  function clearAnswer(){
+    if(locked) return;
+    const q = currentQuestion();
+    if(q.type === "fractionToDecimal"){
+      decimalAnswer = "";
+    }else{
+      numeratorAnswer = "";
+      denominatorAnswer = "";
+      activeField = "numerator";
+    }
+    updateDisplays();
+  }
+
+  function normalizeDecimal(value){
+    let v = value.trim().replace(/\s/g,"").replace(".",",");
+    if(v.endsWith(",")) v = v.slice(0,-1);
+    if(!v.includes(",")) return String(Number(v));
+    const [left,right=""] = v.split(",");
+    const normalizedLeft = String(Number(left || "0"));
+    return `${normalizedLeft},${right}`;
+  }
+
+  function validate(){
+    if(locked || !isAnswerComplete()) return;
+    locked = true;
+    const q = currentQuestion();
+    let correct = false;
+
+    if(q.type === "fractionToDecimal"){
+      correct = normalizeDecimal(decimalAnswer) === normalizeDecimal(q.decimal);
+    }else{
+      correct = String(Number(numeratorAnswer)) === q.numerator &&
+                String(Number(denominatorAnswer)) === q.denominator;
+    }
+
+    if(correct){
+      score++;
+      feedback.className = "feedback show success";
+      feedback.innerHTML = `<strong>✓</strong>&nbsp;${q.explanation}`;
+    }else{
+      feedback.className = "feedback show error";
+      const expected = q.type === "fractionToDecimal"
+        ? `<strong>${q.decimal}</strong>`
+        : fractionHTML(q.numerator,q.denominator);
+      feedback.innerHTML = `<strong>✗</strong>&nbsp;${q.explanation}&nbsp;Réponse attendue :&nbsp;${expected}.`;
+    }
+
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+    mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+    mainButton.disabled = false;
+  }
+
+  function next(){
+    if(!locked){
+      validate();
+      return;
+    }
+    index++;
+    if(index >= TOTAL){
+      showFinal();
+    }else{
+      render();
+    }
+  }
+
+  function render(){
+    const q = currentQuestion();
+    locked = false;
+    decimalAnswer = "";
+    numeratorAnswer = "";
+    denominatorAnswer = "";
+    activeField = "numerator";
+
+    instruction.textContent = q.instruction;
+    renderPrompt(q);
+    renderAnswerArea(q);
+
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    mainButton.textContent = "Valider";
+    progressLabel.textContent = `Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width = `${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+    updateDisplays();
+  }
+
+  function showFinal(){
+    quizSection.style.display = "none";
+    finalSection.classList.add("show");
+    finalScore.textContent = `${score} / ${TOTAL}`;
+    if(score === 10){
+      finalText.textContent = "Excellent ! Tu sais passer d’une fraction décimale à un nombre décimal et inversement.";
+    }else if(score >= 8){
+      finalText.textContent = "Très bien. Reste attentif au nombre de chiffres après la virgule.";
+    }else if(score >= 5){
+      finalText.textContent = "Tu progresses. Le dénominateur 10, 100, 1 000 ou 10 000 indique la position de la virgule.";
+    }else{
+      finalText.textContent = "Reprends calmement : compte les zéros du dénominateur ou les chiffres après la virgule.";
+    }
+  }
+
+  function restart(){
+    questions = buildQuestions();
+    index = 0;
+    score = 0;
+    finalSection.classList.remove("show");
+    quizSection.style.display = "";
+    render();
+  }
+
+  keypad.addEventListener("click",(e)=>{
+    const btn = e.target.closest("button");
+    if(!btn || btn.disabled) return;
+    if(btn.dataset.value !== undefined) appendValue(btn.dataset.value);
+    if(btn.dataset.action === "backspace") backspace();
+    if(btn.dataset.action === "clear") clearAnswer();
+  });
+
+  document.addEventListener("keydown",(e)=>{
+    if(finalSection.classList.contains("show")){
+      if(e.key === "Enter") restart();
+      return;
+    }
+
+    const q = currentQuestion();
+
+    if(e.key >= "0" && e.key <= "9"){
+      e.preventDefault();
+      appendValue(e.key);
+    }else if((e.key === "," || e.key === ".") && q.type === "fractionToDecimal"){
+      e.preventDefault();
+      appendValue(",");
+    }else if(e.key === "Backspace"){
+      e.preventDefault();
+      backspace();
+    }else if(e.key === "Delete" || e.key === "Escape"){
+      e.preventDefault();
+      clearAnswer();
+    }else if(e.key === "ArrowUp" && q.type === "decimalToFraction"){
+      e.preventDefault();
+      setActiveField("numerator");
+    }else if(e.key === "ArrowDown" && q.type === "decimalToFraction"){
+      e.preventDefault();
+      setActiveField("denominator");
+    }else if(e.key === "Tab" && q.type === "decimalToFraction"){
+      e.preventDefault();
+      setActiveField(activeField === "numerator" ? "denominator" : "numerator");
+    }else if(e.key === "Enter"){
+      e.preventDefault();
+      if(!mainButton.disabled) next();
+    }
+  });
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+
+  render();
+})();
+</script>
+</body>
+</html>
