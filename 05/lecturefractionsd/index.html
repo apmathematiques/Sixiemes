@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+
+    :root{
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --green:#2f9e44;
+      --green-soft:#eaf8ee;
+      --red:#d64545;
+      --red-soft:#fdecec;
+      --ink:#22252a;
+      --line:#e4e6ea;
+      --card:rgba(255,255,255,.96);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:transparent;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--ink);
+    }
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+    }
+    .app{
+      width:min(100%,960px);
+      aspect-ratio:16/9;
+      max-height:calc(100vh - 16px);
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+    #quizSection{
+      height:100%;
+      display:grid;
+      grid-template-rows:56px 1fr;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:center;
+      padding:10px 18px;
+      border-bottom:1px solid var(--line);
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .progress-track{
+      flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden
+    }
+    .progress-fill{
+      width:10%;height:100%;background:var(--blue);border-radius:inherit;
+      transition:width .2s ease
+    }
+    .progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+    .score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+    .content{
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto 82px 1fr 44px 48px;
+      gap:10px;
+      padding:14px 18px 16px;
+    }
+    .instruction{
+      margin:0;
+      text-align:center;
+      font-size:clamp(.95rem,1.8vw,1.18rem);
+      font-weight:700;
+      line-height:1.2;
+    }
+    .prompt{
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      margin:0;
+      padding:10px 14px;
+      border:2px solid #dbeafe;
+      border-radius:14px;
+      background:#f8fbff;
+      color:#000;
+    }
+    .prompt.words{
+      font-size:clamp(1.3rem,3vw,2.05rem);
+      font-weight:800;
+      line-height:1.15;
+    }
+    .options{
+      min-height:0;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .option{
+      min-height:0;
+      border:2px solid var(--line);
+      border-radius:13px;
+      background:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+      text-align:center;
+      font-size:clamp(.92rem,1.8vw,1.16rem);
+      font-weight:700;
+      color:#000;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease,box-shadow .1s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .option:hover:not(.locked){
+      transform:translateY(-1px);
+      box-shadow:0 5px 12px rgba(0,0,0,.07)
+    }
+    .option.selected{
+      border-color:var(--blue);
+      background:var(--blue-soft);
+      box-shadow:0 0 0 2px rgba(37,99,235,.13)
+    }
+    .option.correct{border-color:var(--green);background:var(--green-soft)}
+    .option.wrong{border-color:var(--red);background:var(--red-soft)}
+    .option.locked{cursor:default}
+    .fraction{
+      color:#000;
+      display:inline-grid;
+      grid-template-rows:auto 2px auto;
+      align-items:center;
+      justify-items:center;
+      min-width:58px;
+      font-size:clamp(1.25rem,2.7vw,1.9rem);
+      line-height:1;
+      font-weight:800;
+      vertical-align:middle;
+    }
+    .fraction .bar{
+      width:100%;min-width:52px;height:2px;background:currentColor;margin:4px 0
+    }
+    .feedback{
+      height:44px;
+      min-height:44px;
+      margin:0;
+      padding:8px 12px;
+      border-radius:11px;
+      font-size:clamp(.78rem,1.4vw,.95rem);
+      line-height:1.2;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+    }
+    .feedback:empty{visibility:hidden}
+    .feedback.show{visibility:visible}
+    .feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+    .feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+    .feedback strong{display:inline;margin-right:6px}
+    
+    .feedback .fraction{
+      font-size:1rem !important;
+      min-width:36px;
+    }
+    .feedback .fraction .bar{
+      min-width:32px;
+      margin:2px 0;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:0;
+    }
+    button{
+      min-width:170px;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:var(--blue);
+      color:#fff;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      padding:8px 20px;
+      transition:background .1s ease,transform .1s ease,opacity .1s ease
+    }
+    button:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px)}
+    button:disabled{cursor:not-allowed;opacity:.45}
+    .final{
+      display:none;
+      height:100%;
+      text-align:center;
+      padding:28px 24px;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+    .final.show{display:flex}
+    .final-score{
+      font-size:clamp(2rem,5vw,3.5rem);
+      color:var(--blue-dark);
+      font-weight:800;
+      margin:6px 0 10px
+    }
+    .final-text{
+      max-width:680px;
+      margin:0 auto 18px;
+      font-size:1rem;
+      line-height:1.35
+    }
+    @media(max-width:700px){
+      body{padding:4px}
+      .app{max-height:calc(100vh - 8px);border-radius:13px}
+      .topbar{padding:8px 12px}
+      .content{
+        grid-template-rows:auto 70px 1fr 40px 44px;
+        gap:7px;
+        padding:10px 12px 12px;
+      }
+      .option{padding:7px}
+      button{height:42px}
+      .feedback{height:40px;min-height:40px;padding:6px 9px}
+    }
+
+  </style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 10</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 10</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction" id="instruction"></p>
+      <div class="prompt" id="prompt"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button id="mainButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div>Exercice terminé</div>
+    <div class="final-score" id="finalScore">0 / 10</div>
+    <p class="final-text" id="finalText"></p>
+    <button id="restartButton">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+  const names = {
+    10: "dixièmes",
+    100: "centièmes",
+    1000: "millièmes"
+  };
+
+  const units = ["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf"];
+  const teens = ["dix","onze","douze","treize","quatorze","quinze","seize","dix-sept","dix-huit","dix-neuf"];
+  const tens = ["","","vingt","trente","quarante","cinquante","soixante"];
+
+  function numberToWords(n){
+    if(n < 10) return units[n];
+    if(n < 20) return teens[n-10];
+    if(n < 70){
+      const t = Math.floor(n/10);
+      const u = n%10;
+      if(u === 0) return tens[t];
+      if(u === 1) return tens[t] + "-et-un";
+      return tens[t] + "-" + units[u];
+    }
+    if(n < 80){
+      if(n === 71) return "soixante-et-onze";
+      return "soixante-" + numberToWords(n-60);
+    }
+    if(n < 100){
+      if(n === 80) return "quatre-vingts";
+      return "quatre-vingt-" + numberToWords(n-80);
+    }
+    if(n < 1000){
+      const h = Math.floor(n/100);
+      const r = n%100;
+      let head = h === 1 ? "cent" : units[h] + "-cent";
+      if(r === 0 && h > 1) head += "s";
+      return r === 0 ? head : head + "-" + numberToWords(r);
+    }
+    return String(n);
+  }
+
+  function fractionHTML(n,d){
+    return `<span class="fraction"><span>${n}</span><span class="bar"></span><span>${d.toLocaleString("fr-FR")}</span></span>`;
+  }
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function makeNumerator(){
+    const pools = [
+      () => randomInt(1,9),
+      () => randomInt(10,99),
+      () => randomInt(100,999)
+    ];
+    return pools[randomInt(0,pools.length-1)]();
+  }
+
+  function uniquePush(list, item, keyFn){
+    const key = keyFn(item);
+    if(!list.some(x => keyFn(x) === key)) list.push(item);
+  }
+
+  function makeFractionToWords(){
+    const denoms = [10,100,1000];
+    const d = denoms[randomInt(0,2)];
+    const n = makeNumerator();
+    const correct = `${numberToWords(n)} ${names[d]}`;
+
+    const options = [{label:correct, correct:true}];
+
+    const otherD = shuffle(denoms.filter(x=>x!==d));
+    otherD.forEach(dd => uniquePush(options,{label:`${numberToWords(n)} ${names[dd]}`,correct:false},x=>x.label));
+
+    const reversed = Number(String(n).split("").reverse().join(""));
+    if(reversed !== n && reversed > 0 && reversed < 1000){
+      uniquePush(options,{label:`${numberToWords(reversed)} ${names[d]}`,correct:false},x=>x.label);
+    }
+
+    const altered = n < 10 ? n*10 : Math.max(1,Math.floor(n/10));
+    uniquePush(options,{label:`${numberToWords(altered)} ${names[d]}`,correct:false},x=>x.label);
+
+    while(options.length < 4){
+      const nn = makeNumerator();
+      uniquePush(options,{label:`${numberToWords(nn)} ${names[d]}`,correct:false},x=>x.label);
+    }
+
+    return {
+      type:"fractionToWords",
+      instruction:"Clique sur la bonne lecture.",
+      prompt:fractionHTML(n,d),
+      promptClass:"",
+      options:shuffle([options.find(o => o.correct), ...shuffle(options.filter(o => !o.correct)).slice(0,3)]),
+      explanation:`${fractionHTML(n,d)}&nbsp;se lit <strong>${correct}</strong> : le dénominateur ${d.toLocaleString("fr-FR")} donne le nom des parts.`
+    };
+  }
+
+  function makeWordsToFraction(){
+    const denoms = [10,100,1000];
+    const d = denoms[randomInt(0,2)];
+    const n = makeNumerator();
+    const wording = `${numberToWords(n)} ${names[d]}`;
+
+    const options = [{n,d,correct:true}];
+
+    const otherD = shuffle(denoms.filter(x=>x!==d));
+    otherD.forEach(dd => uniquePush(options,{n,d:dd,correct:false},x=>`${x.n}/${x.d}`));
+
+    const reversed = Number(String(n).split("").reverse().join(""));
+    if(reversed !== n && reversed > 0 && reversed < 1000){
+      uniquePush(options,{n:reversed,d,correct:false},x=>`${x.n}/${x.d}`);
+    }
+
+    const altered = n < 10 ? n*10 : Math.max(1,Math.floor(n/10));
+    uniquePush(options,{n:altered,d,correct:false},x=>`${x.n}/${x.d}`);
+
+    while(options.length < 4){
+      uniquePush(options,{n:makeNumerator(),d,correct:false},x=>`${x.n}/${x.d}`);
+    }
+
+    return {
+      type:"wordsToFraction",
+      instruction:"Clique sur la bonne fraction.",
+      prompt:wording,
+      promptClass:"words",
+      options:shuffle([options.find(o => o.correct), ...shuffle(options.filter(o => !o.correct)).slice(0,3)]).map(o=>({
+        label:fractionHTML(o.n,o.d),
+        correct:o.correct
+      })),
+      explanation:`<strong>${wording}</strong>&nbsp;s’écrit&nbsp;${fractionHTML(n,d)}&nbsp;: « ${names[d]} » indique le dénominateur ${d.toLocaleString("fr-FR")}.`
+    };
+  }
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let selectedIndex = null;
+  let locked = false;
+
+  const quizSection = document.getElementById("quizSection");
+  const finalSection = document.getElementById("finalSection");
+  const instruction = document.getElementById("instruction");
+  const prompt = document.getElementById("prompt");
+  const options = document.getElementById("options");
+  const feedback = document.getElementById("feedback");
+  const mainButton = document.getElementById("mainButton");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const scoreLabel = document.getElementById("scoreLabel");
+  const finalScore = document.getElementById("finalScore");
+  const finalText = document.getElementById("finalText");
+  const restartButton = document.getElementById("restartButton");
+
+  function buildQuestions(){
+    const types = shuffle([
+      "A","A","A","A","A",
+      "B","B","B","B","B"
+    ]);
+    questions = types.map(t => t==="A" ? makeFractionToWords() : makeWordsToFraction());
+  }
+
+  function render(){
+    const q = questions[index];
+    selectedIndex = null;
+    locked = false;
+    instruction.textContent = q.instruction;
+    prompt.className = "prompt" + (q.promptClass ? " " + q.promptClass : "");
+    prompt.innerHTML = q.prompt;
+    options.innerHTML = "";
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    mainButton.textContent = "Valider";
+    mainButton.disabled = true;
+
+    q.options.forEach((opt,i)=>{
+      const div = document.createElement("div");
+      div.className = "option";
+      div.innerHTML = opt.label;
+      div.setAttribute("role","button");
+      div.setAttribute("tabindex","0");
+      div.addEventListener("click",()=>select(i));
+      div.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter" || e.key===" "){
+          e.preventDefault();
+          select(i);
+        }
+      });
+      options.appendChild(div);
+    });
+
+    const current = index+1;
+    progressLabel.textContent = `Question ${current} / ${TOTAL}`;
+    progressFill.style.width = `${(current/TOTAL)*100}%`;
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+  }
+
+  function select(i){
+    if(locked) return;
+    selectedIndex = i;
+    [...options.children].forEach((el,j)=>el.classList.toggle("selected",j===i));
+    mainButton.disabled = false;
+  }
+
+  function validate(){
+    if(selectedIndex === null || locked) return;
+    locked = true;
+    const q = questions[index];
+    const chosen = q.options[selectedIndex];
+    const cards = [...options.children];
+
+    cards.forEach((card,i)=>{
+      card.classList.add("locked");
+      if(q.options[i].correct) card.classList.add("correct");
+    });
+
+    if(chosen.correct){
+      score++;
+      feedback.className = "feedback show success";
+      feedback.innerHTML = `<strong>✓</strong>&nbsp;${q.explanation}`;
+    }else{
+      cards[selectedIndex].classList.add("wrong");
+      feedback.className = "feedback show error";
+      feedback.innerHTML = `<strong>✗</strong>&nbsp;${q.explanation}`;
+    }
+
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+    mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+    mainButton.disabled = false;
+  }
+
+  function next(){
+    if(!locked){
+      validate();
+      return;
+    }
+    index++;
+    if(index >= TOTAL){
+      showFinal();
+    }else{
+      render();
+    }
+  }
+
+  function showFinal(){
+    quizSection.style.display = "none";
+    finalSection.classList.add("show");
+    finalScore.textContent = `${score} / ${TOTAL}`;
+    if(score === 10){
+      finalText.textContent = "Excellent ! Tu sais lire et écrire les fractions décimales dans les deux sens.";
+    }else if(score >= 7){
+      finalText.textContent = "Très bien. Relis attentivement le nom de l’unité : dixièmes, centièmes ou millièmes.";
+    }else if(score >= 4){
+      finalText.textContent = "Tu progresses. Pense à utiliser le dénominateur pour choisir entre dixièmes, centièmes et millièmes.";
+    }else{
+      finalText.textContent = "Reprends la lecture des fractions : le numérateur indique combien de parts sont prises et le dénominateur donne le nom des parts.";
+    }
+  }
+
+  function restart(){
+    index = 0;
+    score = 0;
+    buildQuestions();
+    finalSection.classList.remove("show");
+    quizSection.style.display = "";
+    render();
+  }
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+
+  buildQuestions();
+  render();
+})();
+</script>
+</body>
+</html>
