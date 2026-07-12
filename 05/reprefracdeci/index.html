@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --green:#2f9e44;
+      --green-soft:#eaf8ee;
+      --red:#d64545;
+      --red-soft:#fdecec;
+      --ink:#22252a;
+      --line:#e4e6ea;
+      --card:rgba(255,255,255,.96);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:transparent;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--ink);
+    }
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+    }
+    .app{
+      width:min(100%,960px);
+      aspect-ratio:16/9;
+      max-height:calc(100vh - 16px);
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+    #quizSection{
+      height:100%;
+      display:grid;
+      grid-template-rows:56px 1fr;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:center;
+      padding:10px 18px;
+      border-bottom:1px solid var(--line);
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .progress-track{
+      flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden
+    }
+    .progress-fill{
+      width:20%;height:100%;background:var(--blue);border-radius:inherit;
+      transition:width .2s ease
+    }
+    .progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+    .score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+    .content{
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto 1fr 44px 48px;
+      gap:10px;
+      padding:14px 18px 16px;
+    }
+    .exercise-area{
+      min-height:0;
+      display:grid;
+      gap:10px;
+    }
+    .exercise-area.tenths-layout{
+      grid-template-rows:1fr 118px;
+    }
+    .exercise-area.hundredths-layout{
+      grid-template-columns:minmax(260px,1.05fr) minmax(260px,.95fr);
+      align-items:stretch;
+    }
+    .instruction{
+      margin:0;
+      text-align:center;
+      font-size:clamp(.95rem,1.8vw,1.18rem);
+      font-weight:700;
+      line-height:1.2;
+    }
+    .visual{
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+      border:2px solid #dbeafe;
+      border-radius:14px;
+      background:#f8fbff;
+    }
+    .hundredths-layout .visual{
+      padding:14px;
+    }
+    .tenths-strip{
+      width:min(86%,720px);
+      display:grid;
+      grid-template-columns:repeat(10,1fr);
+      gap:4px;
+    }
+    .tenths-cell{
+      aspect-ratio:1.6/1;
+      border:2px solid #7b8794;
+      border-radius:5px;
+      background:white;
+    }
+    .tenths-cell.filled{
+      background:var(--blue);
+      border-color:var(--blue-dark);
+    }
+    .hundredths-grid{
+      width:min(45%,170px);
+      aspect-ratio:1/1;
+      display:grid;
+      grid-template-columns:repeat(10,1fr);
+      grid-template-rows:repeat(10,1fr);
+      border:2px solid #7b8794;
+      background:white;
+    }
+    .hundredths-cell{
+      border-right:1px solid #c9ced6;
+      border-bottom:1px solid #c9ced6;
+    }
+    .hundredths-cell:nth-child(10n){border-right:0}
+    .hundredths-cell:nth-last-child(-n+10){border-bottom:0}
+    .hundredths-cell.filled{background:var(--blue)}
+    .options{
+      min-height:0;
+      display:grid;
+      gap:10px;
+    }
+    .tenths-layout .options{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:repeat(2,minmax(0,1fr));
+    }
+    .hundredths-layout .options{
+      grid-template-columns:1fr;
+      grid-template-rows:repeat(4,minmax(0,1fr));
+    }
+    .option{
+      min-height:0;
+      border:2px solid var(--line);
+      border-radius:13px;
+      background:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+      text-align:center;
+      color:#000;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease,box-shadow .1s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .option:hover:not(.locked){
+      transform:translateY(-1px);
+      box-shadow:0 5px 12px rgba(0,0,0,.07)
+    }
+    .option.selected{
+      border-color:var(--blue);
+      background:var(--blue-soft);
+      box-shadow:0 0 0 2px rgba(37,99,235,.13)
+    }
+    .option.correct{border-color:var(--green);background:var(--green-soft)}
+    .option.wrong{border-color:var(--red);background:var(--red-soft)}
+    .option.locked{cursor:default}
+    .fraction{
+      color:#000;
+      display:inline-grid;
+      grid-template-rows:auto 2px auto;
+      align-items:center;
+      justify-items:center;
+      min-width:58px;
+      font-size:clamp(1.2rem,2.4vw,1.7rem);
+      line-height:1;
+      font-weight:800;
+      vertical-align:middle;
+    }
+    .fraction .bar{
+      width:100%;min-width:52px;height:2px;background:currentColor;margin:4px 0
+    }
+    .feedback{
+      height:44px;
+      min-height:44px;
+      margin:0;
+      padding:8px 12px;
+      border-radius:11px;
+      font-size:clamp(.78rem,1.4vw,.95rem);
+      line-height:1.2;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+    }
+    .feedback:empty{visibility:hidden}
+    .feedback.show{visibility:visible}
+    .feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+    .feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+    .feedback strong{display:inline;margin-right:6px}
+    .feedback .fraction{
+      font-size:1rem !important;
+      min-width:36px;
+    }
+    .feedback .fraction .bar{
+      min-width:32px;
+      margin:2px 0;
+    }
+    .actions{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:0;
+    }
+    button{
+      min-width:170px;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:var(--blue);
+      color:#fff;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      padding:8px 20px;
+      transition:background .1s ease,transform .1s ease,opacity .1s ease
+    }
+    button:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px)}
+    button:disabled{cursor:not-allowed;opacity:.45}
+    .final{
+      display:none;
+      height:100%;
+      text-align:center;
+      padding:28px 24px;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+    .final.show{display:flex}
+    .final-score{
+      font-size:clamp(2rem,5vw,3.5rem);
+      color:var(--blue-dark);
+      font-weight:800;
+      margin:6px 0 10px
+    }
+    .final-text{
+      max-width:680px;
+      margin:0 auto 18px;
+      font-size:1rem;
+      line-height:1.35
+    }
+    @media(max-width:700px){
+      body{padding:4px}
+      .app{max-height:calc(100vh - 8px);border-radius:13px}
+      .topbar{padding:8px 12px}
+      .content{
+        grid-template-rows:auto 1fr 40px 44px;
+        gap:7px;
+        padding:10px 12px 12px;
+      }
+      .exercise-area.tenths-layout{
+        grid-template-rows:1fr 104px;
+      }
+      .exercise-area.hundredths-layout{
+        grid-template-columns:minmax(210px,1fr) minmax(180px,.85fr);
+      }
+      .tenths-strip{width:96%;gap:2px}
+      .tenths-cell{border-width:1px}
+      .hundredths-grid{width:min(46%,140px)}
+      .option{padding:6px}
+      button{height:42px}
+      .feedback{height:40px;min-height:40px;padding:6px 9px}
+    }
+  </style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 8</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 8</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction">Clique sur la fraction représentée.</p>
+      <div class="exercise-area tenths-layout" id="exerciseArea">
+        <div class="visual" id="visual"></div>
+        <div class="options" id="options"></div>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button id="mainButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div>Exercice terminé</div>
+    <div class="final-score" id="finalScore">0 / 8</div>
+    <p class="final-text" id="finalText"></p>
+    <button id="restartButton">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 8;
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function fractionHTML(n,d){
+    return `<span class="fraction"><span>${n}</span><span class="bar"></span><span>${d}</span></span>`;
+  }
+
+  function uniqueFractions(items){
+    const seen = new Set();
+    return items.filter(item=>{
+      const key = `${item.n}/${item.d}`;
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function makeTenthsQuestion(){
+    const n = randomInt(1,9);
+    const complement = 10-n;
+    let distractors = [
+      {n:complement,d:10},
+      {n:n,d:100},
+      {n:complement,d:100},
+      {n:Math.max(1,n-1),d:10},
+      {n:Math.min(9,n+1),d:10}
+    ];
+    distractors = shuffle(uniqueFractions(distractors).filter(x=>!(x.n===n && x.d===10))).slice(0,3);
+
+    return {
+      type:"tenths",
+      n,
+      d:10,
+      options:shuffle([{n,d:10,correct:true},...distractors.map(x=>({...x,correct:false}))]),
+      explanation:`${n}&nbsp;part${n>1?"s":""} sur 10 ${n>1?"sont colorées":"est colorée"} : la fraction est&nbsp;${fractionHTML(n,10)}.`
+    };
+  }
+
+  function makeHundredthsQuestion(){
+    let n;
+    do{
+      n = randomInt(5,95);
+    }while(n===50);
+
+    const reversed = Number(String(n).padStart(2,"0").split("").reverse().join(""));
+    const complement = 100-n;
+    let distractors = [
+      {n:reversed,d:100},
+      {n:n,d:10},
+      {n:complement,d:100},
+      {n:Math.max(1,n-10),d:100},
+      {n:Math.min(99,n+10),d:100}
+    ];
+    distractors = shuffle(uniqueFractions(distractors).filter(x=>!(x.n===n && x.d===100))).slice(0,3);
+
+    return {
+      type:"hundredths",
+      n,
+      d:100,
+      options:shuffle([{n,d:100,correct:true},...distractors.map(x=>({...x,correct:false}))]),
+      explanation:`${n}&nbsp;cases sur 100 sont colorées : la fraction est&nbsp;${fractionHTML(n,100)}.`
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      makeTenthsQuestion(),
+      makeTenthsQuestion(),
+      makeTenthsQuestion(),
+      makeTenthsQuestion(),
+      makeHundredthsQuestion(),
+      makeHundredthsQuestion(),
+      makeHundredthsQuestion(),
+      makeHundredthsQuestion()
+    ]);
+  }
+
+  let questions = buildQuestions();
+  let index = 0;
+  let score = 0;
+  let selectedIndex = null;
+  let locked = false;
+
+  const quizSection = document.getElementById("quizSection");
+  const finalSection = document.getElementById("finalSection");
+  const exerciseArea = document.getElementById("exerciseArea");
+  const visual = document.getElementById("visual");
+  const options = document.getElementById("options");
+  const feedback = document.getElementById("feedback");
+  const mainButton = document.getElementById("mainButton");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const scoreLabel = document.getElementById("scoreLabel");
+  const finalScore = document.getElementById("finalScore");
+  const finalText = document.getElementById("finalText");
+  const restartButton = document.getElementById("restartButton");
+
+  function renderVisual(q){
+    visual.innerHTML = "";
+    if(q.type === "tenths"){
+      const strip = document.createElement("div");
+      strip.className = "tenths-strip";
+      for(let i=0;i<10;i++){
+        const cell = document.createElement("div");
+        cell.className = "tenths-cell" + (i<q.n ? " filled" : "");
+        strip.appendChild(cell);
+      }
+      visual.appendChild(strip);
+    }else{
+      const grid = document.createElement("div");
+      grid.className = "hundredths-grid";
+      const filledIndexes = new Set(shuffle([...Array(100).keys()]).slice(0,q.n));
+      for(let i=0;i<100;i++){
+        const cell = document.createElement("div");
+        cell.className = "hundredths-cell" + (filledIndexes.has(i) ? " filled" : "");
+        grid.appendChild(cell);
+      }
+      visual.appendChild(grid);
+    }
+  }
+
+  function render(){
+    const q = questions[index];
+    selectedIndex = null;
+    locked = false;
+    exerciseArea.className = "exercise-area " + (q.type === "hundredths" ? "hundredths-layout" : "tenths-layout");
+    renderVisual(q);
+    options.innerHTML = "";
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    mainButton.textContent = "Valider";
+    mainButton.disabled = true;
+
+    q.options.forEach((opt,i)=>{
+      const div = document.createElement("div");
+      div.className = "option";
+      div.innerHTML = fractionHTML(opt.n,opt.d);
+      div.setAttribute("role","button");
+      div.setAttribute("tabindex","0");
+      div.addEventListener("click",()=>select(i));
+      div.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter" || e.key===" "){
+          e.preventDefault();
+          select(i);
+        }
+      });
+      options.appendChild(div);
+    });
+
+    const current = index+1;
+    progressLabel.textContent = `Question ${current} / ${TOTAL}`;
+    progressFill.style.width = `${(current/TOTAL)*100}%`;
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+  }
+
+  function select(i){
+    if(locked) return;
+    selectedIndex = i;
+    [...options.children].forEach((el,j)=>el.classList.toggle("selected",j===i));
+    mainButton.disabled = false;
+  }
+
+  function validate(){
+    if(selectedIndex === null || locked) return;
+    locked = true;
+    const q = questions[index];
+    const chosen = q.options[selectedIndex];
+    const cards = [...options.children];
+
+    cards.forEach((card,i)=>{
+      card.classList.add("locked");
+      if(q.options[i].correct) card.classList.add("correct");
+    });
+
+    if(chosen.correct){
+      score++;
+      feedback.className = "feedback show success";
+      feedback.innerHTML = `<strong>✓</strong>&nbsp;${q.explanation}`;
+    }else{
+      cards[selectedIndex].classList.add("wrong");
+      feedback.className = "feedback show error";
+      feedback.innerHTML = `<strong>✗</strong>&nbsp;${q.explanation}`;
+    }
+
+    scoreLabel.textContent = `Score : ${score} / ${TOTAL}`;
+    mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+    mainButton.disabled = false;
+  }
+
+  function next(){
+    if(!locked){
+      validate();
+      return;
+    }
+    index++;
+    if(index >= TOTAL){
+      showFinal();
+    }else{
+      render();
+    }
+  }
+
+  function showFinal(){
+    quizSection.style.display = "none";
+    finalSection.classList.add("show");
+    finalScore.textContent = `${score} / ${TOTAL}`;
+    if(score === 8){
+      finalText.textContent = "Excellent ! Tu sais associer une représentation à une fraction décimale.";
+    }else if(score >= 6){
+      finalText.textContent = "Très bien. Pense toujours au nombre total de parts égales.";
+    }else if(score >= 3){
+      finalText.textContent = "Tu progresses. Le dénominateur indique le nombre total de parts de l’unité.";
+    }else{
+      finalText.textContent = "Reprends calmement : compte les parts colorées, puis regarde si l’unité est partagée en 10 ou en 100.";
+    }
+  }
+
+  function restart(){
+    questions = buildQuestions();
+    index = 0;
+    score = 0;
+    finalSection.classList.remove("show");
+    quizSection.style.display = "";
+    render();
+  }
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+
+  render();
+})();
+</script>
+</body>
+</html>
