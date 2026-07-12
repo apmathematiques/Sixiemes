@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --green:#2f9e44;
+      --green-soft:#eaf8ee;
+      --red:#d64545;
+      --red-soft:#fdecec;
+      --ink:#22252a;
+      --line:#e4e6ea;
+      --card:rgba(255,255,255,.96);
+    }
+    *{box-sizing:border-box}
+    [hidden]{display:none !important}
+    html,body{
+      margin:0;width:100%;height:100%;overflow:hidden;
+      background:transparent;font-family:Arial,Helvetica,sans-serif;color:var(--ink);
+    }
+    body{display:flex;align-items:center;justify-content:center;padding:8px}
+    .app{
+      width:min(100%,960px);aspect-ratio:16/9;max-height:calc(100vh - 16px);
+      background:var(--card);border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+    #quizSection{height:100%;display:grid;grid-template-rows:56px 1fr}
+    .topbar{
+      display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;
+      padding:10px 18px;border-bottom:1px solid var(--line);
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .progress-track{flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden}
+    .progress-fill{height:100%;width:10%;background:var(--blue);border-radius:inherit;transition:width .2s ease}
+    .progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+    .score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+    .content{
+      min-height:0;display:grid;
+      grid-template-rows:auto 1fr 44px 48px;
+      gap:10px;padding:14px 18px 16px;
+    }
+    .instruction{
+      margin:0;text-align:center;font-size:clamp(.95rem,1.8vw,1.18rem);
+      font-weight:700;line-height:1.2;
+    }
+    .workspace{min-height:0;display:grid;gap:12px}
+    .workspace.input-mode{grid-template-columns:1.1fr .9fr}
+    .workspace.choice-mode{grid-template-columns:1fr}
+    .prompt-card{
+      min-height:0;display:flex;align-items:center;justify-content:center;text-align:center;
+      border:2px solid #dbeafe;border-radius:14px;background:#f8fbff;color:#000;
+      padding:14px;font-weight:800;
+    }
+    .prompt-card.number{font-size:clamp(2.2rem,5.5vw,4.5rem)}
+    .prompt-card.decomp{font-size:clamp(1.05rem,2.15vw,1.55rem);line-height:1.45}
+    .right-panel{min-height:0;display:grid;grid-template-rows:70px 1fr;gap:10px}
+    .answer-display{
+      height:70px;border:2px solid var(--blue);border-radius:14px;background:#fff;color:#000;
+      display:flex;align-items:center;justify-content:center;
+      font-size:clamp(1.7rem,3.8vw,2.8rem);font-weight:800;
+      box-shadow:inset 0 0 0 3px rgba(37,99,235,.08);
+      padding:8px 14px;overflow:hidden;
+    }
+    .answer-display.placeholder{color:#9aa1aa;font-weight:600}
+    .keypad{
+      min-height:0;display:grid;grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(5,1fr);gap:8px;
+    }
+    .key{
+      border:2px solid var(--line);border-radius:12px;background:#fff;color:#000;
+      font-size:clamp(1.05rem,2.2vw,1.45rem);font-weight:800;cursor:pointer;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease;
+      user-select:none;-webkit-tap-highlight-color:transparent;
+    }
+    .key:hover{transform:translateY(-1px);border-color:var(--blue);background:var(--blue-soft)}
+    .key:active{transform:translateY(0)}
+    .key.wide{grid-column:1 / span 3}
+    .key.utility{font-size:clamp(.9rem,1.7vw,1.05rem);font-weight:700}
+    .choices{
+      min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:repeat(2,minmax(0,1fr));gap:10px;
+    }
+    .choice{
+      min-height:0;border:2px solid var(--line);border-radius:13px;background:#fff;
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      padding:12px;color:#000;font-size:clamp(.88rem,1.6vw,1.08rem);
+      font-weight:700;line-height:1.35;cursor:pointer;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease,box-shadow .1s ease;
+      user-select:none;-webkit-tap-highlight-color:transparent;
+    }
+    .choice:hover:not(.locked){transform:translateY(-1px);box-shadow:0 5px 12px rgba(0,0,0,.07)}
+    .choice.selected{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 2px rgba(37,99,235,.13)}
+    .choice.correct{border-color:var(--green);background:var(--green-soft)}
+    .choice.wrong{border-color:var(--red);background:var(--red-soft)}
+    .choice.locked{cursor:default}
+    .feedback{
+      height:44px;min-height:44px;margin:0;padding:8px 12px;border-radius:11px;
+      font-size:clamp(.76rem,1.35vw,.93rem);line-height:1.2;
+      display:flex;align-items:center;overflow:hidden;white-space:nowrap;
+    }
+    .feedback:empty{visibility:hidden}
+    .feedback.show{visibility:visible}
+    .feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+    .feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+    .feedback strong{display:inline;margin-right:6px}
+    .actions{display:flex;justify-content:center;align-items:center}
+    .main-button{
+      min-width:170px;height:46px;border:0;border-radius:12px;background:var(--blue);color:#fff;
+      font-size:1rem;font-weight:700;cursor:pointer;padding:8px 20px;
+      transition:background .1s ease,transform .1s ease,opacity .1s ease;
+    }
+    .main-button:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px)}
+    .main-button:disabled{cursor:not-allowed;opacity:.45}
+    .final{
+      display:none;height:100%;text-align:center;padding:28px 24px;
+      align-items:center;justify-content:center;flex-direction:column;
+    }
+    .final.show{display:flex}
+    .final-score{
+      font-size:clamp(2rem,5vw,3.5rem);color:var(--blue-dark);font-weight:800;margin:6px 0 10px;
+    }
+    .final-text{max-width:680px;margin:0 auto 18px;font-size:1rem;line-height:1.35}
+    @media(max-width:760px){
+      body{padding:4px}
+      .app{max-height:calc(100vh - 8px);border-radius:13px}
+      .topbar{padding:8px 12px}
+      .content{grid-template-rows:auto 1fr 40px 44px;gap:7px;padding:10px 12px 12px}
+      .workspace.input-mode{grid-template-columns:1fr .86fr}
+      .right-panel{grid-template-rows:58px 1fr;gap:7px}
+      .answer-display{height:58px}
+      .keypad{gap:5px}
+      .key{border-radius:9px}
+      .choice{padding:8px}
+      .feedback{height:40px;min-height:40px;padding:6px 9px}
+      .main-button{height:42px}
+    }
+  </style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Question 1 / 10</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 10</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction" id="instruction"></p>
+      <div class="workspace input-mode" id="workspace">
+        <div class="prompt-card" id="promptCard"></div>
+
+        <div class="right-panel" id="rightPanel">
+          <div class="answer-display placeholder" id="answerDisplay">Ta réponse</div>
+          <div class="keypad" id="keypad">
+            <button class="key" data-value="7">7</button>
+            <button class="key" data-value="8">8</button>
+            <button class="key" data-value="9">9</button>
+            <button class="key" data-value="4">4</button>
+            <button class="key" data-value="5">5</button>
+            <button class="key" data-value="6">6</button>
+            <button class="key" data-value="1">1</button>
+            <button class="key" data-value="2">2</button>
+            <button class="key" data-value="3">3</button>
+            <button class="key" data-value="0">0</button>
+            <button class="key" data-value=",">,</button>
+            <button class="key utility" data-action="backspace">⌫</button>
+            <button class="key utility wide" data-action="clear">Effacer</button>
+          </div>
+        </div>
+
+        <div class="choices" id="choices" hidden></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+      <div class="actions"><button class="main-button" id="mainButton" disabled>Valider</button></div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div>Exercice terminé</div>
+    <div class="final-score" id="finalScore">0 / 10</div>
+    <p class="final-text" id="finalText"></p>
+    <button class="main-button" id="restartButton">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+  const PLACE_VALUES = [
+    {name:"milliers", factor:1000, label:"1 000"},
+    {name:"centaines", factor:100, label:"100"},
+    {name:"dizaines", factor:10, label:"10"},
+    {name:"unités", factor:1, label:"1"},
+    {name:"dixièmes", factor:0.1, label:"0,1"},
+    {name:"centièmes", factor:0.01, label:"0,01"},
+    {name:"millièmes", factor:0.001, label:"0,001"}
+  ];
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function formatDecimalNumber(value){
+    const s = value.toFixed(3).replace(/0+$/,"").replace(/\.$/,"");
+    const [intPart,decPart] = s.split(".");
+    const formattedInt = Number(intPart).toLocaleString("fr-FR");
+    return decPart ? `${formattedInt},${decPart}` : formattedInt;
+  }
+
+  function decompToHTML(terms){
+    return terms.map(t => `${t.digit} × ${t.label}`).join(" + ");
+  }
+
+  function buildDigits(){
+    let digits;
+    do{
+      digits = [
+        randomInt(0,9), // thousands
+        randomInt(0,9), // hundreds
+        randomInt(0,9), // tens
+        randomInt(0,9), // units
+        randomInt(0,9), // tenths
+        randomInt(0,9), // hundredths
+        randomInt(0,9)  // thousandths
+      ];
+    }while(digits.every(d=>d===0) || digits.slice(0,4).every(d=>d===0));
+    return digits;
+  }
+
+  function numberFromDigits(digits){
+    return digits.reduce((sum,d,i)=>sum+d*PLACE_VALUES[i].factor,0);
+  }
+
+  function termsFromDigits(digits){
+    return digits.map((d,i)=>({
+      digit:d,
+      factor:PLACE_VALUES[i].factor,
+      label:PLACE_VALUES[i].label,
+      rank:PLACE_VALUES[i].name
+    })).filter(t=>t.digit!==0);
+  }
+
+  function mutateDigits(digits){
+    const variants = [];
+
+    // Swap two decimal places
+    {
+      const a=[...digits];
+      [a[4],a[5]]=[a[5],a[4]];
+      variants.push(a);
+    }
+    // Swap hundredths and thousandths
+    {
+      const a=[...digits];
+      [a[5],a[6]]=[a[6],a[5]];
+      variants.push(a);
+    }
+    // Shift decimal digits one place
+    {
+      const a=[...digits];
+      a[4]=0;a[5]=digits[4];a[6]=digits[5];
+      variants.push(a);
+    }
+    // Alter one nonzero digit
+    {
+      const a=[...digits];
+      const idx=randomInt(0,6);
+      a[idx]=(a[idx]+randomInt(1,8))%10;
+      variants.push(a);
+    }
+    // Remove one nonzero term
+    {
+      const a=[...digits];
+      const nonzero=a.map((d,i)=>d!==0?i:null).filter(i=>i!==null);
+      if(nonzero.length){
+        a[nonzero[randomInt(0,nonzero.length-1)]]=0;
+      }
+      variants.push(a);
+    }
+
+    return variants;
+  }
+
+  function makeDecompToNumber(){
+    const digits=buildDigits();
+    const number=numberFromDigits(digits);
+    return {
+      type:"decompToNumber",
+      digits,
+      number,
+      expected:formatDecimalNumber(number),
+      instruction:"Écris le nombre correspondant à cette décomposition.",
+      prompt:decompToHTML(termsFromDigits(digits)),
+      correction:`${decompToHTML(termsFromDigits(digits))}&nbsp;=&nbsp;<strong>${formatDecimalNumber(number)}</strong>.`
+    };
+  }
+
+  function makeNumberToDecomp(){
+    const digits=buildDigits();
+    const number=numberFromDigits(digits);
+    const correct=decompToHTML(termsFromDigits(digits));
+
+    const options=[{label:correct,correct:true}];
+    const seen=new Set([correct]);
+
+    for(const variant of mutateDigits(digits)){
+      const label=decompToHTML(termsFromDigits(variant));
+      if(label && !seen.has(label)){
+        seen.add(label);
+        options.push({label,correct:false});
+      }
+      if(options.length===4) break;
+    }
+
+    while(options.length<4){
+      const a=[...digits];
+      const idx=randomInt(0,6);
+      a[idx]=(a[idx]+randomInt(1,9))%10;
+      const label=decompToHTML(termsFromDigits(a));
+      if(label && !seen.has(label)){
+        seen.add(label);
+        options.push({label,correct:false});
+      }
+    }
+
+    return {
+      type:"numberToDecomp",
+      digits,
+      number,
+      expected:correct,
+      instruction:"Clique sur la bonne décomposition.",
+      prompt:formatDecimalNumber(number),
+      options:shuffle(options),
+      correction:`${formatDecimalNumber(number)}&nbsp;=&nbsp;<strong>${correct}</strong>.`
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      makeDecompToNumber(),makeDecompToNumber(),makeDecompToNumber(),makeDecompToNumber(),makeDecompToNumber(),
+      makeNumberToDecomp(),makeNumberToDecomp(),makeNumberToDecomp(),makeNumberToDecomp(),makeNumberToDecomp()
+    ]);
+  }
+
+  let questions=buildQuestions();
+  let index=0;
+  let score=0;
+  let answer="";
+  let selectedIndex=null;
+  let locked=false;
+
+  const quizSection=document.getElementById("quizSection");
+  const finalSection=document.getElementById("finalSection");
+  const instruction=document.getElementById("instruction");
+  const workspace=document.getElementById("workspace");
+  const promptCard=document.getElementById("promptCard");
+  const rightPanel=document.getElementById("rightPanel");
+  const answerDisplay=document.getElementById("answerDisplay");
+  const keypad=document.getElementById("keypad");
+  const choices=document.getElementById("choices");
+  const feedback=document.getElementById("feedback");
+  const mainButton=document.getElementById("mainButton");
+  const progressFill=document.getElementById("progressFill");
+  const progressLabel=document.getElementById("progressLabel");
+  const scoreLabel=document.getElementById("scoreLabel");
+  const finalScore=document.getElementById("finalScore");
+  const finalText=document.getElementById("finalText");
+  const restartButton=document.getElementById("restartButton");
+
+  function currentQuestion(){return questions[index]}
+
+  function updateAnswerDisplay(){
+    if(answer){
+      answerDisplay.textContent=answer;
+      answerDisplay.classList.remove("placeholder");
+    }else{
+      answerDisplay.textContent="Ta réponse";
+      answerDisplay.classList.add("placeholder");
+    }
+    mainButton.disabled=locked || answer.length===0;
+  }
+
+  function renderChoices(q){
+    choices.innerHTML="";
+    q.options.forEach((opt,i)=>{
+      const div=document.createElement("div");
+      div.className="choice";
+      div.textContent=opt.label;
+      div.setAttribute("role","button");
+      div.setAttribute("tabindex","0");
+      div.addEventListener("click",()=>selectChoice(i));
+      div.addEventListener("keydown",e=>{
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();selectChoice(i)}
+      });
+      choices.appendChild(div);
+    });
+  }
+
+  function render(){
+    const q=currentQuestion();
+    answer="";
+    selectedIndex=null;
+    locked=false;
+    instruction.textContent=q.instruction;
+    feedback.className="feedback";
+    feedback.innerHTML="";
+    mainButton.textContent="Valider";
+
+    if(q.type==="decompToNumber"){
+      workspace.className="workspace input-mode";
+      promptCard.className="prompt-card decomp";
+      promptCard.textContent=q.prompt;
+      rightPanel.hidden=false;
+      choices.hidden=true;
+      updateAnswerDisplay();
+    }else{
+      workspace.className="workspace choice-mode";
+      promptCard.className="prompt-card number";
+      promptCard.textContent=q.prompt;
+      rightPanel.hidden=true;
+      choices.hidden=false;
+      renderChoices(q);
+      mainButton.disabled=true;
+    }
+
+    progressLabel.textContent=`Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width=`${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent=`Score : ${score} / ${TOTAL}`;
+  }
+
+  function appendValue(value){
+    if(locked || currentQuestion().type!=="decompToNumber" || answer.length>=12) return;
+    if(value===","){
+      if(answer.includes(",")) return;
+      if(answer==="") answer="0";
+      answer+=",";
+    }else{
+      if(answer==="0" && !answer.includes(",")) answer=value;
+      else answer+=value;
+    }
+    updateAnswerDisplay();
+  }
+
+  function backspace(){
+    if(locked || currentQuestion().type!=="decompToNumber") return;
+    answer=answer.slice(0,-1);
+    updateAnswerDisplay();
+  }
+
+  function clearAnswer(){
+    if(locked || currentQuestion().type!=="decompToNumber") return;
+    answer="";
+    updateAnswerDisplay();
+  }
+
+  function selectChoice(i){
+    if(locked || currentQuestion().type!=="numberToDecomp") return;
+    selectedIndex=i;
+    [...choices.children].forEach((el,j)=>el.classList.toggle("selected",j===i));
+    mainButton.disabled=false;
+  }
+
+  function normalizeDecimal(value){
+    let v=value.trim().replace(/\s/g,"").replace(".",",");
+    if(v.endsWith(",")) v=v.slice(0,-1);
+    const num=Number(v.replace(",","."));
+    if(Number.isNaN(num)) return null;
+    return formatDecimalNumber(num);
+  }
+
+  function validate(){
+    if(locked) return;
+    const q=currentQuestion();
+    let correct=false;
+
+    if(q.type==="decompToNumber"){
+      if(!answer) return;
+      correct=normalizeDecimal(answer)===q.expected;
+    }else{
+      if(selectedIndex===null) return;
+      correct=q.options[selectedIndex].correct;
+      [...choices.children].forEach((card,i)=>{
+        card.classList.add("locked");
+        if(q.options[i].correct) card.classList.add("correct");
+      });
+      if(!correct) choices.children[selectedIndex].classList.add("wrong");
+    }
+
+    locked=true;
+    if(correct){
+      score++;
+      feedback.className="feedback show success";
+      feedback.innerHTML=`<strong>✓</strong>&nbsp;${q.correction}`;
+    }else{
+      feedback.className="feedback show error";
+      feedback.innerHTML=`<strong>✗</strong>&nbsp;${q.correction}`;
+    }
+
+    scoreLabel.textContent=`Score : ${score} / ${TOTAL}`;
+    mainButton.textContent=index===TOTAL-1 ? "Voir le bilan" : "Question suivante";
+    mainButton.disabled=false;
+  }
+
+  function next(){
+    if(!locked){validate();return}
+    index++;
+    if(index>=TOTAL) showFinal();
+    else render();
+  }
+
+  function showFinal(){
+    quizSection.style.display="none";
+    finalSection.classList.add("show");
+    finalScore.textContent=`${score} / ${TOTAL}`;
+    if(score===10){
+      finalText.textContent="Excellent ! Tu maîtrises la décomposition multiplicative des nombres décimaux.";
+    }else if(score>=8){
+      finalText.textContent="Très bien. Reste attentif à la valeur de chaque chiffre selon son rang.";
+    }else if(score>=5){
+      finalText.textContent="Tu progresses. Vérifie bien les dixièmes, centièmes et millièmes.";
+    }else{
+      finalText.textContent="Reprends calmement : chaque chiffre est multiplié par la valeur de son rang.";
+    }
+  }
+
+  function restart(){
+    questions=buildQuestions();
+    index=0;score=0;
+    finalSection.classList.remove("show");
+    quizSection.style.display="";
+    render();
+  }
+
+  keypad.addEventListener("click",e=>{
+    const btn=e.target.closest("button");
+    if(!btn) return;
+    if(btn.dataset.value!==undefined) appendValue(btn.dataset.value);
+    if(btn.dataset.action==="backspace") backspace();
+    if(btn.dataset.action==="clear") clearAnswer();
+  });
+
+  document.addEventListener("keydown",e=>{
+    if(finalSection.classList.contains("show")){
+      if(e.key==="Enter") restart();
+      return;
+    }
+    const q=currentQuestion();
+    if(q.type==="decompToNumber"){
+      if(e.key>="0"&&e.key<="9"){e.preventDefault();appendValue(e.key)}
+      else if(e.key===","||e.key==="."){e.preventDefault();appendValue(",")}
+      else if(e.key==="Backspace"){e.preventDefault();backspace()}
+      else if(e.key==="Delete"||e.key==="Escape"){e.preventDefault();clearAnswer()}
+    }
+    if(e.key==="Enter" && !mainButton.disabled){e.preventDefault();next()}
+  });
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+  render();
+})();
+</script>
+</body>
+</html>
