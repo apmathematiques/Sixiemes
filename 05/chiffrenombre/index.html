@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --blue:#2563eb;
+      --blue-dark:#1d4ed8;
+      --blue-soft:#eff6ff;
+      --green:#2f9e44;
+      --green-soft:#eaf8ee;
+      --red:#d64545;
+      --red-soft:#fdecec;
+      --amber:#b7791f;
+      --amber-soft:#fff7df;
+      --ink:#22252a;
+      --line:#e4e6ea;
+      --card:rgba(255,255,255,.96);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:transparent;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--ink);
+    }
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px;
+    }
+    .app{
+      width:min(100%,960px);
+      aspect-ratio:16/9;
+      max-height:calc(100vh - 16px);
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.14);
+      overflow:hidden;
+    }
+    #quizSection{
+      height:100%;
+      display:grid;
+      grid-template-rows:56px 1fr;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:center;
+      padding:10px 18px;
+      border-bottom:1px solid var(--line);
+    }
+    .progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .progress-track{
+      flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden
+    }
+    .progress-fill{
+      width:10%;height:100%;background:var(--blue);border-radius:inherit;
+      transition:width .2s ease
+    }
+    .progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+    .score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+    .content{
+      min-height:0;
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      grid-template-rows:auto 1fr 44px 48px;
+      grid-template-areas:
+        "instruction instruction"
+        "question keypad"
+        "feedback feedback"
+        "actions actions";
+      gap:10px 14px;
+      padding:14px 18px 16px;
+    }
+    .instruction{
+      grid-area:instruction;
+      margin:0;
+      text-align:center;
+      font-size:clamp(1rem,1.9vw,1.25rem);
+      font-weight:700;
+      line-height:1.2;
+    }
+    .question-panel{
+      grid-area:question;
+      min-height:0;
+      display:grid;
+      grid-template-rows:1fr 70px;
+      gap:12px;
+    }
+    .number-card{
+      min-height:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px solid #dbeafe;
+      border-radius:14px;
+      background:#f8fbff;
+      color:#000;
+      font-size:clamp(2.2rem,5.6vw,4.5rem);
+      font-weight:800;
+      letter-spacing:.02em;
+      padding:12px;
+      text-align:center;
+    }
+    .answer-display{
+      height:70px;
+      border:2px solid var(--blue);
+      border-radius:14px;
+      background:#fff;
+      color:#000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:clamp(1.8rem,4vw,3rem);
+      font-weight:800;
+      letter-spacing:.03em;
+      box-shadow:inset 0 0 0 3px rgba(37,99,235,.08);
+      overflow:hidden;
+      padding:8px 14px;
+    }
+    .answer-display.placeholder{color:#9aa1aa;font-weight:600}
+    .keypad{
+      grid-area:keypad;
+      min-height:0;
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(5,1fr);
+      gap:8px;
+    }
+    .key{
+      border:2px solid var(--line);
+      border-radius:12px;
+      background:#fff;
+      color:#000;
+      font-size:clamp(1.1rem,2.3vw,1.55rem);
+      font-weight:800;
+      cursor:pointer;
+      transition:transform .1s ease,border-color .1s ease,background .1s ease;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .key:hover{transform:translateY(-1px);border-color:var(--blue);background:var(--blue-soft)}
+    .key:active{transform:translateY(0)}
+    .key.wide{grid-column:1 / span 3}
+    .key.utility{font-size:clamp(.9rem,1.8vw,1.1rem);font-weight:700}
+    .feedback{
+      grid-area:feedback;
+      height:44px;
+      min-height:44px;
+      margin:0;
+      padding:8px 12px;
+      border-radius:11px;
+      font-size:clamp(.76rem,1.35vw,.93rem);
+      line-height:1.2;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+      white-space:nowrap;
+    }
+    .feedback:empty{visibility:hidden}
+    .feedback.show{visibility:visible}
+    .feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+    .feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+    .feedback.hint{background:var(--amber-soft);border:1px solid #ead59a}
+    .feedback strong{display:inline;margin-right:6px}
+    .actions{
+      grid-area:actions;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:0;
+    }
+    .main-button{
+      min-width:170px;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:var(--blue);
+      color:#fff;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      padding:8px 20px;
+      transition:background .1s ease,transform .1s ease,opacity .1s ease
+    }
+    .main-button:hover:not(:disabled){background:var(--blue-dark);transform:translateY(-1px)}
+    .main-button:disabled{cursor:not-allowed;opacity:.45}
+    .final{
+      display:none;
+      height:100%;
+      text-align:center;
+      padding:28px 24px;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+    }
+    .final.show{display:flex}
+    .final-score{
+      font-size:clamp(2rem,5vw,3.5rem);
+      color:var(--blue-dark);
+      font-weight:800;
+      margin:6px 0 10px
+    }
+    .final-text{
+      max-width:680px;
+      margin:0 auto 18px;
+      font-size:1rem;
+      line-height:1.35
+    }
+    @media(max-width:760px){
+      body{padding:4px}
+      .app{max-height:calc(100vh - 8px);border-radius:13px}
+      .topbar{padding:8px 12px}
+      .content{
+        grid-template-columns:1fr .86fr;
+        grid-template-rows:auto 1fr 40px 44px;
+        gap:7px 9px;
+        padding:10px 12px 12px;
+      }
+      .question-panel{grid-template-rows:1fr 58px;gap:8px}
+      .answer-display{height:58px}
+      .keypad{gap:5px}
+      .key{border-radius:9px}
+      .feedback{height:40px;min-height:40px;padding:6px 9px}
+      .main-button{height:42px}
+    }
+  </style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 10</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 10</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction" id="instruction"></p>
+
+      <div class="question-panel">
+        <div class="number-card" id="numberCard"></div>
+        <div class="answer-display placeholder" id="answerDisplay">Ta réponse</div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button class="key" data-value="7">7</button>
+        <button class="key" data-value="8">8</button>
+        <button class="key" data-value="9">9</button>
+        <button class="key" data-value="4">4</button>
+        <button class="key" data-value="5">5</button>
+        <button class="key" data-value="6">6</button>
+        <button class="key" data-value="1">1</button>
+        <button class="key" data-value="2">2</button>
+        <button class="key" data-value="3">3</button>
+        <button class="key" data-value="0">0</button>
+        <button class="key utility" data-action="backspace">⌫</button>
+        <button class="key utility" data-action="clear">Effacer</button>
+        <button class="key utility wide" data-action="clear">Tout effacer</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="actions">
+        <button class="main-button" id="mainButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div>Exercice terminé</div>
+    <div class="final-score" id="finalScore">0 / 10</div>
+    <p class="final-text" id="finalText"></p>
+    <button class="main-button" id="restartButton">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+
+  const RANKS = {
+    thousands:{label:"milliers", place:1000, kind:"integer"},
+    hundreds:{label:"centaines", place:100, kind:"integer"},
+    tens:{label:"dizaines", place:10, kind:"integer"},
+    tenths:{label:"dixièmes", scale:10, position:1, kind:"decimal"},
+    hundredths:{label:"centièmes", scale:100, position:2, kind:"decimal"},
+    thousandths:{label:"millièmes", scale:1000, position:3, kind:"decimal"}
+  };
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function formatInteger(n){
+    return Number(n).toLocaleString("fr-FR");
+  }
+
+  function formatScore(n){
+    return Number.isInteger(n) ? String(n) : String(n).replace(".",",");
+  }
+
+  function makeNumberData(){
+    const intDigits = randomInt(2,5);
+    const min = 10 ** (intDigits-1);
+    const max = (10 ** intDigits)-1;
+    const integerPart = randomInt(min,max);
+    const decimalLength = randomInt(1,3);
+
+    let decimalDigits = "";
+    for(let i=0;i<decimalLength;i++){
+      decimalDigits += String(randomInt(0,9));
+    }
+    if(/^0+$/.test(decimalDigits)){
+      const pos = randomInt(0,decimalLength-1);
+      decimalDigits = decimalDigits.substring(0,pos) + String(randomInt(1,9)) + decimalDigits.substring(pos+1);
+    }
+
+    const padded3 = decimalDigits.padEnd(3,"0");
+    const scaled1000 = integerPart * 1000 + Number(padded3);
+    return {
+      integerPart,
+      decimalDigits,
+      padded3,
+      scaled1000,
+      display:`${formatInteger(integerPart)},${decimalDigits}`
+    };
+  }
+
+  function availableRanks(data){
+    const integerKeys = [];
+    if(data.integerPart >= 10) integerKeys.push("tens");
+    if(data.integerPart >= 100) integerKeys.push("hundreds");
+    if(data.integerPart >= 1000) integerKeys.push("thousands");
+    return [...integerKeys,"tenths","hundredths","thousandths"];
+  }
+
+  function digitAtRank(data,key){
+    const rank = RANKS[key];
+    if(rank.kind === "integer"){
+      return Math.floor(data.integerPart / rank.place) % 10;
+    }
+    return Number(data.padded3[rank.position-1]);
+  }
+
+  function countAtRank(data,key){
+    const rank = RANKS[key];
+    if(rank.kind === "integer"){
+      return Math.floor(data.integerPart / rank.place);
+    }
+    return Math.floor(data.scaled1000 / (1000 / rank.scale));
+  }
+
+  function makeQuestion(type){
+    const data = makeNumberData();
+    const ranks = availableRanks(data);
+    const rankKey = ranks[randomInt(0,ranks.length-1)];
+    const rank = RANKS[rankKey];
+    const answer = type === "digit"
+      ? digitAtRank(data,rankKey)
+      : countAtRank(data,rankKey);
+
+    return {
+      type,
+      data,
+      rankKey,
+      rank,
+      answer:String(answer),
+      instruction:type === "digit"
+        ? `Quel est le chiffre des ${rank.label} ?`
+        : `Quel est le nombre de ${rank.label} ?`,
+      hint:type === "digit"
+        ? `Cherche un seul chiffre, celui qui est écrit au rang des ${rank.label}.`
+        : `Compte toutes les ${rank.label} complètes contenues dans le nombre.`,
+      correction:type === "digit"
+        ? `Dans ${data.display}, le chiffre des ${rank.label} est <strong>${answer}</strong>.`
+        : `${data.display} contient <strong>${formatInteger(answer)}</strong> ${rank.label}.`
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count")
+    ]);
+  }
+
+  let questions = buildQuestions();
+  let index = 0;
+  let score = 0;
+  let answer = "";
+  let attempt = 1;
+  let locked = false;
+
+  const quizSection = document.getElementById("quizSection");
+  const finalSection = document.getElementById("finalSection");
+  const instruction = document.getElementById("instruction");
+  const numberCard = document.getElementById("numberCard");
+  const answerDisplay = document.getElementById("answerDisplay");
+  const keypad = document.getElementById("keypad");
+  const feedback = document.getElementById("feedback");
+  const mainButton = document.getElementById("mainButton");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const scoreLabel = document.getElementById("scoreLabel");
+  const finalScore = document.getElementById("finalScore");
+  const finalText = document.getElementById("finalText");
+  const restartButton = document.getElementById("restartButton");
+
+  function currentQuestion(){
+    return questions[index];
+  }
+
+  function updateAnswerDisplay(){
+    if(answer){
+      answerDisplay.textContent = answer;
+      answerDisplay.classList.remove("placeholder");
+    }else{
+      answerDisplay.textContent = "Ta réponse";
+      answerDisplay.classList.add("placeholder");
+    }
+    mainButton.disabled = locked || answer.length === 0;
+  }
+
+  function render(){
+    const q = currentQuestion();
+    answer = "";
+    attempt = 1;
+    locked = false;
+    instruction.textContent = q.instruction;
+    numberCard.textContent = q.data.display;
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    mainButton.textContent = "Valider";
+    progressLabel.textContent = `Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width = `${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+    updateAnswerDisplay();
+  }
+
+  function appendValue(value){
+    if(locked || answer.length >= 12) return;
+    if(answer === "0") answer = value;
+    else answer += value;
+    updateAnswerDisplay();
+  }
+
+  function backspace(){
+    if(locked) return;
+    answer = answer.slice(0,-1);
+    updateAnswerDisplay();
+  }
+
+  function clearAnswer(){
+    if(locked) return;
+    answer = "";
+    updateAnswerDisplay();
+  }
+
+  function normalizedInteger(value){
+    const v = value.replace(/\s/g,"");
+    if(!/^\d+$/.test(v)) return null;
+    return String(Number(v));
+  }
+
+  function validate(){
+    if(locked || answer === "") return;
+    const q = currentQuestion();
+    const correct = normalizedInteger(answer) === q.answer;
+
+    if(correct){
+      locked = true;
+      score += attempt === 1 ? 1 : 0.5;
+      feedback.className = "feedback show success";
+      feedback.innerHTML = `<strong>✓</strong>&nbsp;${q.correction}`;
+      scoreLabel.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+      mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+      mainButton.disabled = false;
+      return;
+    }
+
+    if(attempt === 1){
+      attempt = 2;
+      answer = "";
+      feedback.className = "feedback show hint";
+      feedback.innerHTML = `<strong>Indice</strong>&nbsp;${q.hint}`;
+      mainButton.textContent = "Valider le 2ᵉ essai";
+      updateAnswerDisplay();
+    }else{
+      locked = true;
+      feedback.className = "feedback show error";
+      feedback.innerHTML = `<strong>✗</strong>&nbsp;${q.correction}`;
+      mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+      mainButton.disabled = false;
+    }
+  }
+
+  function next(){
+    if(!locked){
+      validate();
+      return;
+    }
+    index++;
+    if(index >= TOTAL){
+      showFinal();
+    }else{
+      render();
+    }
+  }
+
+  function showFinal(){
+    quizSection.style.display = "none";
+    finalSection.classList.add("show");
+    finalScore.textContent = `${formatScore(score)} / ${TOTAL}`;
+
+    if(score >= 9){
+      finalText.textContent = "Excellent ! Tu distingues très bien le chiffre d’un rang et le nombre d’unités de ce rang.";
+    }else if(score >= 7){
+      finalText.textContent = "Très bien. Reste attentif aux mots « chiffre » et « nombre » dans la consigne.";
+    }else if(score >= 4){
+      finalText.textContent = "Tu progresses. « Chiffre de » demande un seul chiffre ; « nombre de » demande combien d’unités du rang sont contenues.";
+    }else{
+      finalText.textContent = "Reprends calmement la distinction : un chiffre occupe une place, tandis qu’un nombre compte toutes les unités de ce rang.";
+    }
+  }
+
+  function restart(){
+    questions = buildQuestions();
+    index = 0;
+    score = 0;
+    finalSection.classList.remove("show");
+    quizSection.style.display = "";
+    render();
+  }
+
+  keypad.addEventListener("click",(e)=>{
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    if(btn.dataset.value !== undefined) appendValue(btn.dataset.value);
+    if(btn.dataset.action === "backspace") backspace();
+    if(btn.dataset.action === "clear") clearAnswer();
+  });
+
+  document.addEventListener("keydown",(e)=>{
+    if(finalSection.classList.contains("show")){
+      if(e.key === "Enter") restart();
+      return;
+    }
+    if(e.key >= "0" && e.key <= "9"){
+      e.preventDefault();
+      appendValue(e.key);
+    }else if(e.key === "Backspace"){
+      e.preventDefault();
+      backspace();
+    }else if(e.key === "Delete" || e.key === "Escape"){
+      e.preventDefault();
+      clearAnswer();
+    }else if(e.key === "Enter"){
+      e.preventDefault();
+      if(!mainButton.disabled) next();
+    }
+  });
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+
+  render();
+})();
+</script>
+</body>
+</html>
