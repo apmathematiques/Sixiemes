@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercice interactif</title>
+<style>
+:root{
+  --accent:#2F7F89;
+  --success:#C8FE53;
+  --success-ink:#294100;
+  --hint:#EBF4FF;
+  --hint-ink:#2C5282;
+  --error:#FFF1EF;
+  --error-ink:#8D2F24;
+  --error-border:#F3A89F;
+  --ink:#171717;
+  --muted:#666;
+  --disk:#EAF7F9;
+  --point:#D84635;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  font-family:Arial,sans-serif;
+  background:transparent;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+button{font:inherit}
+#app{width:min(96vw,1020px);height:min(96vh,700px);padding:14px}
+.hud{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  background:rgba(255,255,255,.88);
+  border-radius:14px;
+  padding:10px 16px;
+  margin-bottom:12px;
+  font-size:clamp(15px,2vw,21px);
+  font-weight:bold;
+  box-shadow:0 5px 16px rgba(0,0,0,.05)
+}
+.card{
+  background:rgba(255,255,255,.94);
+  border-radius:24px;
+  min-height:calc(100% - 56px);
+  padding:clamp(12px,2.1vw,22px);
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  text-align:center
+}
+.question{
+  font-size:clamp(20px,2.7vw,29px);
+  margin:0;
+  line-height:1.3
+}
+.data{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:min(100%,700px);
+  justify-content:center;
+  font-size:clamp(18px,2.3vw,24px);
+  font-weight:800
+}
+.data span{
+  display:block;
+  background:white;
+  border:3px solid #ECECEC;
+  border-radius:15px;
+  padding:12px 16px;
+  line-height:1.35
+}
+.choice-row{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(150px,220px));
+  justify-content:center;
+  gap:16px;
+  width:100%
+}
+.choice{
+  border:0;
+  border-radius:16px;
+  padding:13px 22px;
+  min-height:54px;
+  font-size:clamp(18px,2.2vw,23px);
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.16)
+}
+.choice:hover:not(:disabled){transform:translateY(-1px)}
+.choice:disabled{cursor:default;opacity:.62}
+.choice.chosen{opacity:1;outline:4px solid rgba(47,127,137,.18)}
+#yesBtn{background:var(--accent);color:white}
+#noBtn{background:#696969;color:white}
+#feedback{
+  display:none;
+  width:min(100%,760px);
+  border-radius:15px;
+  padding:10px 14px;
+  font-size:clamp(14px,1.8vw,18px);
+  line-height:1.38
+}
+#feedback.success{
+  display:block;
+  background:var(--success);
+  color:var(--success-ink);
+  font-weight:bold
+}
+#feedback.hint{
+  display:block;
+  background:var(--hint);
+  color:var(--hint-ink);
+  border:2px solid #D0E3F7
+}
+#feedback.error{
+  display:block;
+  background:var(--error);
+  color:var(--error-ink);
+  border:2px solid var(--error-border)
+}
+.actions{display:flex;justify-content:center}
+.action{
+  display:none;
+  border:0;
+  border-radius:15px;
+  padding:10px 22px;
+  background:var(--accent);
+  color:white;
+  font-size:clamp(16px,1.9vw,20px);
+  font-weight:bold;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(0,0,0,.15);
+  min-width:205px
+}
+#final{
+  display:none;
+  height:100%;
+  background:rgba(255,255,255,.96);
+  border-radius:24px;
+  padding:34px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.08)
+}
+#finalInner{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px
+}
+#final h1{margin:0;font-size:clamp(28px,4vw,42px)}
+#finalScore{font-size:clamp(54px,10vw,90px);font-weight:900;color:var(--accent)}
+#advice{font-size:clamp(20px,3vw,28px);max-width:760px;line-height:1.35}
+#restartBtn{display:inline-block}
+@media(max-width:620px){
+  #app{padding:8px}
+  .card{gap:9px;padding:9px}
+  .choice-row{gap:10px}
+}
+@media(max-height:650px){
+  .card{gap:7px;padding:7px}
+  .data span{padding:5px 12px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div class="hud">
+      <span id="progress"></span>
+      <span id="score"></span>
+    </div>
+
+    <div class="card">
+      <p class="question" id="question"></p>
+
+
+      <div class="data">
+        <span id="distanceText"></span>
+        <span id="radiusText"></span>
+      </div>
+
+      <div class="choice-row">
+        <button class="choice" id="yesBtn">Oui</button>
+        <button class="choice" id="noBtn">Non</button>
+      </div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="nextBtn">Question suivante</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="final">
+    <div id="finalInner">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn">Recommencer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,attempts=0,resolved=false,questions=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t
+  }
+  return a
+}
+function fmt(n){
+  return Number.isInteger(n)?String(n):n.toFixed(1).replace(".",",")
+}
+
+function makeQuestion(decimal,useDiameter){
+  var target=choice(["circle","disk"]);
+  var relation=choice(["less","equal","greater"]);
+  var radius,dist;
+
+  if(decimal){
+    radius=rand(10,45)/10;
+
+    if(relation==="equal"){
+      dist=radius;
+    }else{
+      var delta=rand(1,8)/10;
+      dist=relation==="less"?radius-delta:radius+delta;
+      if(dist<=0.1)dist=0.2;
+      dist=Math.round(dist*10)/10;
+      if(dist===radius)dist+=relation==="less"?-0.1:0.1;
+    }
+  }else{
+    radius=rand(1,8);
+
+    if(relation==="equal"){
+      dist=radius;
+    }else if(relation==="less"){
+      dist=rand(1,Math.max(1,radius-1));
+      if(dist===radius)dist=Math.max(0,radius-1);
+    }else{
+      dist=rand(radius+1,Math.min(12,radius+5));
+    }
+  }
+
+  var answer;
+  if(target==="circle"){
+    answer=relation==="equal";
+  }else{
+    answer=relation==="less"||relation==="equal";
+  }
+
+  return{
+    target:target,
+    relation:relation,
+    radius:radius,
+    diameter:Math.round(radius*2*10)/10,
+    dist:dist,
+    answer:answer,
+    useDiameter:useDiameter
+  };
+}
+
+function buildQuestions(){
+  var decimalFlags=[false,false,false,false,false,false,false,true,true,true];
+  var measureFlags=[false,false,false,false,false,true,true,true,true,true];
+  shuffle(decimalFlags);
+  shuffle(measureFlags);
+
+  var out=[];
+  for(var i=0;i<10;i++){
+    out.push(makeQuestion(decimalFlags[i],measureFlags[i]));
+  }
+  return out;
+}
+
+function comparisonSymbol(q){
+  if(q.relation==="less")return "<";
+  if(q.relation==="equal")return "=";
+  return ">";
+}
+
+function correctionText(q){
+  var intro=q.useDiameter
+    ?"Le diamètre vaut "+fmt(q.diameter)+" cm, donc le rayon vaut "+fmt(q.radius)+" cm. "
+    :"Le rayon vaut "+fmt(q.radius)+" cm. ";
+
+  var cmp=fmt(q.dist)+" "+comparisonSymbol(q)+" "+fmt(q.radius)+". ";
+
+  if(q.relation==="equal"){
+    return intro+cmp+"Le point A appartient au cercle et au disque.";
+  }
+  if(q.relation==="less"){
+    return intro+cmp+"Le point A appartient au disque, mais pas au cercle.";
+  }
+  return intro+cmp+"Le point A n’appartient ni au cercle ni au disque.";
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+}
+
+function showQuestion(){
+  attempts=0;
+  resolved=false;
+  updateHud();
+
+  var q=questions[current];
+  el("question").textContent="Le point A appartient-il au "+(q.target==="circle"?"cercle":"disque")+" de centre O ?";
+  el("distanceText").textContent="OA = "+fmt(q.dist)+" cm";
+  el("radiusText").textContent=q.useDiameter?"Le diamètre du "+(q.target==="circle"?"cercle":"disque")+" de centre O est de "+fmt(q.diameter)+" cm.":"Le rayon du "+(q.target==="circle"?"cercle":"disque")+" de centre O est de "+fmt(q.radius)+" cm.";
+
+  el("yesBtn").disabled=false;
+  el("noBtn").disabled=false;
+  el("yesBtn").className="choice";
+  el("noBtn").className="choice";
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+  el("nextBtn").style.display="none";
+}
+
+function answer(value){
+  if(resolved)return;
+
+  var q=questions[current];
+  var ok=value===q.answer;
+  var fb=el("feedback");
+
+  (value?el("yesBtn"):el("noBtn")).classList.add("chosen");
+
+  if(ok){
+    resolved=true;
+
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! "+correctionText(q);
+    }else{
+      score+=0.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point. "+correctionText(q);
+    }
+
+    finish();
+    return;
+  }
+
+  attempts++;
+
+  if(attempts===1){
+    fb.className="hint";
+    fb.textContent="Indice : compare la distance OA au rayon.";
+    fb.style.display="block";
+    el("yesBtn").className="choice";
+    el("noBtn").className="choice";
+  }else{
+    resolved=true;
+    fb.className="error";
+    fb.textContent="Correction : "+correctionText(q);
+    finish();
+  }
+}
+
+function finish(){
+  updateHud();
+  el("yesBtn").disabled=true;
+  el("noBtn").disabled=true;
+  el("feedback").style.display="block";
+  el("nextBtn").style.display="inline-block";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="block";
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var advice=score<=4.5
+    ?"Revois la différence entre cercle et disque, puis recommence."
+    :score<=7.5
+    ?"C’est en bonne voie ! Compare toujours OA au rayon."
+    :score<=9.5
+    ?"Très bon travail !"
+    :"Excellent ! Tu maîtrises l’appartenance au cercle et au disque.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="block";
+  showQuestion();
+}
+
+el("yesBtn").onclick=function(){answer(true)};
+el("noBtn").onclick=function(){answer(false)};
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>
