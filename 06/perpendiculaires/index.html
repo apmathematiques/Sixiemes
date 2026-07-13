@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+:root{
+  --blue:#2563eb;
+  --blue-dark:#1d4ed8;
+  --blue-soft:#eff6ff;
+  --green:#2f9e44;
+  --green-soft:#eaf8ee;
+  --red:#d64545;
+  --red-soft:#fdecec;
+  --line:#dfe3e8;
+  --ink:#20242a;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;background:transparent;
+  font-family:Arial,Helvetica,sans-serif;color:var(--ink)
+}
+body{display:flex;align-items:center;justify-content:center;padding:8px}
+.app{
+  width:min(100%,960px);aspect-ratio:16/9;max-height:calc(100vh - 16px);
+  background:rgba(255,255,255,.96);border-radius:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.14);overflow:hidden
+}
+.quiz{height:100%;display:grid;grid-template-rows:56px 1fr}
+.topbar{
+  display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;
+  padding:10px 18px;border-bottom:1px solid var(--line)
+}
+.progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.progress-track{flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;width:12.5%;background:var(--blue);border-radius:inherit}
+.progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+.score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+.content{
+  min-height:0;display:grid;grid-template-rows:auto 1fr 48px 44px;
+  gap:10px;padding:14px 18px 16px
+}
+.instruction{
+  margin:0;text-align:center;font-size:clamp(1rem,1.9vw,1.25rem);
+  font-weight:700;line-height:1.2
+}
+.stage{
+  min-height:0;border:2px solid #dbeafe;border-radius:14px;
+  background:#f8fbff;overflow:hidden;position:relative;touch-action:none
+}
+svg{width:100%;height:100%;display:block}
+.geom-line{stroke:#111;stroke-width:4;stroke-linecap:round}
+.tool-body{cursor:grab;touch-action:none}
+.tool-body.dragging{cursor:grabbing}
+.tool-shape{
+  fill:rgba(37,99,235,.12);
+  stroke:var(--blue);
+  stroke-width:3;
+  pointer-events:none;
+}
+.tool-hit{
+  fill:rgba(0,0,0,0.001);
+  stroke:none;
+  pointer-events:all;
+  cursor:grab;
+}
+.tool-hit.dragging{cursor:grabbing}
+.tool-leg{
+  stroke:var(--blue-dark);
+  stroke-width:4;
+  stroke-linecap:round;
+  pointer-events:none;
+}
+.right-angle{
+  fill:none;
+  stroke:var(--blue-dark);
+  stroke-width:3;
+  pointer-events:none;
+}
+.rotate-arm{
+  stroke:var(--blue-dark);
+  stroke-width:2;
+  stroke-dasharray:5 4;
+}
+.rotate-handle{
+  fill:#fff;
+  stroke:var(--blue-dark);
+  stroke-width:3;
+  cursor:grab;
+  touch-action:none;
+}
+.rotate-handle.dragging{cursor:grabbing}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.answer{
+  border:2px solid var(--line);border-radius:12px;background:#fff;color:#000;
+  font-size:1.03rem;font-weight:800;cursor:pointer;transition:.12s ease
+}
+.answer:hover:not(:disabled){border-color:var(--blue);background:var(--blue-soft)}
+.answer.selected{border-color:var(--blue);background:var(--blue-soft)}
+.answer.correct{border-color:var(--green);background:var(--green-soft)}
+.answer.wrong{border-color:var(--red);background:var(--red-soft)}
+.feedback{
+  height:44px;border-radius:11px;padding:8px 12px;display:flex;align-items:center;
+  white-space:nowrap;overflow:hidden;font-size:.9rem
+}
+.feedback:empty{visibility:hidden}
+.feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+.feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+.actions{text-align:center}
+.main-button{
+  min-width:180px;height:44px;border:0;border-radius:12px;background:var(--blue);
+  color:#fff;font-size:1rem;font-weight:800;cursor:pointer
+}
+.main-button:disabled{opacity:.45;cursor:not-allowed}
+.final{
+  display:none;height:100%;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;padding:28px
+}
+.final.show{display:flex}
+.final-score{font-size:3.4rem;font-weight:900;color:var(--blue-dark);margin:8px}
+.final-text{max-width:680px;font-size:1.05rem;line-height:1.4}
+@media(max-width:760px){
+  body{padding:4px}
+  .app{max-height:calc(100vh - 8px);border-radius:13px}
+  .topbar{padding:8px 12px}
+  .content{gap:7px;padding:10px 12px 12px;grid-template-rows:auto 1fr 44px 40px}
+  .feedback{height:40px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection" class="quiz">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressLabel" class="progress-label">Question 1 / 8</div>
+      </div>
+      <div id="scoreLabel" class="score">Score : 0 / 8</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction">Utilise l’équerre puis réponds : ces deux droites sont-elles perpendiculaires&nbsp;?</p>
+
+      <div id="stage" class="stage">
+        <svg id="svg" viewBox="0 0 900 330" preserveAspectRatio="xMidYMid meet">
+          <g id="linesLayer"></g>
+
+          <g id="toolGroup">
+            <g id="toolBody" class="tool-body">
+              <!-- Équerre rectangle exacte : les deux côtés issus de (0,0) sont perpendiculaires -->
+              <polygon class="tool-shape" points="0,0 180,0 0,130"></polygon>
+              <line class="tool-leg" x1="0" y1="0" x2="180" y2="0"></line>
+              <line class="tool-leg" x1="0" y1="0" x2="0" y2="130"></line>
+              <path class="right-angle" d="M18 0 L18 18 L0 18"></path>
+              <polygon id="toolHit" class="tool-hit" points="0,0 180,0 0,130"></polygon>
+            </g>
+
+            <line id="rotateArm" class="rotate-arm" x1="105" y1="-18" x2="105" y2="-48"></line>
+            <circle id="rotateHandle" class="rotate-handle" cx="105" cy="-58" r="11"></circle>
+          </g>
+        </svg>
+      </div>
+
+      <div class="answers">
+        <button class="answer" data-answer="yes">Oui</button>
+        <button class="answer" data-answer="no">Non</button>
+      </div>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="actions">
+        <button id="mainButton" class="main-button" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="finalSection" class="final">
+    <div>Exercice terminé</div>
+    <div id="finalScore" class="final-score">0 / 8</div>
+    <p id="finalText" class="final-text"></p>
+    <button id="restartButton" class="main-button">Recommencer</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL=8, W=900, H=330;
+
+  const rand=(a,b)=>Math.random()*(b-a)+a;
+  const rad=d=>d*Math.PI/180;
+  const shuffle=a=>{
+    a=[...a];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+
+  function lineEnds(cx,cy,angle,len=1200){
+    const dx=Math.cos(rad(angle))*len;
+    const dy=Math.sin(rad(angle))*len;
+    return [{x:cx-dx,y:cy-dy},{x:cx+dx,y:cy+dy}];
+  }
+
+  function makeQuestion(perpendicular){
+    const cx=rand(220,680);
+    const cy=rand(90,240);
+    const a1=rand(10,170);
+
+    let delta;
+    if(perpendicular){
+      delta=90;
+    }else{
+      const candidates=[68,74,79,82,98,102,106,112];
+      delta=candidates[Math.floor(Math.random()*candidates.length)];
+    }
+
+    return {
+      perpendicular,
+      cx,cy,
+      a1,
+      a2:(a1+delta)%180
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      makeQuestion(true),makeQuestion(true),makeQuestion(true),makeQuestion(true),
+      makeQuestion(false),makeQuestion(false),makeQuestion(false),makeQuestion(false)
+    ]);
+  }
+
+  let questions=buildQuestions();
+  let index=0;
+  let score=0;
+  let selected=null;
+  let locked=false;
+
+  let tool={x:650,y:235,angle:-15};
+  let interaction=null;
+
+  const svg=document.getElementById("svg");
+  const linesLayer=document.getElementById("linesLayer");
+  const toolGroup=document.getElementById("toolGroup");
+  const toolBody=document.getElementById("toolBody");
+  const toolHit=document.getElementById("toolHit");
+  const rotateHandle=document.getElementById("rotateHandle");
+
+  const answerButtons=[...document.querySelectorAll(".answer")];
+  const feedback=document.getElementById("feedback");
+  const mainButton=document.getElementById("mainButton");
+  const progressFill=document.getElementById("progressFill");
+  const progressLabel=document.getElementById("progressLabel");
+  const scoreLabel=document.getElementById("scoreLabel");
+
+  const quizSection=document.getElementById("quizSection");
+  const finalSection=document.getElementById("finalSection");
+  const finalScore=document.getElementById("finalScore");
+  const finalText=document.getElementById("finalText");
+  const restartButton=document.getElementById("restartButton");
+
+  function pointerToSvg(event){
+    const rect=svg.getBoundingClientRect();
+    return {
+      x:(event.clientX-rect.left)*(W/rect.width),
+      y:(event.clientY-rect.top)*(H/rect.height)
+    };
+  }
+
+  function drawLines(q){
+    const l1=lineEnds(q.cx,q.cy,q.a1);
+    const l2=lineEnds(q.cx,q.cy,q.a2);
+    linesLayer.innerHTML=
+      `<line class="geom-line" x1="${l1[0].x}" y1="${l1[0].y}" x2="${l1[1].x}" y2="${l1[1].y}"></line>
+       <line class="geom-line" x1="${l2[0].x}" y1="${l2[0].y}" x2="${l2[1].x}" y2="${l2[1].y}"></line>`;
+  }
+
+  function updateTool(){
+    toolGroup.setAttribute("transform",`translate(${tool.x} ${tool.y}) rotate(${tool.angle})`);
+  }
+
+  function render(){
+    const q=questions[index];
+
+    selected=null;
+    locked=false;
+    interaction=null;
+    tool={x:650,y:235,angle:-15};
+
+    drawLines(q);
+    updateTool();
+
+    answerButtons.forEach(button=>{
+      button.disabled=false;
+      button.className="answer";
+    });
+
+    feedback.className="feedback";
+    feedback.innerHTML="";
+    mainButton.textContent="Valider";
+    mainButton.disabled=true;
+
+    progressLabel.textContent=`Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width=`${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent=`Score : ${score} / ${TOTAL}`;
+  }
+
+  function beginMove(event){
+    if(locked)return;
+    const p=pointerToSvg(event);
+
+    interaction={
+      type:"move",
+      offsetX:p.x-tool.x,
+      offsetY:p.y-tool.y,
+      pointerId:event.pointerId
+    };
+
+    toolHit.classList.add("dragging");
+    toolHit.setPointerCapture(event.pointerId);
+  }
+
+  function beginRotate(event){
+    if(locked)return;
+    event.stopPropagation();
+
+    const p=pointerToSvg(event);
+    interaction={
+      type:"rotate",
+      pointerId:event.pointerId,
+      startPointerAngle:Math.atan2(p.y-tool.y,p.x-tool.x)*180/Math.PI,
+      startToolAngle:tool.angle
+    };
+
+    rotateHandle.classList.add("dragging");
+    rotateHandle.setPointerCapture(event.pointerId);
+  }
+
+  function moveInteraction(event){
+    if(!interaction || locked)return;
+    const p=pointerToSvg(event);
+
+    if(interaction.type==="move"){
+      tool.x=Math.max(0,Math.min(W,p.x-interaction.offsetX));
+      tool.y=Math.max(0,Math.min(H,p.y-interaction.offsetY));
+      updateTool();
+    }else{
+      const currentAngle=Math.atan2(p.y-tool.y,p.x-tool.x)*180/Math.PI;
+      tool.angle=interaction.startToolAngle+(currentAngle-interaction.startPointerAngle);
+      updateTool();
+    }
+  }
+
+  function endInteraction(){
+    toolHit.classList.remove("dragging");
+    rotateHandle.classList.remove("dragging");
+    interaction=null;
+  }
+
+  toolHit.addEventListener("pointerdown",beginMove);
+  toolHit.addEventListener("pointermove",moveInteraction);
+  toolHit.addEventListener("pointerup",endInteraction);
+  toolHit.addEventListener("pointercancel",endInteraction);
+
+  rotateHandle.addEventListener("pointerdown",beginRotate);
+  rotateHandle.addEventListener("pointermove",moveInteraction);
+  rotateHandle.addEventListener("pointerup",endInteraction);
+  rotateHandle.addEventListener("pointercancel",endInteraction);
+
+  document.addEventListener("keydown",event=>{
+    if(locked)return;
+
+    if(event.key==="ArrowLeft"){
+      event.preventDefault();
+      tool.angle-=1;
+      updateTool();
+    }
+    if(event.key==="ArrowRight"){
+      event.preventDefault();
+      tool.angle+=1;
+      updateTool();
+    }
+  });
+
+  answerButtons.forEach(button=>{
+    button.addEventListener("click",()=>{
+      if(locked)return;
+      selected=button.dataset.answer;
+      answerButtons.forEach(b=>{
+        b.classList.toggle("selected",b.dataset.answer===selected);
+      });
+      mainButton.disabled=false;
+    });
+  });
+
+  function showCorrection(q){
+    tool.x=q.cx;
+    tool.y=q.cy;
+    tool.angle=q.a1;
+    updateTool();
+  }
+
+  function validate(){
+    if(!selected || locked)return;
+
+    locked=true;
+    endInteraction();
+
+    const q=questions[index];
+    const correct=(selected==="yes")===q.perpendicular;
+    const correctAnswer=q.perpendicular?"yes":"no";
+
+    const correctButton=answerButtons.find(b=>b.dataset.answer===correctAnswer);
+    const selectedButton=answerButtons.find(b=>b.dataset.answer===selected);
+
+    answerButtons.forEach(b=>b.disabled=true);
+    correctButton.classList.add("correct");
+    if(!correct)selectedButton.classList.add("wrong");
+
+    if(correct)score++;
+
+    feedback.className="feedback "+(correct?"success":"error");
+    feedback.innerHTML=q.perpendicular
+      ? `<strong>${correct?"✓":"✗"}</strong>&nbsp;Oui : les deux droites forment un angle droit.`
+      : `<strong>${correct?"✓":"✗"}</strong>&nbsp;Non : elles sont sécantes, mais ne forment pas un angle droit.`;
+
+    showCorrection(q);
+
+    scoreLabel.textContent=`Score : ${score} / ${TOTAL}`;
+    mainButton.textContent=index===TOTAL-1?"Voir le bilan":"Question suivante";
+    mainButton.disabled=false;
+  }
+
+  mainButton.addEventListener("click",()=>{
+    if(!locked){
+      validate();
+      return;
+    }
+
+    index++;
+
+    if(index>=TOTAL){
+      quizSection.style.display="none";
+      finalSection.classList.add("show");
+      finalScore.textContent=`${score} / ${TOTAL}`;
+
+      if(score===8){
+        finalText.textContent="Excellent ! Tu sais utiliser l’équerre pour reconnaître des droites perpendiculaires.";
+      }else if(score>=6){
+        finalText.textContent="Très bien. Continue à vérifier l’angle droit avec l’équerre.";
+      }else if(score>=3){
+        finalText.textContent="Tu progresses. Les deux côtés de l’angle droit de l’équerre doivent coïncider avec les deux droites.";
+      }else{
+        finalText.textContent="Reprends calmement : des droites perpendiculaires sont sécantes et forment un angle droit.";
+      }
+    }else{
+      render();
+    }
+  });
+
+  restartButton.addEventListener("click",()=>{
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    finalSection.classList.remove("show");
+    quizSection.style.display="";
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
