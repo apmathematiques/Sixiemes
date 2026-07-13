@@ -1,1 +1,482 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<link rel="stylesheet" href="https://apmathematiques.github.io/Sixiemes/geolib/v1.2/geolib.css">
+
+<style>
+:root{
+  --blue:#2563eb;
+  --blue-dark:#1d4ed8;
+  --blue-soft:#eff6ff;
+  --green:#2f9e44;
+  --green-soft:#eaf8ee;
+  --red:#d64545;
+  --red-soft:#fdecec;
+  --amber:#b7791f;
+  --amber-soft:#fff7df;
+  --line:#dfe3e8;
+  --ink:#20242a;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;background:transparent;
+  font-family:Arial,Helvetica,sans-serif;color:var(--ink);
+}
+body{display:flex;align-items:center;justify-content:center;padding:8px}
+.app{
+  width:min(100%,960px);
+  aspect-ratio:16/9;
+  max-height:calc(100vh - 16px);
+  background:rgba(255,255,255,.96);
+  border-radius:18px;
+  box-shadow:0 8px 24px rgba(0,0,0,.14);
+  overflow:hidden;
+}
+.quiz{height:100%;display:grid;grid-template-rows:56px 1fr}
+.topbar{
+  display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;
+  padding:10px 18px;border-bottom:1px solid var(--line);
+}
+.progress-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.progress-track{flex:1;height:8px;background:#eceef1;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;width:16.67%;background:var(--blue);border-radius:inherit}
+.progress-label,.score{font-size:.9rem;font-weight:700;white-space:nowrap}
+.score{padding:7px 11px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark)}
+.content{
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto 1fr 44px 46px;
+  gap:10px;
+  padding:14px 18px 16px;
+}
+.instruction{
+  margin:0;text-align:center;
+  font-size:clamp(.98rem,1.8vw,1.18rem);
+  font-weight:700;line-height:1.2;
+}
+.scene-wrap{min-height:0;position:relative}
+#scene{width:100%;height:100%}
+.feedback{
+  height:44px;min-height:44px;border-radius:11px;padding:8px 12px;
+  display:flex;align-items:center;white-space:nowrap;overflow:hidden;
+  font-size:clamp(.76rem,1.35vw,.93rem);
+}
+.feedback:empty{visibility:hidden}
+.feedback.success{background:var(--green-soft);border:1px solid #bfe7c8}
+.feedback.error{background:var(--red-soft);border:1px solid #f0bcbc}
+.feedback.hint{background:var(--amber-soft);border:1px solid #ead59a}
+.actions{display:flex;justify-content:center;align-items:center}
+.main-button{
+  min-width:180px;height:44px;border:0;border-radius:12px;
+  background:var(--blue);color:#fff;font-size:1rem;font-weight:800;
+  cursor:pointer;padding:8px 20px;
+}
+.main-button:hover:not(:disabled){background:var(--blue-dark)}
+.main-button:disabled{opacity:.45;cursor:not-allowed}
+.final{
+  display:none;height:100%;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;padding:28px;
+}
+.final.show{display:flex}
+.final-score{
+  font-size:clamp(2.2rem,5vw,3.7rem);
+  font-weight:900;color:var(--blue-dark);margin:8px 0 12px;
+}
+.final-text{max-width:680px;font-size:1.05rem;line-height:1.4;margin:0 0 20px}
+@media(max-width:760px){
+  body{padding:4px}
+  .app{max-height:calc(100vh - 8px);border-radius:13px}
+  .topbar{padding:8px 12px}
+  .content{
+    gap:7px;padding:10px 12px 12px;
+    grid-template-rows:auto 1fr 40px 40px;
+  }
+  .feedback{height:40px;min-height:40px;padding:6px 9px}
+  .main-button{height:40px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection" class="quiz">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div id="progressLabel" class="progress-label">Question 1 / 6</div>
+      </div>
+      <div id="scoreLabel" class="score">Score : 0 / 6</div>
+    </div>
+
+    <div class="content">
+      <p id="instruction" class="instruction"></p>
+
+      <div class="scene-wrap">
+        <div id="scene"></div>
+      </div>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="actions">
+        <button id="mainButton" class="main-button">Tracer</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="finalSection" class="final">
+    <div>Exercice terminé</div>
+    <div id="finalScore" class="final-score">0 / 6</div>
+    <p id="finalText" class="final-text"></p>
+    <button id="restartButton" class="main-button">Recommencer</button>
+  </section>
+</main>
+
+<script src="https://apmathematiques.github.io/Sixiemes/geolib/v1.2/geolib.js"></script>
+
+<script>
+(() => {
+  const TOTAL=6;
+  const NAMES=["A","B","C","D"];
+
+  function formatScore(value){
+    return Number.isInteger(value) ? String(value) : String(value).replace(".",",");
+  }
+
+  function makeQuestion(targetOnLine){
+    const toolTemplate=new GeoLib.SetSquare({
+      width:180,
+      height:130
+    });
+
+    const line=GeoLib.Random.line({
+      width:900,
+      height:330,
+      margin:145,
+      minAngle:12,
+      maxAngle:168
+    });
+
+    const targetIndex=GeoLib.Random.integer(0,3);
+    const points=[];
+
+    for(let i=0;i<4;i++){
+      let p;
+
+      if(i===targetIndex){
+        p=targetOnLine
+          ? GeoLib.Random.pointOnLine(line,{
+              tool:toolTemplate,
+              width:900,
+              height:330,
+              existingPoints:points,
+              minDistance:78
+            })
+          : GeoLib.Random.pointAwayFromLine(line,{
+              tool:toolTemplate,
+              width:900,
+              height:330,
+              existingPoints:points,
+              minDistance:78,
+              minLineDistance:58
+            });
+      }else{
+        const putOnLine=Math.random()<0.22;
+        p=putOnLine
+          ? GeoLib.Random.pointOnLine(line,{
+              tool:toolTemplate,
+              width:900,
+              height:330,
+              existingPoints:points,
+              minDistance:78
+            })
+          : GeoLib.Random.pointForTool(toolTemplate,{
+              width:900,
+              height:330,
+              existingPoints:points,
+              minDistance:78
+            });
+      }
+
+      points.push({x:p.x,y:p.y,name:NAMES[i]});
+    }
+
+    return {
+      linePoint:{x:line.point.x,y:line.point.y},
+      lineAngle:line.angle,
+      points,
+      targetName:NAMES[targetIndex]
+    };
+  }
+
+  function buildQuestions(){
+    return GeoLib.Random.shuffle([
+      makeQuestion(true),
+      makeQuestion(true),
+      makeQuestion(true),
+      makeQuestion(false),
+      makeQuestion(false),
+      makeQuestion(false)
+    ]);
+  }
+
+  let questions=buildQuestions();
+  let index=0;
+  let score=0;
+  let attempt=1;
+  let finishedQuestion=false;
+  let choosingEdge=false;
+
+  let scene=null;
+  let baseLine=null;
+  let setSquare=null;
+  let targetPoint=null;
+
+  const instruction=document.getElementById("instruction");
+  const feedback=document.getElementById("feedback");
+  const mainButton=document.getElementById("mainButton");
+  const progressFill=document.getElementById("progressFill");
+  const progressLabel=document.getElementById("progressLabel");
+  const scoreLabel=document.getElementById("scoreLabel");
+
+  const quizSection=document.getElementById("quizSection");
+  const finalSection=document.getElementById("finalSection");
+  const finalScore=document.getElementById("finalScore");
+  const finalText=document.getElementById("finalText");
+  const restartButton=document.getElementById("restartButton");
+
+  function addLineLabel(){
+    const p=baseLine.pointAt(310);
+    const label=GeoLib.Utils.createSvg("text",{
+      x:p.x+8,
+      y:p.y-8,
+      class:"geolib-point-label"
+    });
+    label.textContent="(d)";
+    scene.layers.points.appendChild(label);
+  }
+
+  function createScene(question){
+    if(scene) scene.destroy();
+
+    scene=new GeoLib.Scene("#scene",{
+      width:900,
+      height:330,
+      keyboard:true
+    });
+
+    baseLine=scene.add(
+      new GeoLib.Line(question.linePoint,question.lineAngle)
+    );
+
+    addLineLabel();
+
+    question.points.forEach(data=>{
+      const point=scene.add(
+        new GeoLib.Point(data.x,data.y,{name:data.name})
+      );
+
+      if(data.name===question.targetName){
+        targetPoint=point;
+      }
+    });
+
+    setSquare=scene.add(
+      new GeoLib.SetSquare({
+        x:700,
+        y:235,
+        angle:-20,
+        allowMove:true,
+        allowRotate:true
+      })
+    );
+  }
+
+  function render(){
+    const question=questions[index];
+
+    attempt=1;
+    finishedQuestion=false;
+    choosingEdge=false;
+
+    instruction.innerHTML=
+      `Trace la droite perpendiculaire à <strong>(d)</strong> passant par le point <strong>${question.targetName}</strong>.`;
+
+    feedback.className="feedback";
+    feedback.innerHTML="";
+
+    mainButton.textContent="Tracer";
+    mainButton.disabled=false;
+
+    progressLabel.textContent=`Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width=`${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    createScene(question);
+  }
+
+  function preciseError(result,targetName){
+    if(result.perpendicular && !result.passPoint){
+      return `La droite est perpendiculaire à (d), mais elle ne passe pas par ${targetName}.`;
+    }
+
+    if(result.passPoint && !result.perpendicular){
+      return `La droite passe par ${targetName}, mais elle n’est pas perpendiculaire à (d).`;
+    }
+
+    return `La droite ne passe pas par ${targetName} et elle n’est pas perpendiculaire à (d).`;
+  }
+
+  function showCorrection(question,wrongLine){
+    scene.clearLayer("drawings");
+
+    if(wrongLine){
+      scene.drawLine(wrongLine,{className:"geolib-line-wrong"});
+    }
+
+    const correctLine=new GeoLib.Line(
+      {x:targetPoint.x,y:targetPoint.y},
+      baseLine.angle+90
+    );
+
+    scene.drawLine(correctLine,{className:"geolib-line-correct"});
+
+    setSquare.allowMove=false;
+    setSquare.allowRotate=false;
+    setSquare.snapToLine(baseLine,{
+      edge:"horizontal",
+      point:targetPoint
+    });
+
+    feedback.className="feedback error";
+    feedback.innerHTML=
+      `<strong>✗</strong>&nbsp;La droite verte passe par ${question.targetName} et est perpendiculaire à (d).`;
+
+    finishedQuestion=true;
+    mainButton.textContent=index===TOTAL-1 ? "Voir le bilan" : "Question suivante";
+    mainButton.disabled=false;
+  }
+
+  async function chooseEdgeAndCheck(){
+    if(choosingEdge || finishedQuestion) return;
+
+    choosingEdge=true;
+    mainButton.disabled=true;
+
+    feedback.className="feedback hint";
+    feedback.innerHTML=
+      "<strong>Choix du bord</strong>&nbsp;Clique directement sur le bord de l’équerre le long duquel tu veux tracer.";
+
+    try{
+      const choice=await setSquare.trace({
+        scene,
+        className:"geolib-line-wrong",
+        draw:true
+      });
+
+      const result=GeoLib.Check.perpendicularConstruction({
+        baseLine,
+        point:targetPoint,
+        drawnLine:choice.line,
+        pointTolerance:10,
+        angleTolerance:2
+      });
+
+      const question=questions[index];
+
+      if(result.success){
+        score+=attempt===1 ? 1 : 0.5;
+
+        scene.clearLayer("drawings");
+        scene.drawLine(choice.line,{className:"geolib-line-correct"});
+
+        setSquare.allowMove=false;
+        setSquare.allowRotate=false;
+
+        feedback.className="feedback success";
+        feedback.innerHTML=
+          `<strong>✓</strong>&nbsp;La droite passe par ${question.targetName} et est perpendiculaire à (d).`;
+
+        scoreLabel.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+        finishedQuestion=true;
+        mainButton.textContent=index===TOTAL-1 ? "Voir le bilan" : "Question suivante";
+        mainButton.disabled=false;
+      }else if(attempt===1){
+        feedback.className="feedback hint";
+        feedback.innerHTML=
+          `<strong>Indice</strong>&nbsp;${preciseError(result,question.targetName)} Repositionne l’équerre puis choisis à nouveau un bord.`;
+
+        attempt=2;
+
+        window.setTimeout(()=>{
+          if(!finishedQuestion){
+            scene.clearLayer("drawings");
+            mainButton.textContent="Tracer le 2ᵉ essai";
+            mainButton.disabled=false;
+          }
+        },650);
+      }else{
+        showCorrection(question,choice.line);
+      }
+    }catch(error){
+      feedback.className="feedback error";
+      feedback.textContent=error.message;
+      mainButton.disabled=false;
+    }finally{
+      choosingEdge=false;
+    }
+  }
+
+  function next(){
+    index++;
+
+    if(index>=TOTAL){
+      if(scene) scene.destroy();
+
+      quizSection.style.display="none";
+      finalSection.classList.add("show");
+      finalScore.textContent=`${formatScore(score)} / ${TOTAL}`;
+
+      if(score>=5.5){
+        finalText.textContent="Excellent ! Tu sais construire une perpendiculaire passant par un point imposé.";
+      }else if(score>=4){
+        finalText.textContent="Très bien. Reste attentif au point demandé et au bord choisi sur l’équerre.";
+      }else if(score>=2){
+        finalText.textContent="Tu progresses. Vérifie toujours les deux conditions : passer par le bon point et former un angle droit.";
+      }else{
+        finalText.textContent="Reprends la méthode : un bord de l’équerre suit la droite donnée et l’autre passe par le point demandé.";
+      }
+    }else{
+      render();
+    }
+  }
+
+  mainButton.addEventListener("click",()=>{
+    if(finishedQuestion){
+      next();
+    }else{
+      chooseEdgeAndCheck();
+    }
+  });
+
+  restartButton.addEventListener("click",()=>{
+    questions=buildQuestions();
+    index=0;
+    score=0;
+
+    finalSection.classList.remove("show");
+    quizSection.style.display="";
+
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
