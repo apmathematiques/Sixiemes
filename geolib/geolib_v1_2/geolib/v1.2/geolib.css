@@ -1,0 +1,136 @@
+:root{
+  --geolib-blue:#2563eb;
+  --geolib-blue-dark:#1d4ed8;
+  --geolib-blue-soft:#eff6ff;
+  --geolib-green:#2f9e44;
+  --geolib-red:#d64545;
+  --geolib-ink:#111827;
+  --geolib-paper:#f8fbff;
+  --geolib-line:#dbeafe;
+}
+
+.geolib-scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--geolib-paper);
+  border:2px solid var(--geolib-line);
+  border-radius:14px;
+  touch-action:none;
+  user-select:none;
+}
+
+.geolib-scene svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.geolib-line{
+  stroke:var(--geolib-ink);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.geolib-line.geolib-line-correct{stroke:var(--geolib-green)}
+.geolib-line.geolib-line-wrong{stroke:var(--geolib-red)}
+
+.geolib-point-cross{
+  stroke:var(--geolib-ink);
+  stroke-width:3;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.geolib-point-label{
+  fill:var(--geolib-ink);
+  font:700 20px Arial,sans-serif;
+}
+
+.geolib-set-square{cursor:grab}
+.geolib-set-square.dragging{cursor:grabbing}
+
+.geolib-set-square-shape{
+  fill:rgba(37,99,235,.14);
+  stroke:var(--geolib-blue);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+}
+
+.geolib-set-square-edge{
+  stroke:var(--geolib-blue-dark);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+  transition:stroke-width .12s ease,stroke .12s ease,filter .12s ease;
+}
+
+.geolib-set-square-right-angle{
+  fill:none;
+  stroke:var(--geolib-blue-dark);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+
+.geolib-set-square-hit{
+  fill:rgba(0,0,0,.001);
+  pointer-events:all;
+}
+
+.geolib-rotate-arm{
+  stroke:var(--geolib-blue-dark);
+  stroke-width:2;
+  stroke-dasharray:5 4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+
+.geolib-rotate-handle{
+  fill:#fff;
+  stroke:var(--geolib-blue-dark);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+  cursor:grab;
+}
+
+.geolib-rotate-handle.dragging{cursor:grabbing}
+
+/* GeoLib v1.1 — choix du bord */
+.geolib-edge-hit{
+  fill:none;
+  stroke:rgba(0,0,0,.001);
+  stroke-width:28;
+  stroke-linecap:round;
+  pointer-events:none;
+  cursor:pointer;
+}
+
+.geolib-set-square.selecting-edge .geolib-edge-hit{
+  pointer-events:stroke;
+}
+
+.geolib-set-square.selecting-edge .geolib-set-square-shape{
+  fill:rgba(37,99,235,.22);
+}
+
+.geolib-set-square.selecting-edge .geolib-set-square-edge{
+  stroke:#3b82f6;
+  stroke-width:6;
+  filter:drop-shadow(0 0 3px rgba(37,99,235,.45));
+}
+
+.geolib-set-square.selecting-edge .geolib-edge-hit:hover + .geolib-set-square-edge,
+.geolib-set-square .geolib-set-square-edge.edge-hover{
+  stroke:var(--geolib-blue-dark);
+  stroke-width:9;
+}
+
+.geolib-set-square .geolib-set-square-edge.edge-selected{
+  stroke:var(--geolib-green);
+  stroke-width:9;
+  filter:drop-shadow(0 0 4px rgba(47,158,68,.45));
+}
