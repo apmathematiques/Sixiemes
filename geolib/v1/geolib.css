@@ -1,0 +1,109 @@
+:root{
+  --geolib-blue:#2563eb;
+  --geolib-blue-dark:#1d4ed8;
+  --geolib-blue-soft:#eff6ff;
+  --geolib-green:#2f9e44;
+  --geolib-red:#d64545;
+  --geolib-ink:#111827;
+  --geolib-paper:#f8fbff;
+  --geolib-line:#dbeafe;
+}
+
+.geolib-scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--geolib-paper);
+  border:2px solid var(--geolib-line);
+  border-radius:14px;
+  touch-action:none;
+  user-select:none;
+}
+
+.geolib-scene svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.geolib-line{
+  stroke:var(--geolib-ink);
+  stroke-width:4;
+  stroke-linecap:round;
+}
+
+.geolib-line.geolib-line-correct{
+  stroke:var(--geolib-green);
+}
+
+.geolib-line.geolib-line-wrong{
+  stroke:var(--geolib-red);
+}
+
+.geolib-point-cross{
+  stroke:var(--geolib-ink);
+  stroke-width:3;
+  stroke-linecap:round;
+}
+
+.geolib-point-label{
+  fill:var(--geolib-ink);
+  font:700 20px Arial, sans-serif;
+}
+
+.geolib-set-square{
+  cursor:grab;
+}
+
+.geolib-set-square.dragging{
+  cursor:grabbing;
+}
+
+.geolib-set-square-shape{
+  fill:rgba(37,99,235,.14);
+  stroke:var(--geolib-blue);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+}
+
+.geolib-set-square-edge{
+  stroke:var(--geolib-blue-dark);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+
+.geolib-set-square-right-angle{
+  fill:none;
+  stroke:var(--geolib-blue-dark);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+
+.geolib-set-square-hit{
+  fill:rgba(0,0,0,.001);
+  pointer-events:all;
+}
+
+.geolib-rotate-arm{
+  stroke:var(--geolib-blue-dark);
+  stroke-width:2;
+  stroke-dasharray:5 4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+
+.geolib-rotate-handle{
+  fill:#fff;
+  stroke:var(--geolib-blue-dark);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke;
+  cursor:grab;
+}
+
+.geolib-rotate-handle.dragging{
+  cursor:grabbing;
+}

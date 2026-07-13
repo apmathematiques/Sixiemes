@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="stylesheet" href="geolib.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:Arial,sans-serif;background:#f3f4f6}
+body{display:flex;align-items:center;justify-content:center;padding:16px}
+.demo{
+  width:min(1100px,100%);
+  background:white;border-radius:18px;padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12)
+}
+h1{margin:0 0 6px;font-size:1.45rem}
+p{margin:0 0 14px;color:#59616b}
+#scene{width:100%;aspect-ratio:16/6}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{
+  border:0;border-radius:10px;background:#2563eb;color:white;
+  padding:10px 15px;font-weight:700;cursor:pointer
+}
+.info{margin-top:12px;padding:10px 12px;background:#eff6ff;border-radius:10px}
+</style>
+</head>
+<body>
+<main class="demo">
+  <h1>GeoLib v1 — Démonstration</h1>
+  <p>Déplace l’équerre, tourne-la avec la poignée ronde ou avec les flèches gauche/droite.</p>
+  <div id="scene"></div>
+  <div class="toolbar">
+    <button id="align">Aligner l’équerre</button>
+    <button id="trace">Tracer le bord vertical</button>
+    <button id="reset">Réinitialiser</button>
+  </div>
+  <div id="info" class="info">L’équerre possède deux bords exactement perpendiculaires.</div>
+</main>
+
+<script src="geolib.js"></script>
+<script>
+let scene,baseLine,pointA,setSquare;
+
+function init(){
+  if(scene) scene.destroy();
+  scene=new GeoLib.Scene("#scene",{width:900,height:330});
+  baseLine=scene.add(new GeoLib.Line({x:120,y:220},-14));
+  pointA=scene.add(new GeoLib.Point(560,115,{name:"A"}));
+  setSquare=scene.add(new GeoLib.SetSquare({x:660,y:220,angle:-20}));
+  document.getElementById("info").textContent=
+    "L’équerre possède deux bords exactement perpendiculaires.";
+}
+
+document.getElementById("align").onclick=()=>{
+  setSquare.snapToLine(baseLine,{edge:"horizontal",point:pointA});
+  document.getElementById("info").textContent=
+    "Le bord horizontal suit la droite ; le bord vertical passe par A.";
+};
+
+document.getElementById("trace").onclick=()=>{
+  scene.clearLayer("drawings");
+  const drawn=setSquare.edgeLine("vertical");
+  scene.drawLine(drawn,{className:"geolib-line-correct"});
+  const pass=scene.checkLineThroughPoint(drawn,pointA,8);
+  const perp=scene.checkPerpendicular(drawn,baseLine,2);
+  document.getElementById("info").textContent=
+    `Passe par A : ${pass?"oui":"non"} — Perpendiculaire : ${perp?"oui":"non"}`;
+};
+
+document.getElementById("reset").onclick=init;
+init();
+</script>
+</body>
+</html>
