@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="stylesheet" href="geolib.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:Arial,sans-serif;background:#f3f4f6}
+body{display:flex;align-items:center;justify-content:center;padding:16px}
+.demo{
+  width:min(1100px,100%);
+  background:#fff;border-radius:18px;padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12)
+}
+h1{margin:0 0 6px;font-size:1.45rem}
+p{margin:0 0 14px;color:#59616b}
+#scene{width:100%;aspect-ratio:16/6}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{
+  border:0;border-radius:10px;background:#2563eb;color:#fff;
+  padding:10px 15px;font-weight:700;cursor:pointer
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.info{margin-top:12px;padding:10px 12px;background:#eff6ff;border-radius:10px}
+</style>
+</head>
+<body>
+<main class="demo">
+  <h1>GeoLib v1.1 — Sélection du bord</h1>
+  <p>Déplace et tourne l’équerre. Clique ensuite sur « Choisir un bord », puis directement sur le bord à utiliser.</p>
+
+  <div id="scene"></div>
+
+  <div class="toolbar">
+    <button id="choose">Choisir un bord</button>
+    <button id="align">Placer correctement</button>
+    <button id="clear">Effacer le tracé</button>
+    <button id="reset">Réinitialiser</button>
+  </div>
+
+  <div id="info" class="info">Les deux bords issus de l’angle droit sont sélectionnables.</div>
+</main>
+
+<script src="geolib.js"></script>
+<script>
+let scene,baseLine,pointA,setSquare;
+const chooseButton=document.getElementById("choose");
+const info=document.getElementById("info");
+
+function init(){
+  if(scene)scene.destroy();
+
+  scene=new GeoLib.Scene("#scene",{width:900,height:330});
+  baseLine=scene.add(new GeoLib.Line({x:120,y:220},-14));
+  pointA=scene.add(new GeoLib.Point(560,115,{name:"A"}));
+  setSquare=scene.add(new GeoLib.SetSquare({x:660,y:220,angle:-20}));
+
+  chooseButton.disabled=false;
+  info.textContent="Les deux bords issus de l’angle droit sont sélectionnables.";
+}
+
+chooseButton.onclick=async()=>{
+  chooseButton.disabled=true;
+  info.textContent="Clique directement sur l’un des deux bords bleus.";
+
+  try{
+    const result=await setSquare.trace({
+      className:"geolib-line-correct"
+    });
+    info.textContent=`Bord choisi : ${result.edge==="horizontal"?"premier bord":"second bord"}.`;
+  }catch(error){
+    info.textContent=error.message;
+  }finally{
+    chooseButton.disabled=false;
+  }
+};
+
+document.getElementById("align").onclick=()=>{
+  setSquare.snapToLine(baseLine,{
+    edge:"horizontal",
+    point:pointA
+  });
+  info.textContent="L’équerre est placée : un bord suit la droite et l’autre passe par A.";
+};
+
+document.getElementById("clear").onclick=()=>{
+  scene.clearLayer("drawings");
+  info.textContent="Le tracé a été effacé.";
+};
+
+document.getElementById("reset").onclick=init;
+
+init();
+</script>
+</body>
+</html>
