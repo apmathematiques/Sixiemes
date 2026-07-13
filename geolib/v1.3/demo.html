@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="geolib.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#eef3f9;color:#172033}body{display:flex;justify-content:center;padding:16px}.demo{width:min(1050px,100%);background:#fff;border-radius:18px;padding:18px;box-shadow:0 10px 30px #17345a20}h1{margin:0 0 5px;font-size:1.45rem}p{margin:0 0 12px;color:#59616b}#scene{height:min(390px,55vh)}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}button{border:0;border-radius:10px;padding:10px 14px;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}button.secondary{background:#64748b}.info{margin-top:11px;padding:10px 12px;border-radius:10px;background:#eff6ff;font-weight:700}.tests{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}.test{padding:8px;border-radius:9px;background:#eaf8ee;font-weight:700}@media(max-width:700px){.tests{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><main class="demo">
+<h1>GeoLib v1.3 — Construction de parallèles</h1>
+<p>Déplace les instruments, bloque la règle lorsqu’elle est contre un côté de l’équerre, puis fais coulisser l’équerre.</p>
+<div id="scene"></div>
+<div class="toolbar"><button id="lock">Bloquer la règle</button><button id="release" class="secondary">Libérer les instruments</button><button id="trace">Tracer avec l’équerre</button><button id="reset" class="secondary">Réinitialiser</button></div>
+<div id="info" class="info">Les outils sont volontairement presque en position pour faciliter le test.</div>
+<div class="tests"><div class="test">✓ Règle manipulable</div><div class="test">✓ Liaison contrôlée</div><div class="test">✓ Coulissement contraint</div><div class="test">✓ Vérification parallèle</div></div>
+</main>
+<script src="geolib.js"></script>
+<script>
+let scene,baseLine,setSquare,ruler,target;
+function init(){
+  if(scene)scene.destroy();scene=new GeoLib.Scene('#scene',{width:900,height:350});
+  baseLine=scene.add(new GeoLib.Line({x:330,y:245},-18,{name:'(d)'}));
+  target=scene.add(new GeoLib.Point(490,130,{name:'N'}));
+  setSquare=scene.add(new GeoLib.SetSquare({x:330,y:245,angle:-18,width:175,height:125}));
+  const a=setSquare.edgeAngles().vertical;ruler=scene.add(new GeoLib.Straightedge({x:340,y:222,angle:a,length:285}));
+  document.getElementById('info').textContent='Place la règle contre le côté vertical de l’équerre, puis bloque-la.';
+}
+document.getElementById('lock').onclick=()=>{const r=setSquare.attachToRuler(ruler);document.getElementById('info').textContent=r.success?'Règle bloquée : l’équerre ne peut plus que coulisser.':'La règle doit être parallèle et proche d’un côté de l’angle droit.'};
+document.getElementById('release').onclick=()=>{setSquare.releaseRuler();document.getElementById('info').textContent='Les deux instruments sont de nouveau libres.'};
+document.getElementById('trace').onclick=async()=>{scene.clearLayer('drawings');document.getElementById('info').textContent='Clique sur le bord de l’équerre que tu veux utiliser.';const c=await setSquare.trace();const r=GeoLib.Check.parallelConstruction({baseLine,point:target,drawnLine:c.line});c.drawnLine.setClass(r.success?'geolib-line-correct':'geolib-line-wrong');document.getElementById('info').textContent=`Parallèle : ${r.parallel?'oui':'non'} — Passe par N : ${r.passPoint?'oui':'non'}.`};
+document.getElementById('reset').onclick=init;init();
+</script></body></html>

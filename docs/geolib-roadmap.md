@@ -2,7 +2,7 @@
 
 ## Version stable
 
-GeoLib **1.2**
+GeoLib **1.3**
 
 Fonctionnalités disponibles :
 
@@ -14,19 +14,22 @@ Fonctionnalités disponibles :
 - sélection interactive du bord ;
 - génération de points atteignables ;
 - générateurs aléatoires ;
-- vérification d'une construction perpendiculaire.
+- vérification d'une construction perpendiculaire ;
+- règle manipulable et verrouillable ;
+- liaison règle–équerre ;
+- coulissement contraint de l'équerre ;
+- vérification d'une construction parallèle.
 
 ## Prochaines évolutions possibles
 
 Elles ne seront développées que lorsqu'un exercice en aura réellement besoin.
 
-### GeoLib 1.3
-- [ ] Outil règle
-- [ ] Construction de parallèles
-- [ ] Vérification d'une construction parallèle
+### Évolution optionnelle
+
 - [ ] Aimantation légère optionnelle
 
 ### Versions ultérieures
+
 - [ ] Compas
 - [ ] Rapporteur
 - [ ] Outil crayon plus général

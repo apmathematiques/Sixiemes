@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../geolib/v1.3/geolib.css">
+<style>
+:root{--blue:#2563eb;--blue-dark:#1746a2;--blue-soft:#eff6ff;--green:#15803d;--green-soft:#ecfdf3;--red:#c62828;--red-soft:#fff1f2;--amber:#a16207;--ink:#172033;--muted:#5d6677}
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:transparent}body{display:flex;align-items:center;justify-content:center;padding:8px}button{font:inherit}
+.app{width:min(980px,100%);aspect-ratio:16/9;min-height:500px;max-height:96vh;padding:14px;background:rgba(255,255,255,.97);border:1px solid #dce6f5;border-radius:20px;box-shadow:0 12px 32px #18355c20;overflow:hidden}
+#exercise{height:100%;display:flex;flex-direction:column;gap:8px;min-height:0}.topbar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px}.progress-wrap{display:flex;align-items:center;gap:9px}.track{height:10px;flex:1;background:#e6edf7;border-radius:999px;overflow:hidden}.progress{height:100%;background:linear-gradient(90deg,#60a5fa,var(--blue));transition:width .3s}.counter,.score{font-weight:800;color:var(--blue-dark);white-space:nowrap}.score{background:var(--blue-soft);padding:7px 11px;border-radius:11px}
+.instruction{text-align:center;font-weight:800;font-size:clamp(1rem,2.1vw,1.22rem);margin:0}.instruction .target{color:var(--blue-dark)}#scene{flex:1 1 auto;min-height:260px}
+.tools,.next-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:11px;min-height:41px;padding:9px 14px;font-weight:800;cursor:pointer;transition:transform .12s,filter .12s}.btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(.97)}.btn:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}.btn:disabled{opacity:.5;cursor:default}.primary{background:var(--blue);color:#fff}.secondary{background:#e8eef7;color:#334155}.lock{background:#fef3c7;color:#854d0e}.trace{background:#0f766e;color:#fff}.next{background:var(--blue);color:#fff;min-width:175px}
+.feedback{min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:8px 12px;background:#f4f7fb;color:var(--muted);font-weight:700;line-height:1.3}.feedback.hint{background:#fff8e7;color:#854d0e}.feedback.correct{background:var(--green-soft);color:var(--green)}.feedback.wrong{background:var(--red-soft);color:var(--red)}.hidden{display:none!important}
+.result{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:15px;padding:24px}.result-icon{width:78px;height:78px;display:grid;place-items:center;border-radius:50%;background:var(--blue-soft);font-size:2.4rem}.result h2{margin:0;font-size:clamp(1.45rem,3vw,2rem)}.result p{margin:0;max-width:620px;color:var(--muted);font-size:1.06rem}
+@media(max-width:650px){body{padding:4px}.app{padding:9px;min-height:510px;border-radius:14px}#exercise{gap:6px}#scene{min-height:225px}.btn{padding:8px 10px;font-size:.91rem}.feedback{font-size:.9rem;min-height:48px}.geolib-point-label,.geolib-line-label{font-size:23px}}
+</style>
+</head>
+<body><main class="app">
+<section id="exercise">
+  <div class="topbar"><div class="progress-wrap"><span id="counter" class="counter">1 / 4</span><div class="track"><div id="progress" class="progress"></div></div></div><div id="score" class="score">Score : 0</div></div>
+  <p id="instruction" class="instruction"></p>
+  <div id="scene"></div>
+  <div id="tools" class="tools"><button id="lock" class="btn lock" type="button">Bloquer la règle</button><button id="trace" class="btn trace" type="button">Tracer</button><button id="resetTools" class="btn secondary" type="button">Replacer les instruments</button></div>
+  <div id="feedback" class="feedback" role="status">Manipule librement la règle et l’équerre.</div>
+  <div class="next-row"><button id="next" class="btn next hidden" type="button">Question suivante</button></div>
+</section>
+<section id="result" class="result hidden"><div class="result-icon">✓</div><h2 id="resultTitle"></h2><p id="resultText"></p><button id="restart" class="btn primary" type="button">Rejouer avec de nouvelles figures</button></section>
+</main>
+<script src="../geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+const W=900,H=350,N=4,names=['L','M','N'];
+const $=s=>document.querySelector(s);let scene,baseLine,points,target,setSquare,ruler,index=0,score=0,attempt=0,lockedQuestion=false,targetOrder=[];
+const rand=(a,b)=>Math.random()*(b-a)+a,choice=a=>a[Math.floor(Math.random()*a.length)];
+function angleOf(a,b){return GeoLib.Utils.normalizeAngle(GeoLib.Utils.radToDeg(Math.atan2(b.y-a.y,b.x-a.x)))}
+function generatedSituation(targetName){
+  const angle=choice([rand(10,31),rand(149,170)]),line=new GeoLib.Line({x:450,y:292},angle,{name:'(d)'}),data=[];
+  for(let tries=0;data.length<3&&tries<3000;tries++){
+    const p={x:rand(135,690),y:rand(75,220),name:names[data.length]};
+    const farFromLine=line.distanceToPoint(p)>=62,farFromOthers=data.every(o=>GeoLib.Utils.distance(p,o)>=120),noSharedParallel=data.every(o=>GeoLib.Utils.angleDifference(angleOf(o,p),angle)>=9);
+    if(farFromLine&&farFromOthers&&noSharedParallel)data.push(p);
+  }
+  if(data.length<3)return generatedSituation(targetName);
+  return{line,data,targetName};
+}
+function addTools(){
+  setSquare=scene.add(new GeoLib.SetSquare({x:675,y:190,angle:choice([24,122,205,302]),width:170,height:122}));
+  ruler=scene.add(new GeoLib.Straightedge({x:700,y:82,angle:choice([8,72,151]),length:270,thickness:40}));
+}
+function renderQuestion(){
+  if(scene)scene.destroy();attempt=0;lockedQuestion=false;
+  const s=generatedSituation(targetOrder[index]);scene=new GeoLib.Scene('#scene',{width:W,height:H});baseLine=scene.add(s.line);points=s.data.map(p=>scene.add(new GeoLib.Point(p.x,p.y,{name:p.name})));target=points.find(p=>p.name===s.targetName);addTools();
+  $('#instruction').innerHTML=`Trace la droite parallèle à <strong>(d)</strong> passant par le point <span class="target">${target.name}</span>.`;
+  $('#counter').textContent=`${index+1} / ${N}`;$('#progress').style.width=`${(index+1)/N*100}%`;$('#score').textContent=`Score : ${score.toLocaleString('fr-FR')}`;
+  $('#feedback').className='feedback';$('#feedback').textContent='Manipule librement la règle et l’équerre.';$('#next').classList.add('hidden');$('#tools').classList.remove('hidden');$('#lock').textContent='Bloquer la règle';setButtons(false);
+}
+function setButtons(disabled){['lock','trace','resetTools'].forEach(id=>$('#'+id).disabled=disabled)}
+function resetTools(){if(lockedQuestion)return;setSquare.releaseRuler();scene.layers.tools.innerHTML='';scene.objects=scene.objects.filter(o=>!(o instanceof GeoLib.SetSquare)&&!(o instanceof GeoLib.Straightedge));addTools();scene.clearLayer('drawings');$('#lock').textContent='Bloquer la règle';$('#feedback').className='feedback';$('#feedback').textContent='Les instruments ont été replacés.'}
+function toggleLock(){
+  if(setSquare._rulerConstraint){setSquare.releaseRuler();$('#lock').textContent='Bloquer la règle';$('#feedback').className='feedback';$('#feedback').textContent='Les instruments sont de nouveau libres.';return}
+  const r=setSquare.attachToRuler(ruler);
+  if(r.success){$('#lock').textContent='Libérer les instruments';$('#feedback').className='feedback';$('#feedback').textContent='La règle est bloquée. L’équerre peut maintenant coulisser sans tourner.'}
+  else{$('#feedback').className='feedback hint';$('#feedback').textContent=!r.aligned?'La règle doit être parallèle à l’un des côtés de l’angle droit de l’équerre.':'Rapproche la règle du côté de l’équerre avant de la bloquer.'}
+}
+async function trace(){
+  if(lockedQuestion)return;
+  if(!setSquare._rulerConstraint){$('#feedback').className='feedback hint';$('#feedback').textContent='Place puis bloque la règle avant de tracer.';return}
+  setButtons(true);scene.clearLayer('drawings');$('#feedback').className='feedback';$('#feedback').textContent='Clique sur le bord de l’équerre que tu veux utiliser.';
+  let c;try{c=await setSquare.trace({className:''})}catch(e){setButtons(false);return}attempt++;
+  const others=points.filter(p=>p!==target),r=GeoLib.Check.parallelConstruction({baseLine,point:target,drawnLine:c.line,otherPoints:others,pointTolerance:10,angleTolerance:2});
+  if(r.success){c.drawnLine.setClass('geolib-line-correct');score+=attempt===1?1:.5;$('#feedback').className='feedback correct';$('#feedback').textContent=`✓ Bonne construction : la droite est parallèle à (d) et passe par ${target.name}.`;finish();return}
+  c.drawnLine.setClass('geolib-line-wrong');
+  if(attempt===1){$('#feedback').className='feedback hint';$('#feedback').textContent=errorText(r,true);setButtons(false);return}
+  $('#feedback').className='feedback wrong';$('#feedback').textContent=`✗ ${errorText(r,false)} La droite correcte est affichée en vert.`;scene.drawLine(new GeoLib.Line({x:target.x,y:target.y},baseLine.angle),{className:'geolib-line-correct'});finish();
+}
+function errorText(r,hint){
+  if(r.parallel&&!r.passPoint&&r.wrongPoint)return `Ta droite est parallèle à (d), mais elle passe par ${r.wrongPoint.name}. La consigne demande de passer par ${target.name}.`;
+  if(r.parallel&&!r.passPoint)return `Ta droite est parallèle à (d), mais elle ne passe pas par le point ${target.name}.`;
+  if(!r.parallel&&r.passPoint)return `Ta droite passe bien par ${target.name}, mais elle n’est pas parallèle à (d).`;
+  if(r.wrongPoint)return `Ta droite passe par ${r.wrongPoint.name} au lieu de ${target.name}, et elle n’est pas parallèle à (d).`;
+  return hint?`Deux conditions sont à vérifier : être parallèle à (d) et passer par ${target.name}.`:`La droite ne passe pas par ${target.name} et n’est pas parallèle à (d).`;
+}
+function finish(){lockedQuestion=true;setButtons(true);$('#score').textContent=`Score : ${score.toLocaleString('fr-FR')}`;$('#next').textContent=index===N-1?'Voir mon bilan':'Question suivante';$('#next').classList.remove('hidden')}
+function next(){if(!lockedQuestion)return;if(++index<N)renderQuestion();else showResult()}
+function showResult(){$('#exercise').classList.add('hidden');$('#result').classList.remove('hidden');const pct=Math.round(score/N*100),msg=pct>=88?'Excellent : tu maîtrises la construction d’une parallèle avec la règle et l’équerre.':pct>=63?'Bravo : la méthode est comprise. Continue à vérifier attentivement le point demandé.':'Poursuis l’entraînement en vérifiant toujours les deux conditions : même direction et passage par le point demandé.';$('#resultTitle').textContent=`Score : ${score.toLocaleString('fr-FR')} / ${N}`;$('#resultText').textContent=msg}
+function start(){targetOrder=GeoLib.Random.shuffle(['L','M','N',choice(names)]);index=0;score=0;$('#exercise').classList.remove('hidden');$('#result').classList.add('hidden');renderQuestion()}
+$('#lock').onclick=toggleLock;$('#trace').onclick=trace;$('#resetTools').onclick=resetTools;$('#next').onclick=next;$('#restart').onclick=start;start();
+})();
+</script></body></html>

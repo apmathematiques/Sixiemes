@@ -2,13 +2,14 @@
 
 ## GeoLib
 
-Version stable actuelle : **1.2**
+Version stable actuelle : **1.3**
 
 Versions conservées :
 
 - `geolib/v1/`
 - `geolib/v1.1/`
 - `geolib/v1.2/`
+- `geolib/v1.3/`
 
 ## Chapitre 5 — Nombres décimaux
 
@@ -21,18 +22,20 @@ Chapitre développé avec notamment :
 
 ## Chapitre 6 — Parallèles et perpendiculaires
 
+Chapitre terminé.
+
 ### Partie I — Sécantes et perpendiculaires
 
 - [x] Exercice 1 — Sécantes ou non ?
 - [x] Exercice 2 — Point d'intersection
 - [x] Exercice 3 — Perpendiculaires ? avec équerre GeoLib
-- [ ] Exercice 4 — Tracer une perpendiculaire : version GeoLib 1.2 à stabiliser
+- [x] Exercice 4 — Tracer une perpendiculaire avec GeoLib 1.2
 
 ### Partie II — Parallèles
 
-- [ ] Reconnaître des droites parallèles
-- [ ] Tracer une parallèle passant par un point
+- [x] Exercice 1 — Reconnaître des droites parallèles
+- [x] Exercice 2 — Tracer une parallèle passant par un point avec GeoLib 1.3
 
 ## Prochaine étape
 
-Finaliser l'exercice 4, puis concevoir les exercices de la partie II.
+Choisir le prochain chapitre et analyser sa trace écrite avant de concevoir les activités.

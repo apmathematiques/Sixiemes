@@ -36,9 +36,12 @@
 - Toute fonctionnalité réutilisable est intégrée à GeoLib.
 - Chaque version est testée avec `demo.html`.
 - Les anciennes versions sont conservées.
-- La version stable actuelle est GeoLib 1.2.
+- La version stable actuelle est GeoLib 1.3.
 - L'élève peut choisir le bord de l'équerre utilisé pour tracer.
 - Les points d'une construction doivent être générés dans une zone atteignable par l'outil.
+- La règle est manipulable puis bloquée lorsqu'elle est correctement placée contre un côté de l'angle droit de l'équerre.
+- Lorsque la règle est bloquée, l'équerre coulisse le long de celle-ci sans pouvoir tourner.
+- Une construction parallèle vérifie séparément le parallélisme et le passage par le point demandé.
 
 ## Direction artistique
 
