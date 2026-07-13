@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--b:#2563eb;--bd:#1d4ed8;--bs:#eff6ff;--g:#2f9e44;--gs:#eaf8ee;--r:#d64545;--rs:#fdecec;--l:#dfe3e8}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;font-family:Arial,sans-serif}
+body{display:flex;align-items:center;justify-content:center;padding:8px}.app{width:min(100%,960px);aspect-ratio:16/9;max-height:calc(100vh - 16px);background:rgba(255,255,255,.96);border-radius:18px;box-shadow:0 8px 24px #0002;overflow:hidden}
+.quiz{height:100%;display:grid;grid-template-rows:56px 1fr}.top{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--l)}
+.pw{display:flex;gap:10px;align-items:center}.pt{flex:1;height:8px;background:#eceef1;border-radius:99px;overflow:hidden}.pf{height:100%;background:var(--b);width:12.5%}.pl,.score{font-size:.9rem;font-weight:700;white-space:nowrap}.score{padding:7px 11px;border-radius:99px;background:var(--bs);color:var(--bd)}
+.content{min-height:0;display:grid;grid-template-rows:auto 1fr 48px 44px;gap:10px;padding:14px 18px 16px}.inst{text-align:center;margin:0;font-weight:700;font-size:clamp(1rem,1.9vw,1.25rem)}
+.fig{min-height:0;border:2px solid #dbeafe;border-radius:14px;background:#f8fbff;overflow:hidden}svg{width:100%;height:100%;display:block}.line{stroke:#111;stroke-width:4;stroke-linecap:round}.ext{stroke:var(--g);stroke-width:3;stroke-dasharray:10 8}.cross{stroke:var(--g);stroke-width:4}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ab{border:2px solid var(--l);border-radius:12px;background:#fff;font-weight:800;font-size:1.03rem}.ab.sel{border-color:var(--b);background:var(--bs)}.ab.ok{border-color:var(--g);background:var(--gs)}.ab.bad{border-color:var(--r);background:var(--rs)}
+.fb{height:44px;border-radius:11px;padding:8px 12px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;font-size:.9rem}.fb:empty{visibility:hidden}.fb.good{background:var(--gs);border:1px solid #bfe7c8}.fb.err{background:var(--rs);border:1px solid #f0bcbc}
+.actions{text-align:center}.main{min-width:180px;height:44px;border:0;border-radius:12px;background:var(--b);color:#fff;font-weight:800;font-size:1rem}.main:disabled{opacity:.45}
+.final{display:none;height:100%;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:28px}.final.show{display:flex}.fs{font-size:3.4rem;font-weight:900;color:var(--bd);margin:8px}.ft{max-width:680px;font-size:1.05rem;line-height:1.4}
+@media(max-width:760px){body{padding:4px}.app{max-height:calc(100vh - 8px)}.content{gap:7px;padding:10px 12px 12px;grid-template-rows:auto 1fr 44px 40px}.fb{height:40px}}
+</style>
+</head>
+<body>
+<main class="app">
+<section id="quiz" class="quiz">
+<div class="top"><div class="pw"><div class="pt"><div id="pf" class="pf"></div></div><div id="pl" class="pl">Question 1 / 8</div></div><div id="score" class="score">Score : 0 / 8</div></div>
+<div class="content">
+<p class="inst">Ces deux droites sont-elles sécantes&nbsp;?</p>
+<div class="fig"><svg id="svg" viewBox="0 0 900 330" preserveAspectRatio="none"></svg></div>
+<div class="ans"><button class="ab" data-a="secant">Sécantes</button><button class="ab" data-a="parallel">Non sécantes</button></div>
+<div id="fb" class="fb"></div>
+<div class="actions"><button id="main" class="main" disabled>Valider</button></div>
+</div>
+</section>
+<section id="final" class="final"><div>Exercice terminé</div><div id="fs" class="fs"></div><p id="ft" class="ft"></p><button id="restart" class="main">Recommencer</button></section>
+</main>
+<script>
+(()=>{const T=8,W=900,H=330,M=30;const sh=a=>{a=[...a];for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};const r=(a,b)=>Math.random()*(b-a)+a,rad=d=>d*Math.PI/180;
+function box(px,py,dx,dy){let p=[],e=1e-9,t,x,y;if(Math.abs(dx)>e){t=(M-px)/dx;y=py+t*dy;if(y>=M&&y<=H-M)p.push({x:M,y});t=(W-M-px)/dx;y=py+t*dy;if(y>=M&&y<=H-M)p.push({x:W-M,y})}if(Math.abs(dy)>e){t=(M-py)/dy;x=px+t*dx;if(x>=M&&x<=W-M)p.push({x,y:M});t=(H-M-py)/dy;x=px+t*dx;if(x>=M&&x<=W-M)p.push({x,y:H-M})}let u=[];for(const q of p)if(!u.some(z=>Math.hypot(q.x-z.x,q.y-z.y)<1))u.push(q);return u.slice(0,2)}
+function parallel(){let a=rad(r(8,172)),dx=Math.cos(a),dy=Math.sin(a),nx=-dy,ny=dx,o=r(55,120),cx=r(300,600),cy=r(115,215),l1=box(cx+nx*o/2,cy+ny*o/2,dx,dy),l2=box(cx-nx*o/2,cy-ny*o/2,dx,dy);return l1.length<2||l2.length<2?parallel():{type:"parallel",lines:[l1,l2]}}
+function secant(){let out=Math.random()<.35,ix,iy;if(out){let s=Math.floor(r(0,4));if(s===0){ix=r(-400,-100);iy=r(40,H-40)}if(s===1){ix=r(W+100,W+400);iy=r(40,H-40)}if(s===2){ix=r(80,W-80);iy=r(-260,-70)}if(s===3){ix=r(80,W-80);iy=r(H+70,H+260)}}else{ix=r(130,W-130);iy=r(75,H-75)}let a1=r(5,175),a2;do{a2=r(5,175)}while(Math.abs(((a1-a2+90)%180)-90)<14);let d1={x:Math.cos(rad(a1)),y:Math.sin(rad(a1))},d2={x:Math.cos(rad(a2)),y:Math.sin(rad(a2))},l1=box(ix,iy,d1.x,d1.y),l2=box(ix,iy,d2.x,d2.y);return l1.length<2||l2.length<2?secant():{type:"secant",lines:[l1,l2],inter:{x:ix,y:iy},visible:ix>=M&&ix<=W-M&&iy>=M&&iy<=H-M,dirs:[d1,d2]}}
+function build(){return sh([secant(),secant(),secant(),secant(),parallel(),parallel(),parallel(),parallel()])}
+let qs=build(),i=0,s=0,sel=null,lock=false;const svg=document.getElementById("svg"),btn=[...document.querySelectorAll(".ab")],fb=document.getElementById("fb"),main=document.getElementById("main"),pf=document.getElementById("pf"),pl=document.getElementById("pl"),sc=document.getElementById("score"),quiz=document.getElementById("quiz"),final=document.getElementById("final"),fs=document.getElementById("fs"),ft=document.getElementById("ft");
+const line=(a,b,c)=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="${c}"/>`;
+function fig(q,c=false){let h=line(q.lines[0][0],q.lines[0][1],"line")+line(q.lines[1][0],q.lines[1][1],"line");if(c&&q.type==="secant"){if(q.visible){let{x,y}=q.inter;h+=line({x:x-9,y:y-9},{x:x+9,y:y+9},"cross")+line({x:x-9,y:y+9},{x:x+9,y:y-9},"cross")}else q.lines.forEach((L,k)=>{let n=L.reduce((a,p)=>Math.hypot(p.x-q.inter.x,p.y-q.inter.y)<Math.hypot(a.x-q.inter.x,a.y-q.inter.y)?p:a,L[0]),d=q.dirs[k],sg=((q.inter.x-n.x)*d.x+(q.inter.y-n.y)*d.y)>=0?1:-1;h+=line(n,{x:n.x+d.x*sg*85,y:n.y+d.y*sg*85},"ext")})}svg.innerHTML=h}
+function render(){let q=qs[i];sel=null;lock=false;fb.className="fb";fb.innerHTML="";main.textContent="Valider";main.disabled=true;btn.forEach(b=>{b.disabled=false;b.className="ab"});pl.textContent=`Question ${i+1} / ${T}`;pf.style.width=`${(i+1)/T*100}%`;sc.textContent=`Score : ${s} / ${T}`;fig(q)}
+btn.forEach(b=>b.onclick=()=>{if(lock)return;sel=b.dataset.a;btn.forEach(x=>x.classList.toggle("sel",x.dataset.a===sel));main.disabled=false});
+function validate(){if(!sel||lock)return;lock=true;let q=qs[i],ok=sel===q.type,cb=btn.find(b=>b.dataset.a===q.type),sb=btn.find(b=>b.dataset.a===sel);btn.forEach(b=>b.disabled=true);cb.classList.add("ok");if(!ok)sb.classList.add("bad");if(ok)s++;fb.className="fb "+(ok?"good":"err");fb.innerHTML=q.type==="secant"?(ok?"<strong>✓</strong>&nbsp;Ces deux droites sont sécantes : elles ont un seul point d’intersection.":"<strong>✗</strong>&nbsp;En prolongeant les deux droites, elles se coupent en un point."):(ok?"<strong>✓</strong>&nbsp;Ces deux droites ne sont pas sécantes : elles sont parallèles.":"<strong>✗</strong>&nbsp;Même prolongées, ces deux droites ne se rencontrent jamais.");fig(q,true);sc.textContent=`Score : ${s} / ${T}`;main.textContent=i===T-1?"Voir le bilan":"Question suivante";main.disabled=false}
+main.onclick=()=>{if(!lock)return validate();i++;if(i>=T){quiz.style.display="none";final.classList.add("show");fs.textContent=`${s} / ${T}`;ft.textContent=s===8?"Excellent ! Tu reconnais parfaitement des droites sécantes et parallèles.":s>=6?"Très bien. Pense à prolonger mentalement les droites lorsque leur intersection n’est pas visible.":s>=3?"Tu progresses. Deux droites sécantes possèdent un seul point commun.":"Reprends calmement : des droites sont sécantes lorsqu’elles se coupent en un seul point."}else render()};
+document.getElementById("restart").onclick=()=>{qs=build();i=0;s=0;final.classList.remove("show");quiz.style.display="";render()};render()})();
+</script>
+</body>
+</html>
