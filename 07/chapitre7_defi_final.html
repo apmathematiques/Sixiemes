@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#20864b;--gs:#e9f7ef;--r:#c63d3d;--rs:#fff0f0;--i:#17212b;--m:#5f6d79}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}.bar{width:0;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:4px 26px 20px;display:flex;flex-direction:column;gap:9px}.step-head{display:flex;align-items:center;justify-content:center;gap:10px;min-height:30px;color:var(--bd);font-weight:800}.dots{display:flex;gap:6px}.dot{width:9px;height:9px;background:#d4e6f3;border-radius:50%}.dot.done{background:var(--g)}.dot.now{background:var(--b);transform:scale(1.25)}
+.instruction{min-height:50px;margin:0;display:grid;place-items:center;font-size:clamp(1rem,2.05vw,1.25rem);font-weight:700;line-height:1.3;text-align:center}.instruction strong{color:var(--bd)}.stage{flex:1;min-height:0;display:flex;flex-direction:column;gap:9px;animation:reveal 260ms ease both}@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.figure{flex:1;min-height:176px;padding:7px 12px;display:grid;place-items:center;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px}svg{width:100%;height:100%;min-height:164px;overflow:visible}svg.placing{cursor:crosshair;touch-action:none}svg.locked{cursor:default}
+.controls{min-height:52px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}.fields{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.field{width:132px}.field label{display:block;margin-bottom:3px;color:var(--bd);font-size:.86rem;font-weight:700;text-align:center}.field input{width:100%;height:48px;padding:0 12px;color:var(--i);font-size:1.12rem;font-weight:700;text-align:center;background:#fff;border:2px solid #9fc5df;border-radius:13px;outline:none}.field input:focus{border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.13)}.field input.good{background:var(--gs);border-color:#79c798}.field input.bad{background:var(--rs);border-color:#df8585}
+button{min-height:48px;padding:0 21px;font-size:1rem;font-weight:700;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease}button:hover{filter:brightness(1.04)}button:active{transform:scale(.98)}button:focus-visible{outline:4px solid rgba(23,105,170,.22)}button[hidden]{display:none}.primary{color:#fff;background:var(--b)}.secondary{color:var(--bd);background:var(--bs)}.help{margin:0;color:var(--m);font-size:.88rem;font-weight:600;text-align:center}
+.feedback{min-height:50px;padding:8px 13px;display:none;align-items:center;justify-content:center;font-weight:600;line-height:1.3;text-align:center;border-radius:14px}.feedback.show{display:flex}.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}.feedback.hint{color:#8a5a00;background:#fff7df;border:1px solid #ead391}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid;animation:reveal 280ms ease both}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:6px 0;font-size:1.2rem;font-weight:800}.badge{margin:10px 0 20px;color:var(--bd);font-size:1.12rem;font-weight:700;line-height:1.4}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}@media(max-width:700px),(max-height:620px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 13px 10px;gap:6px}.step-head{min-height:24px}.instruction{min-height:42px}.stage{gap:6px}.figure{min-height:135px;padding:3px 7px}svg{min-height:125px}.controls{min-height:45px;gap:7px}.field{width:108px}.field input,button{min-height:43px;height:43px}.feedback{min-height:43px;padding:6px 9px;font-size:.9rem}.help{font-size:.8rem}}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top"><div class="track" aria-label="Progression du défi"><div class="bar" id="bar"></div></div><div class="pill" id="counter">Mission 1 / 10</div><div class="pill" id="score">Score : 0 / 10</div></header>
+  <section class="main" id="exercise">
+    <div class="step-head"><span id="stepLabel">Étape 1 / 1</span><span class="dots" id="dots" aria-hidden="true"></span></div>
+    <p class="instruction" id="instruction"></p>
+    <div class="stage" id="stage">
+      <div class="figure"><svg id="line" role="img" aria-label="Demi-droite graduée"></svg></div>
+      <form class="controls" id="form" autocomplete="off"><div class="fields" id="fields"></div><button class="secondary" type="button" id="modify" hidden>Modifier</button><button class="primary" type="submit" id="validate">Valider</button><button class="secondary" type="button" id="next" hidden>Étape suivante</button></form>
+      <p class="help" id="help" hidden>Clique sur la demi-droite : le point s’accroche à la graduation la plus proche.</p>
+      <div class="feedback" id="feedback" role="status"></div>
+    </div>
+  </section>
+  <section class="final" id="final"><div class="final-card"><div class="final-icon" id="finalIcon">🏅</div><h2>Mission accomplie !</h2><p class="final-score" id="finalScore"></p><p class="badge" id="badge"></p><button class="primary" type="button" id="restart">Recommencer une nouvelle mission</button></div></section>
+</main>
+<script>
+(function(){
+"use strict";
+var TOTAL=10,LETTERS=["A","B","C","D","E","F","G","H","K","L","M","N","P","R","S","T"],EASY=[1,2,5,.5],MIXED=[.1,.2,.25,.5,1,2],ADV=[.01,.02,.05,.1,.2,.25,.5],W=900,LEFT=58,RIGHT=842,Y=116;
+function byId(id){return document.getElementById(id)}
+var app=byId("app"),svg=byId("line"),counter=byId("counter"),bar=byId("bar"),scoreBox=byId("score"),stepLabel=byId("stepLabel"),dots=byId("dots"),instruction=byId("instruction"),stage=byId("stage"),form=byId("form"),fields=byId("fields"),modify=byId("modify"),validate=byId("validate"),nextBtn=byId("next"),help=byId("help"),feedback=byId("feedback"),exercise=byId("exercise"),final=byId("final"),finalIcon=byId("finalIcon"),finalScore=byId("finalScore"),badge=byId("badge"),restartBtn=byId("restart");
+var missions=[],mi=0,si=0,mistakes=0,missionValue=1,score=0,locked=false,provisional=null,lastSignature="";
+function shuffle(a){var c=a.slice();for(var i=c.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=c[i];c[i]=c[j];c[j]=t}return c}
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+function integer(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function clean(v){return Math.round(v*100000000)/100000000}
+function num(v){return String(clean(v)).replace(".",",")}
+function scoreText(v){return Number.isInteger(v)?String(v):String(v).replace(".",",")}
+function choosePositions(count,ticks,labelEvery,close){
+  var candidates=Array.from({length:ticks-1},function(_,i){return i+1});
+  if(close&&count>=2){var gap=choice([1,1,2]),first=integer(2,ticks-gap-2),picked=[first,first+gap],rest=shuffle(candidates.filter(function(p){return picked.indexOf(p)<0}));return picked.concat(rest.slice(0,count-2)).sort(function(a,b){return a-b})}
+  var preferred=candidates.filter(function(p){return p%labelEvery!==0});
+  for(var a=0;a<300;a++){var source=preferred.length>=count?preferred:candidates,p=shuffle(source).slice(0,count).sort(function(x,y){return x-y});if(p.every(function(x,i){return i===0||x-p[i-1]>=2}))return p}
+  return candidates.slice(0,count)
+}
+function typesFor(index){
+  if(index<7)return choice([["graduation","read"],["read","place"],["graduation","place"]]);
+  return ["graduation","read","place"]
+}
+function createMission(index,types,forcedGraduation){
+  var advanced=index>=7,graduation=forcedGraduation===undefined?choice(advanced?ADV:index>=3?MIXED:EASY):forcedGraduation,ticks=choice(advanced?[12,14,16]:[10,12,14]),labelEvery=choice([2,3,4].filter(function(v){return v<ticks/2})),showZero=Math.random()<.5,start=showZero?0:integer(2,advanced?12:8),readCount=types.indexOf("read")>=0?(advanced?2:1):0,needed=Math.max(readCount+(types.indexOf("place")>=0?1:0),2),picked=choosePositions(needed,ticks,labelEvery,advanced),letters=shuffle(LETTERS).slice(0,needed),read=[];
+  for(var i=0;i<readCount;i++)read.push({letter:letters[i],position:picked[i],value:clean((start+picked[i])*graduation),side:i%2===0?"above":"below"});
+  var pi=readCount,place=types.indexOf("place")>=0?{letter:letters[pi],position:picked[pi],value:clean((start+picked[pi])*graduation),side:pi%2===0?"above":"below"}:null;
+  return {types:types,graduation:graduation,tickCount:ticks,labelEvery:labelEvery,showZero:showZero,startIndex:start,readPoints:read,placePoint:place}
+}
+function build(){
+  var generated,signature;
+  do{var first=shuffle([["graduation"],["read"],["place"]]),advancedSteps=shuffle(ADV).slice(0,3);generated=Array.from({length:TOTAL},function(_,i){return createMission(i,i<3?first[i]:typesFor(i),i>=7?advancedSteps[i-7]:undefined)});signature=JSON.stringify(generated)}while(signature===lastSignature);
+  lastSignature=signature;return generated
+}
+function el(name,attrs){var node=document.createElementNS("http://www.w3.org/2000/svg",name);Object.keys(attrs||{}).forEach(function(k){node.setAttribute(k,attrs[k])});return node}
+function spacing(m){return (RIGHT-LEFT)/(m.tickCount+.7)}
+function xAt(m,p){return LEFT+p*spacing(m)}
+function marker(m,p,state,position){
+  position=position===undefined?p.position:position;var x=xAt(m,position),colors={shown:"#1769aa",provisional:"#1769aa",correct:"#20864b",correction:"#c63d3d"},g=el("g",{class:"point-marker","data-letter":p.letter,"data-position":position,"data-state":state});
+  g.appendChild(el("circle",{cx:x,cy:Y,r:8,fill:colors[state],stroke:"#fff","stroke-width":2.5}));
+  var text=el("text",{x:x,y:p.side==="above"?Y-20:Y+40,"text-anchor":"middle","font-size":25,"font-weight":700,"font-family":"Arial, Helvetica, sans-serif",fill:state==="correction"?"#8f2727":"#0d4778"});text.textContent=p.letter;g.appendChild(text);return g
+}
+function draw(m,type){
+  svg.replaceChildren();svg.setAttribute("viewBox","0 0 "+W+" 250");svg.setAttribute("preserveAspectRatio","xMidYMid meet");svg.dataset.tickCount=m.tickCount;svg.dataset.graduation=m.graduation;svg.dataset.showZero=m.showZero;svg.dataset.targetPosition=m.placePoint?m.placePoint.position:"";svg.dataset.snappedPosition="";
+  var defs=el("defs"),arrow=el("marker",{id:"arrow",markerWidth:10,markerHeight:10,refX:8,refY:3,orient:"auto",markerUnits:"strokeWidth"});arrow.appendChild(el("path",{d:"M0,0 L0,6 L9,3 z",fill:"#17212b"}));defs.appendChild(arrow);svg.appendChild(defs);svg.appendChild(el("line",{x1:LEFT,y1:Y,x2:RIGHT,y2:Y,stroke:"#17212b","stroke-width":4,"stroke-linecap":"round","marker-end":"url(#arrow)"}));
+  for(var i=0;i<=m.tickCount;i++){var x=xAt(m,i),labelled=i%m.labelEvery===0,half=labelled?21:13;svg.appendChild(el("line",{x1:x,y1:Y-half,x2:x,y2:Y+half,stroke:"#17212b","stroke-width":labelled?3.5:2.5,"stroke-linecap":"round"}));if(labelled){var t=el("text",{x:x,y:Y+101,"text-anchor":"middle","font-size":23,"font-weight":700,"font-family":"Arial, Helvetica, sans-serif",fill:"#17212b"});t.textContent=num((m.startIndex+i)*m.graduation);svg.appendChild(t)}}
+  var shown=type==="read"||(type==="place"&&m.types.indexOf("read")>=0)?m.readPoints:[];shown.forEach(function(p){svg.appendChild(marker(m,p,"shown"))})
+}
+function current(){return missions[mi]}function type(){return current().types[si]}
+function setFeedback(kind,html){feedback.className="feedback show "+kind;feedback.innerHTML=html}
+function clearFeedback(){feedback.className="feedback";feedback.textContent=""}
+function updateScore(){scoreBox.textContent="Score : "+scoreText(score)+" / "+TOTAL}
+function heading(m){stepLabel.textContent="Étape "+(si+1)+" / "+m.types.length;dots.replaceChildren();m.types.forEach(function(_,i){var d=document.createElement("span");d.className="dot "+(i<si?"done":i===si?"now":"");dots.appendChild(d)})}
+function addInput(labelText,expected,id){var wrap=document.createElement("div"),label=document.createElement("label"),input=document.createElement("input");wrap.className="field";label.htmlFor=id;label.textContent=labelText;input.id=id;input.type="text";input.inputMode="decimal";input.placeholder="Ex. 0,5";input.maxLength=12;input.dataset.expected=expected;input.setAttribute("aria-label",labelText);wrap.append(label,input);fields.appendChild(wrap)}
+function prepare(m,t){fields.replaceChildren();if(t==="graduation")addInput("Valeur d’une graduation",m.graduation,"graduationAnswer");else if(t==="read")m.readPoints.forEach(function(p){addInput("Abscisse de "+p.letter,p.value,"answer-"+p.letter)})}
+function instructionText(m,t){if(t==="graduation")return "Détermine la <strong>valeur d’une graduation</strong>.";if(t==="read")return m.readPoints.length===1?"Donne l’abscisse du point <strong>"+m.readPoints[0].letter+"</strong>.":"Donne les abscisses des points <strong>"+m.readPoints.map(function(p){return p.letter}).join(" et ")+"</strong>.";return "Place le point <strong>"+m.placePoint.letter+"</strong> d’abscisse <strong>"+num(m.placePoint.value)+"</strong>."}
+function placementButtons(has){modify.hidden=!has;validate.hidden=!has;svg.classList.toggle("placing",!has&&!locked);svg.classList.toggle("locked",has||locked)}
+function render(){
+  var m=current(),t=type();mistakes=0;locked=false;provisional=null;app.dataset.missionSignature=lastSignature;app.dataset.missionIndex=mi;app.dataset.stepIndex=si;app.dataset.stepType=t;counter.textContent="Mission "+(mi+1)+" / "+TOTAL;bar.style.width=(mi/TOTAL*100)+"%";updateScore();heading(m);instruction.innerHTML=instructionText(m,t);stage.style.animation="none";void stage.offsetWidth;stage.style.animation="";draw(m,t);prepare(m,t);clearFeedback();nextBtn.hidden=true;help.hidden=t!=="place";
+  if(t==="place")placementButtons(false);else{modify.hidden=true;validate.hidden=false;svg.classList.remove("placing","locked");var first=fields.querySelector("input");if(first)first.focus()}
+}
+function parse(raw){var text=raw.trim().replace(/\s+/g,"").replace(",",".");if(!text||text.indexOf("/")>=0||!RegExp("^[+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)$").test(text))return null;var value=Number(text);return Number.isFinite(value)?value:null}
+function isCorrect(given,expected){return given!==null&&Math.abs(given-expected)<1e-9}
+function graduationExplanation(m){var intervals=m.labelEvery,first=clean(m.startIndex*m.graduation),second=clean((m.startIndex+intervals)*m.graduation),difference=clean(second-first);return "Entre "+num(first)+" et "+num(second)+", il y a "+intervals+" intervalles. Donc "+num(difference)+" ÷ "+intervals+" = <strong>"+num(m.graduation)+"</strong>."}
+function pointExplanation(m,p,verb){var previous=Math.floor(p.position/m.labelEvery)*m.labelEvery,previousValue=clean((m.startIndex+previous)*m.graduation),intervals=p.position-previous;if(intervals===0)return "<strong>"+p.letter+"("+num(p.value)+")</strong> est sur une graduation déjà chiffrée.";return "On part de "+num(previousValue)+" et on avance de "+intervals+" graduation"+(intervals>1?"s":"")+" de "+num(m.graduation)+" pour "+verb+" <strong>"+p.letter+"("+num(p.value)+")</strong>."}
+function explanation(m,t){if(t==="graduation")return graduationExplanation(m);if(t==="read")return m.readPoints.map(function(p){return pointExplanation(m,p,"lire")}).join(" ");return pointExplanation(m,m.placePoint,"placer")}
+function downgrade(){missionValue=Math.min(missionValue,mistakes===1?.5:0)}
+function finish(success){
+  locked=true;var m=current(),t=type();if(t==="place"){svg.querySelectorAll(".provisional-marker").forEach(function(n){n.remove()});svg.appendChild(marker(m,m.placePoint,success?"correct":"correction"));svg.classList.remove("placing");svg.classList.add("locked")}fields.querySelectorAll("input").forEach(function(input){input.disabled=true});modify.hidden=true;validate.hidden=true;nextBtn.hidden=false;nextBtn.textContent=si<m.types.length-1?"Étape suivante":"Mission suivante";help.hidden=true;setFeedback(success?"success":"error",(success?"Bravo ! ":"Correction : ")+explanation(m,t));nextBtn.focus()
+}
+function wrong(){
+  mistakes++;downgrade();if(mistakes===1){if(type()==="place"){provisional=null;svg.dataset.snappedPosition="";svg.querySelectorAll(".provisional-marker").forEach(function(n){n.remove()});placementButtons(false)}setFeedback("hint","Il te reste un essai. Repère deux nombres connus, trouve la valeur d’une graduation, puis compte les intervalles.")}else{if(type()!=="place")fields.querySelectorAll("input").forEach(function(input){input.value=num(Number(input.dataset.expected));input.classList.remove("bad");input.classList.add("good")});finish(false)}
+}
+function evaluate(){var inputs=Array.from(fields.querySelectorAll("input")),all=inputs.length>0;inputs.forEach(function(input){var ok=isCorrect(parse(input.value),Number(input.dataset.expected));input.classList.toggle("good",ok);input.classList.toggle("bad",!ok);all=all&&ok});if(all)finish(true);else wrong()}
+function nearest(event){var m=current(),rect=svg.getBoundingClientRect(),svgX=(event.clientX-rect.left)*W/rect.width;return Math.max(0,Math.min(m.tickCount,Math.round((svgX-LEFT)/spacing(m))))}
+function drawProvisional(position){svg.querySelectorAll(".provisional-marker").forEach(function(n){n.remove()});var p=marker(current(),current().placePoint,"provisional",position);p.classList.add("provisional-marker");svg.appendChild(p)}
+function clickLine(event){if(type()!=="place"||locked||provisional!==null)return;provisional=nearest(event);svg.dataset.snappedPosition=provisional;drawProvisional(provisional);clearFeedback();placementButtons(true);validate.focus()}
+function modifyPlacement(){if(locked||provisional===null)return;provisional=null;svg.dataset.snappedPosition="";svg.querySelectorAll(".provisional-marker").forEach(function(n){n.remove()});placementButtons(false);clearFeedback()}
+function submit(event){event.preventDefault();if(locked)return;if(type()==="place"){if(provisional===null)return;if(provisional===current().placePoint.position)finish(true);else wrong()}else evaluate()}
+function next(){
+  var m=current();if(!locked)return;if(si<m.types.length-1){si++;render();return}score=clean(score+missionValue);updateScore();bar.style.width=((mi+1)/TOTAL*100)+"%";if(mi<TOTAL-1){mi++;si=0;missionValue=1;render()}else showFinal()
+}
+function result(v){if(v>=9)return{icon:"🏅",text:"Maître des demi-droites graduées"};if(v>=7)return{icon:"🥈",text:"Très bon repéreur"};if(v>=5)return{icon:"🥉",text:"En bonne voie !"};return{icon:"🔄",text:"Encore un entraînement et ce sera parfait !"}}
+function showFinal(){exercise.style.display="none";final.classList.add("show");counter.textContent="Bilan";bar.style.width="100%";updateScore();var r=result(score);finalIcon.textContent=r.icon;finalScore.textContent="Score final : "+scoreText(score)+" / "+TOTAL;badge.textContent=r.text}
+function restart(){missions=build();mi=0;si=0;mistakes=0;missionValue=1;score=0;locked=false;provisional=null;final.classList.remove("show");exercise.style.display="";render()}
+svg.addEventListener("click",clickLine);modify.addEventListener("click",modifyPlacement);form.addEventListener("submit",submit);nextBtn.addEventListener("click",next);restartBtn.addEventListener("click",restart);restart()
+})();
+</script>
+</body>
+</html>
