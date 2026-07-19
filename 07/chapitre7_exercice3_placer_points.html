@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root {
+      --blue: #1769aa;
+      --blue-dark: #0d4778;
+      --blue-soft: #eaf4fc;
+      --green: #20864b;
+      --green-soft: #e9f7ef;
+      --red: #c63d3d;
+      --red-soft: #fff0f0;
+      --ink: #17212b;
+      --muted: #5f6d79;
+      --card: rgba(255, 255, 255, 0.96);
+      --shadow: 0 14px 35px rgba(17, 63, 103, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+    .app {
+      width: min(100%, 980px);
+      aspect-ratio: 16 / 9;
+      min-height: 480px;
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border: 1px solid rgba(23, 105, 170, 0.14);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px 12px;
+    }
+
+    .progress-track {
+      height: 12px;
+      overflow: hidden;
+      background: #dceaf5;
+      border-radius: 999px;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #4f9ed8);
+      border-radius: inherit;
+      transition: width 260ms ease;
+    }
+
+    .counter,
+    .score {
+      min-width: 116px;
+      padding: 9px 14px;
+      color: var(--blue-dark);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      background: var(--blue-soft);
+      border-radius: 999px;
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      padding: 6px 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .instruction {
+      min-height: 58px;
+      margin: 0;
+      font-size: clamp(1rem, 2.1vw, 1.3rem);
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .instruction strong { color: var(--blue-dark); }
+
+    .figure-card {
+      position: relative;
+      flex: 1;
+      min-height: 190px;
+      padding: 10px 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #ffffff, #f8fbfe);
+      border: 1px solid #dce9f3;
+      border-radius: 18px;
+    }
+
+    #numberLine {
+      width: 100%;
+      height: 100%;
+      min-height: 180px;
+      overflow: visible;
+      cursor: crosshair;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    #numberLine.waiting { cursor: pointer; }
+    #numberLine.locked { cursor: default; }
+
+    .placement-help {
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      transform: translateX(-50%);
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .actions {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .point-counter {
+      min-width: 100px;
+      padding: 7px 12px;
+      color: var(--blue-dark);
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-align: center;
+      background: var(--blue-soft);
+      border-radius: 999px;
+    }
+
+    button {
+      min-height: 50px;
+      padding: 0 22px;
+      font-size: 1.02rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+      border-radius: 13px;
+      touch-action: manipulation;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+
+    button:hover { filter: brightness(1.04); }
+    button:active { transform: scale(0.98); }
+    button:focus-visible { outline: 4px solid rgba(23, 105, 170, 0.22); }
+    button[hidden] { display: none; }
+
+    .primary { color: white; background: var(--blue); }
+    .secondary { color: var(--blue-dark); background: var(--blue-soft); }
+
+    .feedback {
+      min-height: 56px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      line-height: 1.35;
+      text-align: center;
+      border-radius: 14px;
+    }
+
+    .feedback.show { display: flex; }
+    .feedback.success {
+      color: #165e36;
+      background: var(--green-soft);
+      border: 1px solid #a9ddbd;
+    }
+    .feedback.error {
+      color: #8f2727;
+      background: var(--red-soft);
+      border: 1px solid #efbcbc;
+    }
+
+    .point-marker {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: point-pop 180ms ease-out;
+    }
+
+    @keyframes point-pop {
+      from { opacity: 0; transform: scale(0.55); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .final {
+      flex: 1;
+      padding: 22px;
+      display: none;
+      place-items: center;
+      text-align: center;
+    }
+
+    .final.show { display: grid; }
+
+    .final-card {
+      width: min(620px, 100%);
+      padding: 28px;
+      background: white;
+      border: 1px solid #dce9f3;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(17, 63, 103, 0.1);
+    }
+
+    .final-icon { margin-bottom: 8px; font-size: 3rem; }
+    .final h2 {
+      margin: 0 0 10px;
+      color: var(--blue-dark);
+      font-size: clamp(1.55rem, 3vw, 2rem);
+    }
+    .final p {
+      margin: 8px 0 20px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 700px), (max-height: 620px) {
+      body { padding: 6px; }
+      .app {
+        min-height: 0;
+        max-height: calc(100vh - 12px);
+        border-radius: 16px;
+      }
+      .topbar {
+        grid-template-columns: 1fr auto;
+        padding: 11px 14px 7px;
+      }
+      .progress-track { grid-column: 1 / -1; }
+      .counter, .score { min-width: 0; padding: 7px 11px; }
+      .main { padding: 3px 14px 11px; gap: 8px; }
+      .instruction { min-height: 48px; }
+      .figure-card { min-height: 145px; padding: 5px 8px; }
+      #numberLine { min-height: 135px; }
+      .actions, button { min-height: 45px; }
+      button { height: 45px; }
+      .feedback { min-height: 48px; padding: 7px 10px; }
+      .placement-help { bottom: 3px; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <header class="topbar">
+      <div class="progress-track" aria-label="Progression">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="counter" id="counter">Question 1 / 10</div>
+      <div class="score" id="scoreDisplay">Score : 0 / 10</div>
+    </header>
+
+    <section class="main" id="exercise">
+      <p class="instruction" id="instruction"></p>
+
+      <div class="figure-card">
+        <svg id="numberLine" role="img" aria-label="Demi-droite graduée interactive"></svg>
+        <p class="placement-help" id="placementHelp">Clique près de la graduation choisie.</p>
+      </div>
+
+      <div class="actions">
+        <span class="point-counter" id="pointCounter"></span>
+        <button class="secondary" type="button" id="modifyBtn" hidden>Modifier</button>
+        <button class="primary" type="button" id="validateBtn" hidden>Valider</button>
+        <button class="secondary" type="button" id="nextBtn" hidden>Suivant</button>
+      </div>
+
+      <div class="feedback" id="feedback" role="status"></div>
+    </section>
+
+    <section class="final" id="final">
+      <div class="final-card">
+        <div class="final-icon" aria-hidden="true">🎉</div>
+        <h2>Exercice terminé !</h2>
+        <p id="finalMessage"></p>
+        <button class="primary" type="button" id="restartBtn">Recommencer avec de nouvelles questions</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 10;
+      const DECIMAL_STEPS = [0.1, 0.2, 0.25, 0.5];
+      const INTEGER_STEPS = [1, 2, 5];
+      const LETTERS = ["L", "M", "N", "P", "R", "S", "T"];
+      const SVG_WIDTH = 900;
+      const AXIS_Y = 124;
+      const AXIS_LEFT = 58;
+      const AXIS_RIGHT = 842;
+
+      const svg = document.getElementById("numberLine");
+      const counter = document.getElementById("counter");
+      const progressFill = document.getElementById("progressFill");
+      const scoreDisplay = document.getElementById("scoreDisplay");
+      const instruction = document.getElementById("instruction");
+      const pointCounter = document.getElementById("pointCounter");
+      const placementHelp = document.getElementById("placementHelp");
+      const modifyBtn = document.getElementById("modifyBtn");
+      const validateBtn = document.getElementById("validateBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const feedback = document.getElementById("feedback");
+      const exercise = document.getElementById("exercise");
+      const final = document.getElementById("final");
+      const finalMessage = document.getElementById("finalMessage");
+      const restartBtn = document.getElementById("restartBtn");
+
+      let questions = [];
+      let currentIndex = 0;
+      let currentMistakes = 0;
+      let score = 0;
+      let locked = false;
+      let placements = new Map();
+      let pendingTargetIndexes = [];
+      let pendingCursor = 0;
+      let provisionalPosition = null;
+      let lastGameSignature = "";
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function randomChoice(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      function randomInteger(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+      }
+
+      function cleanNumber(value) {
+        return Math.round(value * 100000000) / 100000000;
+      }
+
+      function formatNumber(value) {
+        return String(cleanNumber(value)).replace(".", ",");
+      }
+
+      function formatScore(value) {
+        return Number.isInteger(value) ? String(value) : String(value).replace(".", ",");
+      }
+
+      function chooseSeparatedPositions(count, tickCount, labelEvery, minimumGap) {
+        const all = Array.from({ length: tickCount - 1 }, (_, index) => index + 1);
+        const preferred = all.filter(position => position % labelEvery !== 0);
+
+        for (const candidates of [preferred, all]) {
+          for (let attempt = 0; attempt < 250; attempt++) {
+            if (candidates.length < count) break;
+            const chosen = shuffle(candidates).slice(0, count).sort((a, b) => a - b);
+            if (chosen.every((position, index) => index === 0 || position - chosen[index - 1] >= minimumGap)) {
+              return chosen;
+            }
+          }
+        }
+
+        return Array.from({ length: count }, (_, index) => 1 + index * minimumGap);
+      }
+
+      function chooseClosePositions(count, tickCount, labelEvery) {
+        const possiblePairs = [];
+        for (const gap of shuffle([1, 2])) {
+          for (let first = 1; first + gap < tickCount; first++) {
+            possiblePairs.push([first, first + gap]);
+          }
+        }
+        const bestUnlabelledCount = Math.max(...possiblePairs.map(pair => (
+          pair.filter(position => position % labelEvery !== 0).length
+        )));
+        const bestPairs = possiblePairs.filter(pair => (
+          pair.filter(position => position % labelEvery !== 0).length === bestUnlabelledCount
+        ));
+        const chosen = [...randomChoice(bestPairs)];
+        const remaining = Array.from({ length: tickCount - 1 }, (_, index) => index + 1)
+          .filter(position => !chosen.includes(position))
+          .sort((a, b) => {
+            const aLabelled = a % labelEvery === 0 ? 1 : 0;
+            const bLabelled = b % labelEvery === 0 ? 1 : 0;
+            return aLabelled - bLabelled || Math.random() - 0.5;
+          });
+        chosen.push(...remaining.slice(0, count - chosen.length));
+        return chosen.sort((a, b) => a - b);
+      }
+
+      function createQuestion(index, step) {
+        const level = index < 3 ? 1 : index < 7 ? 2 : 3;
+        const tickCount = randomChoice([10, 12, 14]);
+        const labelEvery = randomChoice([2, 3, 4]);
+        const showZero = Math.random() < 0.5;
+        const startIndex = showZero ? 0 : randomInteger(2, 8);
+        const targetCount = level === 1 ? 1 : level === 2 ? 2 : randomChoice([2, 3]);
+        const positions = level === 3
+          ? chooseClosePositions(targetCount, tickCount, labelEvery)
+          : chooseSeparatedPositions(targetCount, tickCount, labelEvery, level === 1 ? 3 : 2);
+        const letters = shuffle(LETTERS).slice(0, targetCount);
+        const targets = positions.map((position, targetIndex) => ({
+          letter: letters[targetIndex],
+          position,
+          value: cleanNumber((startIndex + position) * step),
+          side: targetIndex % 2 === 0 ? "above" : "below"
+        }));
+
+        return {
+          level,
+          step,
+          tickCount,
+          labelEvery,
+          startIndex,
+          showZero,
+          targets
+        };
+      }
+
+      function buildQuestions() {
+        let generatedQuestions;
+        let signature;
+        do {
+          const stepPool = shuffle([
+            ...DECIMAL_STEPS,
+            randomChoice(DECIMAL_STEPS),
+            randomChoice(DECIMAL_STEPS),
+            randomChoice(DECIMAL_STEPS),
+            randomChoice(DECIMAL_STEPS),
+            randomChoice(INTEGER_STEPS),
+            randomChoice(INTEGER_STEPS)
+          ]);
+          generatedQuestions = stepPool.map((step, index) => createQuestion(index, step));
+          signature = JSON.stringify(generatedQuestions);
+        } while (signature === lastGameSignature);
+        lastGameSignature = signature;
+        return generatedQuestions;
+      }
+
+      function svgElement(name, attributes = {}) {
+        const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+        return element;
+      }
+
+      function tickSpacing(question) {
+        return (AXIS_RIGHT - AXIS_LEFT) / (question.tickCount + 0.7);
+      }
+
+      function xForPosition(question, position) {
+        return AXIS_LEFT + position * tickSpacing(question);
+      }
+
+      function drawBase(question) {
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", `0 0 ${SVG_WIDTH} 260`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.dataset.targetPositions = question.targets.map(target => target.position).join(",");
+        svg.dataset.tickCount = String(question.tickCount);
+        svg.dataset.currentTargetPosition = "";
+        svg.dataset.snappedPosition = "";
+
+        const defs = svgElement("defs");
+        const marker = svgElement("marker", {
+          id: "arrow",
+          markerWidth: "10",
+          markerHeight: "10",
+          refX: "8",
+          refY: "3",
+          orient: "auto",
+          markerUnits: "strokeWidth"
+        });
+        marker.appendChild(svgElement("path", { d: "M0,0 L0,6 L9,3 z", fill: "#17212b" }));
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        svg.appendChild(svgElement("line", {
+          x1: AXIS_LEFT,
+          y1: AXIS_Y,
+          x2: AXIS_RIGHT,
+          y2: AXIS_Y,
+          stroke: "#17212b",
+          "stroke-width": "4",
+          "stroke-linecap": "round",
+          "marker-end": "url(#arrow)"
+        }));
+
+        for (let i = 0; i <= question.tickCount; i++) {
+          const x = xForPosition(question, i);
+          const labelled = i % question.labelEvery === 0;
+          const halfHeight = labelled ? 21 : 13;
+          svg.appendChild(svgElement("line", {
+            x1: x,
+            y1: AXIS_Y - halfHeight,
+            x2: x,
+            y2: AXIS_Y + halfHeight,
+            stroke: "#17212b",
+            "stroke-width": labelled ? "3.5" : "2.5",
+            "stroke-linecap": "round"
+          }));
+
+          if (labelled) {
+            const label = svgElement("text", {
+              x,
+              y: AXIS_Y + 102,
+              "text-anchor": "middle",
+              "font-size": "24",
+              "font-weight": "700",
+              "font-family": "Arial, Helvetica, sans-serif",
+              fill: "#17212b"
+            });
+            label.textContent = formatNumber((question.startIndex + i) * question.step);
+            svg.appendChild(label);
+          }
+        }
+      }
+
+      function markerGroup(target, position, state) {
+        const x = xForPosition(questions[currentIndex], position);
+        const group = svgElement("g", {
+          class: "point-marker",
+          "data-letter": target.letter,
+          "data-position": position,
+          "data-state": state
+        });
+        const colors = {
+          provisional: "#1769aa",
+          placed: "#1769aa",
+          correct: "#20864b",
+          correction: "#c63d3d"
+        };
+        group.appendChild(svgElement("circle", {
+          cx: x,
+          cy: AXIS_Y,
+          r: "8",
+          fill: colors[state],
+          stroke: "#ffffff",
+          "stroke-width": "2.5"
+        }));
+        const letter = svgElement("text", {
+          x,
+          y: target.side === "above" ? AXIS_Y - 18 : AXIS_Y + 38,
+          "text-anchor": "middle",
+          "font-size": "25",
+          "font-weight": "700",
+          "font-family": "Arial, Helvetica, sans-serif",
+          fill: state === "correction" ? "#8f2727" : "#0d4778"
+        });
+        letter.textContent = target.letter;
+        group.appendChild(letter);
+        return group;
+      }
+
+      function redrawMarkers(finalState = null) {
+        svg.querySelectorAll(".point-marker").forEach(marker => marker.remove());
+        const question = questions[currentIndex];
+        for (const [targetIndex, position] of placements) {
+          const state = finalState || "placed";
+          svg.appendChild(markerGroup(question.targets[targetIndex], position, state));
+        }
+        if (provisionalPosition !== null && !finalState) {
+          const targetIndex = pendingTargetIndexes[pendingCursor];
+          svg.appendChild(markerGroup(question.targets[targetIndex], provisionalPosition, "provisional"));
+        }
+      }
+
+      function currentTargetIndex() {
+        return pendingTargetIndexes[pendingCursor];
+      }
+
+      function updateInstruction() {
+        const question = questions[currentIndex];
+        const targetIndex = currentTargetIndex();
+        const target = question.targets[targetIndex];
+        instruction.innerHTML = `Place le point <strong>${target.letter}</strong> d’abscisse <strong>${formatNumber(target.value)}</strong>.`;
+        pointCounter.textContent = question.targets.length === 1
+          ? "1 point"
+          : `Point ${targetIndex + 1} / ${question.targets.length}`;
+        svg.dataset.currentTargetPosition = String(target.position);
+      }
+
+      function setFeedback(type, html) {
+        feedback.className = `feedback show ${type}`;
+        feedback.innerHTML = html;
+      }
+
+      function clearFeedback() {
+        feedback.className = "feedback";
+        feedback.textContent = "";
+      }
+
+      function updateScoreDisplay() {
+        scoreDisplay.textContent = `Score : ${formatScore(score)} / ${TOTAL_QUESTIONS}`;
+      }
+
+      function setPlacementButtons(hasCandidate) {
+        modifyBtn.hidden = !hasCandidate;
+        validateBtn.hidden = !hasCandidate;
+        svg.classList.toggle("waiting", !hasCandidate && !locked);
+        svg.classList.toggle("locked", hasCandidate || locked);
+      }
+
+      function renderQuestion() {
+        const question = questions[currentIndex];
+        currentMistakes = 0;
+        locked = false;
+        placements = new Map();
+        pendingTargetIndexes = question.targets.map((_, index) => index);
+        pendingCursor = 0;
+        provisionalPosition = null;
+
+        counter.textContent = `Question ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
+        progressFill.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
+        updateScoreDisplay();
+        drawBase(question);
+        updateInstruction();
+        clearFeedback();
+        modifyBtn.hidden = true;
+        validateBtn.hidden = true;
+        nextBtn.hidden = true;
+        placementHelp.hidden = false;
+        setPlacementButtons(false);
+      }
+
+      function nearestPositionFromEvent(event) {
+        const question = questions[currentIndex];
+        const rect = svg.getBoundingClientRect();
+        const svgX = (event.clientX - rect.left) * SVG_WIDTH / rect.width;
+        const rawPosition = Math.round((svgX - AXIS_LEFT) / tickSpacing(question));
+        return Math.max(0, Math.min(question.tickCount, rawPosition));
+      }
+
+      function placeProvisional(event) {
+        if (locked || provisionalPosition !== null) return;
+        const position = nearestPositionFromEvent(event);
+        provisionalPosition = position;
+        svg.dataset.snappedPosition = String(position);
+        redrawMarkers();
+        clearFeedback();
+        setPlacementButtons(true);
+        validateBtn.focus();
+      }
+
+      function modifyPlacement() {
+        if (locked || provisionalPosition === null) return;
+        provisionalPosition = null;
+        svg.dataset.snappedPosition = "";
+        redrawMarkers();
+        setPlacementButtons(false);
+        clearFeedback();
+      }
+
+      function validatePlacement() {
+        if (locked || provisionalPosition === null) return;
+        const targetIndex = currentTargetIndex();
+        placements.set(targetIndex, provisionalPosition);
+        provisionalPosition = null;
+        svg.dataset.snappedPosition = "";
+        pendingCursor += 1;
+        redrawMarkers();
+
+        if (pendingCursor < pendingTargetIndexes.length) {
+          updateInstruction();
+          setPlacementButtons(false);
+          clearFeedback();
+          return;
+        }
+        evaluateAttempt();
+      }
+
+      function correctionText(question) {
+        const answers = question.targets.map(target => (
+          `<strong>${target.letter}(${formatNumber(target.value)})</strong>`
+        )).join(", ");
+        const target = question.targets[0];
+        const previousLabelIndex = Math.floor(target.position / question.labelEvery) * question.labelEvery;
+        const previousLabelValue = cleanNumber((question.startIndex + previousLabelIndex) * question.step);
+        const intervals = target.position - previousLabelIndex;
+        const explanation = intervals === 0
+          ? `${target.letter} se place sur la graduation ${formatNumber(target.value)}.`
+          : `Pour ${target.letter}, on part de ${formatNumber(previousLabelValue)} et on avance de ${intervals} graduation${intervals > 1 ? "s" : ""} de ${formatNumber(question.step)}.`;
+        return `Correction : ${answers}. ${explanation}`;
+      }
+
+      function evaluateAttempt() {
+        const question = questions[currentIndex];
+        const wrongIndexes = question.targets
+          .map((target, index) => placements.get(index) === target.position ? null : index)
+          .filter(index => index !== null);
+
+        if (wrongIndexes.length === 0) {
+          locked = true;
+          score += currentMistakes === 0 ? 1 : 0.5;
+          updateScoreDisplay();
+          redrawMarkers("correct");
+          progressFill.style.width = `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+          setFeedback("success", `Bravo ! ${correctionText(question)}`);
+          finishQuestion();
+          return;
+        }
+
+        currentMistakes += 1;
+        if (currentMistakes === 1) {
+          for (const targetIndex of wrongIndexes) placements.delete(targetIndex);
+          pendingTargetIndexes = wrongIndexes;
+          pendingCursor = 0;
+          provisionalPosition = null;
+          redrawMarkers();
+          updateInstruction();
+          setPlacementButtons(false);
+          setFeedback("error", "Certains points sont à revoir. Les points bien placés sont conservés. Il te reste un essai : trouve d’abord la valeur d’une graduation, puis compte les intervalles.");
+        } else {
+          locked = true;
+          placements = new Map(question.targets.map((target, index) => [index, target.position]));
+          redrawMarkers("correction");
+          progressFill.style.width = `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+          setFeedback("error", correctionText(question));
+          finishQuestion();
+        }
+      }
+
+      function finishQuestion() {
+        modifyBtn.hidden = true;
+        validateBtn.hidden = true;
+        nextBtn.hidden = false;
+        placementHelp.hidden = true;
+        pointCounter.textContent = "Placement terminé";
+        svg.classList.add("locked");
+        nextBtn.focus();
+      }
+
+      function nextQuestion() {
+        if (currentIndex < TOTAL_QUESTIONS - 1) {
+          currentIndex += 1;
+          renderQuestion();
+        } else {
+          showFinal();
+        }
+      }
+
+      function showFinal() {
+        exercise.style.display = "none";
+        final.classList.add("show");
+        counter.textContent = "Bilan";
+        progressFill.style.width = "100%";
+        updateScoreDisplay();
+
+        let message;
+        if (score === TOTAL_QUESTIONS) {
+          message = "Excellent : tous les points ont été placés sans erreur.";
+        } else if (score >= 7) {
+          message = "Très bon travail : tu sais placer des abscisses sur une demi-droite graduée.";
+        } else {
+          message = "Tu as terminé l’exercice. Recommence pour t’entraîner à trouver la valeur d’une graduation puis à compter les intervalles.";
+        }
+        finalMessage.textContent = `${message} Ton score est de ${formatScore(score)} sur ${TOTAL_QUESTIONS}.`;
+      }
+
+      function restart() {
+        questions = buildQuestions();
+        currentIndex = 0;
+        currentMistakes = 0;
+        score = 0;
+        locked = false;
+        final.classList.remove("show");
+        exercise.style.display = "";
+        renderQuestion();
+      }
+
+      svg.addEventListener("click", placeProvisional);
+      modifyBtn.addEventListener("click", modifyPlacement);
+      validateBtn.addEventListener("click", validatePlacement);
+      nextBtn.addEventListener("click", nextQuestion);
+      restartBtn.addEventListener("click", restart);
+
+      restart();
+    })();
+  </script>
+</body>
+</html>
