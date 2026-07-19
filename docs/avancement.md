@@ -40,6 +40,7 @@ Chapitre terminé.
 
 - [x] Exercice 1 — Déterminer la valeur d'une graduation
 - [x] Exercice 2 — Repérer des points d'abscisses décimales
+- [x] Exercice 3 — Placer des points d'abscisses données
 
 ## Prochaine étape
 
