@@ -3,6 +3,7 @@
 ## 2026-07-19
 
 - Ajout de l'exercice 2 du chapitre 7 sur la lecture des abscisses décimales de points placés sur une demi-droite graduée.
+- Renforcement de l'exercice avec huit questions décimales sur dix et sélection prioritaire de points dont l'abscisse n'est pas directement affichée.
 
 ## GeoLib 1.3
 - Ajout d'une règle manipulable et verrouillable.
