@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19
+
+- Ajout de l'exercice 2 du chapitre 7 sur la lecture des abscisses décimales de points placés sur une demi-droite graduée.
+
 ## GeoLib 1.3
 - Ajout d'une règle manipulable et verrouillable.
 - Liaison contrôlée entre la règle et l'équerre.

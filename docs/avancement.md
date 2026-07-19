@@ -36,6 +36,11 @@ Chapitre terminé.
 - [x] Exercice 1 — Reconnaître des droites parallèles
 - [x] Exercice 2 — Tracer une parallèle passant par un point avec GeoLib 1.3
 
+## Chapitre 7 — Demi-droites graduées
+
+- [x] Exercice 1 — Déterminer la valeur d'une graduation
+- [x] Exercice 2 — Repérer des points d'abscisses décimales
+
 ## Prochaine étape
 
 Choisir le prochain chapitre et analyser sa trace écrite avant de concevoir les activités.

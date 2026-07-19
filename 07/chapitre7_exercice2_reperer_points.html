@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root {
+      --blue: #1769aa;
+      --blue-dark: #0d4778;
+      --blue-soft: #eaf4fc;
+      --green: #20864b;
+      --green-soft: #e9f7ef;
+      --red: #c63d3d;
+      --red-soft: #fff0f0;
+      --ink: #17212b;
+      --muted: #5f6d79;
+      --card: rgba(255, 255, 255, 0.96);
+      --shadow: 0 14px 35px rgba(17, 63, 103, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+    .app {
+      width: min(100%, 980px);
+      aspect-ratio: 16 / 9;
+      min-height: 480px;
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border: 1px solid rgba(23, 105, 170, 0.14);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px 12px;
+    }
+
+    .progress-track {
+      height: 12px;
+      overflow: hidden;
+      background: #dceaf5;
+      border-radius: 999px;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #4f9ed8);
+      border-radius: inherit;
+      transition: width 260ms ease;
+    }
+
+    .counter,
+    .score {
+      min-width: 116px;
+      padding: 9px 14px;
+      color: var(--blue-dark);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      background: var(--blue-soft);
+      border-radius: 999px;
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      padding: 6px 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .instruction {
+      min-height: 58px;
+      margin: 0;
+      font-size: clamp(1rem, 2.1vw, 1.3rem);
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .instruction strong {
+      color: var(--blue-dark);
+      font-size: 0.92em;
+    }
+
+    .figure-card {
+      flex: 1;
+      min-height: 190px;
+      padding: 10px 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #ffffff, #f8fbfe);
+      border: 1px solid #dce9f3;
+      border-radius: 18px;
+    }
+
+    #numberLine {
+      width: 100%;
+      height: 100%;
+      min-height: 180px;
+      overflow: visible;
+    }
+
+    .answer-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .answer-fields {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .answer-wrap {
+      width: 132px;
+    }
+
+    .answer-wrap label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--blue-dark);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .answer-wrap input {
+      width: 100%;
+      height: 50px;
+      padding: 0 12px;
+      color: var(--ink);
+      font-size: 1.16rem;
+      font-weight: 700;
+      text-align: center;
+      background: white;
+      border: 2px solid #9fc5df;
+      border-radius: 13px;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .answer-wrap input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(23, 105, 170, 0.13);
+    }
+
+    .answer-wrap input.correct {
+      color: #165e36;
+      background: var(--green-soft);
+      border-color: #79c798;
+    }
+
+    .answer-wrap input.incorrect {
+      background: var(--red-soft);
+      border-color: #df8585;
+    }
+
+    button {
+      min-height: 50px;
+      padding: 0 22px;
+      font-size: 1.02rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+      border-radius: 13px;
+      touch-action: manipulation;
+      transition: transform 120ms ease, filter 120ms ease;
+    }
+
+    button:hover { filter: brightness(1.04); }
+    button:active { transform: scale(0.98); }
+    button:focus-visible { outline: 4px solid rgba(23, 105, 170, 0.22); }
+    button[hidden] { display: none; }
+
+    .primary {
+      color: white;
+      background: var(--blue);
+    }
+
+    .secondary {
+      color: var(--blue-dark);
+      background: var(--blue-soft);
+    }
+
+    .feedback {
+      min-height: 56px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      font-weight: 600;
+      line-height: 1.35;
+      text-align: center;
+      border-radius: 14px;
+    }
+
+    .feedback.show { display: flex; }
+    .feedback.success {
+      color: #165e36;
+      background: var(--green-soft);
+      border: 1px solid #a9ddbd;
+    }
+    .feedback.error {
+      color: #8f2727;
+      background: var(--red-soft);
+      border: 1px solid #efbcbc;
+    }
+
+    .final {
+      flex: 1;
+      padding: 22px;
+      display: none;
+      place-items: center;
+      text-align: center;
+    }
+
+    .final.show { display: grid; }
+
+    .final-card {
+      width: min(620px, 100%);
+      padding: 28px;
+      background: white;
+      border: 1px solid #dce9f3;
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(17, 63, 103, 0.1);
+    }
+
+    .final-icon { margin-bottom: 8px; font-size: 3rem; }
+    .final h2 {
+      margin: 0 0 10px;
+      color: var(--blue-dark);
+      font-size: clamp(1.55rem, 3vw, 2rem);
+    }
+    .final p {
+      margin: 8px 0 20px;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 700px), (max-height: 620px) {
+      body { padding: 6px; }
+      .app {
+        min-height: 0;
+        max-height: calc(100vh - 12px);
+        border-radius: 16px;
+      }
+      .topbar {
+        grid-template-columns: 1fr auto;
+        padding: 11px 14px 7px;
+      }
+      .progress-track { grid-column: 1 / -1; }
+      .counter, .score { min-width: 0; padding: 7px 11px; }
+      .main { padding: 3px 14px 11px; gap: 8px; }
+      .instruction { min-height: 48px; }
+      .figure-card { min-height: 145px; padding: 5px 8px; }
+      #numberLine { min-height: 135px; }
+      .answer-wrap { width: 112px; }
+      .answer-wrap input, button { min-height: 45px; height: 45px; }
+      .feedback { min-height: 48px; padding: 7px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <header class="topbar" id="topbar">
+      <div class="progress-track" aria-label="Progression">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="counter" id="counter">Question 1 / 10</div>
+      <div class="score" id="scoreDisplay">Score : 0 / 10</div>
+    </header>
+
+    <section class="main" id="exercise">
+      <p class="instruction" id="instruction"></p>
+
+      <div class="figure-card">
+        <svg id="numberLine" role="img" aria-label="Demi-droite graduée portant plusieurs points"></svg>
+      </div>
+
+      <form class="answer-row" id="answerForm" autocomplete="off">
+        <div class="answer-fields" id="answerFields"></div>
+        <button class="primary" type="submit" id="validateBtn">Valider</button>
+        <button class="secondary" type="button" id="nextBtn" hidden>Suivant</button>
+      </form>
+
+      <div class="feedback" id="feedback" role="status"></div>
+    </section>
+
+    <section class="final" id="final">
+      <div class="final-card">
+        <div class="final-icon" aria-hidden="true">🎉</div>
+        <h2>Exercice terminé !</h2>
+        <p id="finalMessage"></p>
+        <button class="primary" type="button" id="restartBtn">Recommencer avec de nouvelles questions</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 10;
+      const STEPS = [0.1, 0.2, 0.25, 0.5, 1, 2, 5];
+      const LETTERS = ["L", "M", "N", "P", "R", "S", "T"];
+
+      const svg = document.getElementById("numberLine");
+      const counter = document.getElementById("counter");
+      const progressFill = document.getElementById("progressFill");
+      const scoreDisplay = document.getElementById("scoreDisplay");
+      const instruction = document.getElementById("instruction");
+      const form = document.getElementById("answerForm");
+      const answerFields = document.getElementById("answerFields");
+      const validateBtn = document.getElementById("validateBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const feedback = document.getElementById("feedback");
+      const exercise = document.getElementById("exercise");
+      const final = document.getElementById("final");
+      const finalMessage = document.getElementById("finalMessage");
+      const restartBtn = document.getElementById("restartBtn");
+
+      let questions = [];
+      let currentIndex = 0;
+      let currentMistakes = 0;
+      let totalMistakes = 0;
+      let score = 0;
+      let locked = false;
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function randomChoice(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      function randomInteger(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+      }
+
+      function cleanNumber(value) {
+        return Math.round(value * 100000000) / 100000000;
+      }
+
+      function formatNumber(value) {
+        return String(cleanNumber(value)).replace(".", ",");
+      }
+
+      function formatScore(value) {
+        return Number.isInteger(value) ? String(value) : String(value).replace(".", ",");
+      }
+
+      function chooseSeparatedPositions(count, tickCount, minimumGap) {
+        const candidates = [];
+        for (let i = 1; i < tickCount; i++) candidates.push(i);
+
+        for (let attempt = 0; attempt < 200; attempt++) {
+          const chosen = shuffle(candidates).slice(0, count).sort((a, b) => a - b);
+          if (chosen.every((position, index) => index === 0 || position - chosen[index - 1] >= minimumGap)) {
+            return chosen;
+          }
+        }
+
+        return Array.from({ length: count }, (_, index) => 1 + index * minimumGap);
+      }
+
+      function chooseClosePositions(count, tickCount) {
+        const closeGap = randomChoice([1, 2]);
+        const first = randomInteger(2, tickCount - closeGap - 2);
+        const chosen = [first, first + closeGap];
+        const candidates = shuffle(Array.from({ length: tickCount - 1 }, (_, index) => index + 1));
+
+        for (const candidate of candidates) {
+          if (chosen.length >= count) break;
+          if (!chosen.includes(candidate)) chosen.push(candidate);
+        }
+        return chosen.sort((a, b) => a - b);
+      }
+
+      function createQuestion(index, step) {
+        const level = index < 3 ? 1 : index < 7 ? 2 : 3;
+        const tickCount = randomChoice([10, 12, 14]);
+        const labelEvery = randomChoice([2, 3, 4]);
+        const showZero = Math.random() < 0.5;
+        const startIndex = showZero ? 0 : randomInteger(2, 8);
+        const visibleCount = level === 1 ? randomChoice([2, 3]) : level === 2 ? randomChoice([3, 4]) : randomChoice([4, 5]);
+        const requestedCount = level === 1 ? 1 : randomChoice([2, 3]);
+        const positions = level === 3
+          ? chooseClosePositions(visibleCount, tickCount)
+          : chooseSeparatedPositions(visibleCount, tickCount, level === 1 ? 3 : 2);
+        const letters = shuffle(LETTERS).slice(0, visibleCount);
+        const points = positions.map((position, pointIndex) => ({
+          letter: letters[pointIndex],
+          position,
+          value: cleanNumber((startIndex + position) * step),
+          side: pointIndex % 2 === 0 ? "above" : "below"
+        }));
+        const requestedLetters = shuffle(points).slice(0, requestedCount).map(point => point.letter).sort();
+
+        return {
+          level,
+          step,
+          tickCount,
+          labelEvery,
+          startIndex,
+          showZero,
+          points,
+          requestedLetters
+        };
+      }
+
+      function buildQuestions() {
+        const stepPool = shuffle([
+          ...STEPS,
+          randomChoice(STEPS),
+          randomChoice(STEPS),
+          randomChoice(STEPS)
+        ]);
+        return stepPool.map((step, index) => createQuestion(index, step));
+      }
+
+      function svgElement(name, attributes = {}) {
+        const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+        return element;
+      }
+
+      function drawNumberLine(question) {
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 900 260");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        const left = 58;
+        const right = 842;
+        const axisY = 124;
+        const spacing = (right - left) / (question.tickCount + 0.7);
+        const defs = svgElement("defs");
+        const marker = svgElement("marker", {
+          id: "arrow",
+          markerWidth: "10",
+          markerHeight: "10",
+          refX: "8",
+          refY: "3",
+          orient: "auto",
+          markerUnits: "strokeWidth"
+        });
+        marker.appendChild(svgElement("path", { d: "M0,0 L0,6 L9,3 z", fill: "#17212b" }));
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        svg.appendChild(svgElement("line", {
+          x1: left,
+          y1: axisY,
+          x2: right,
+          y2: axisY,
+          stroke: "#17212b",
+          "stroke-width": "4",
+          "stroke-linecap": "round",
+          "marker-end": "url(#arrow)"
+        }));
+
+        for (let i = 0; i <= question.tickCount; i++) {
+          const x = left + i * spacing;
+          const labelled = i % question.labelEvery === 0;
+          const halfHeight = labelled ? 21 : 13;
+
+          svg.appendChild(svgElement("line", {
+            x1: x,
+            y1: axisY - halfHeight,
+            x2: x,
+            y2: axisY + halfHeight,
+            stroke: "#17212b",
+            "stroke-width": labelled ? "3.5" : "2.5",
+            "stroke-linecap": "round"
+          }));
+
+          if (labelled) {
+            const label = svgElement("text", {
+              x,
+              y: axisY + 102,
+              "text-anchor": "middle",
+              "font-size": "24",
+              "font-weight": "700",
+              "font-family": "Arial, Helvetica, sans-serif",
+              fill: "#17212b"
+            });
+            label.textContent = formatNumber((question.startIndex + i) * question.step);
+            svg.appendChild(label);
+          }
+        }
+
+        for (const point of question.points) {
+          const x = left + point.position * spacing;
+          const above = point.side === "above";
+          const crossY = above ? axisY - 29 : axisY + 29;
+          const labelY = above ? crossY - 17 : crossY + 29;
+
+          svg.appendChild(svgElement("line", {
+            x1: x,
+            y1: axisY,
+            x2: x,
+            y2: crossY,
+            stroke: "#1769aa",
+            "stroke-width": "2",
+            "stroke-dasharray": "4 4"
+          }));
+          svg.appendChild(svgElement("line", {
+            x1: x - 7,
+            y1: crossY - 7,
+            x2: x + 7,
+            y2: crossY + 7,
+            stroke: "#1769aa",
+            "stroke-width": "4",
+            "stroke-linecap": "round"
+          }));
+          svg.appendChild(svgElement("line", {
+            x1: x - 7,
+            y1: crossY + 7,
+            x2: x + 7,
+            y2: crossY - 7,
+            stroke: "#1769aa",
+            "stroke-width": "4",
+            "stroke-linecap": "round"
+          }));
+
+          const letter = svgElement("text", {
+            x,
+            y: labelY,
+            "text-anchor": "middle",
+            "font-size": "25",
+            "font-weight": "700",
+            "font-family": "Arial, Helvetica, sans-serif",
+            fill: "#0d4778"
+          });
+          letter.textContent = point.letter;
+          svg.appendChild(letter);
+        }
+      }
+
+      function pointByLetter(question, letter) {
+        return question.points.find(point => point.letter === letter);
+      }
+
+      function makeInstruction(question) {
+        const letters = question.requestedLetters;
+        let request;
+        if (letters.length === 1) {
+          request = `Quelle est l’abscisse du point ${letters[0]} ?`;
+        } else {
+          const list = letters.length === 2
+            ? `${letters[0]} et ${letters[1]}`
+            : `${letters[0]}, ${letters[1]} et ${letters[2]}`;
+          request = `Donne les abscisses des points ${list}.`;
+        }
+        instruction.innerHTML = `${request}<br><strong>Écris chaque réponse sous la forme d’un nombre décimal.</strong>`;
+      }
+
+      function makeAnswerFields(question) {
+        answerFields.replaceChildren();
+        for (const letter of question.requestedLetters) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "answer-wrap";
+          const label = document.createElement("label");
+          label.htmlFor = `answer-${letter}`;
+          label.textContent = `Point ${letter}`;
+          const input = document.createElement("input");
+          input.id = `answer-${letter}`;
+          input.name = letter;
+          input.type = "text";
+          input.inputMode = "decimal";
+          input.placeholder = "Ex. 2,5";
+          input.maxLength = 12;
+          input.dataset.letter = letter;
+          input.dataset.expected = String(pointByLetter(question, letter).value);
+          input.setAttribute("aria-label", `Abscisse du point ${letter}`);
+          wrapper.append(label, input);
+          answerFields.appendChild(wrapper);
+        }
+      }
+
+      function normalizeAnswer(raw) {
+        const text = raw.trim().replace(/\s+/g, "").replace(",", ".");
+        if (!text || text.includes("/") || !/^[+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) return null;
+        const value = Number(text);
+        return Number.isFinite(value) ? value : null;
+      }
+
+      function isCorrect(given, expected) {
+        return given !== null && Math.abs(given - expected) < 1e-9;
+      }
+
+      function setFeedback(type, html) {
+        feedback.className = `feedback show ${type}`;
+        feedback.innerHTML = html;
+      }
+
+      function clearFeedback() {
+        feedback.className = "feedback";
+        feedback.textContent = "";
+      }
+
+      function updateScoreDisplay() {
+        scoreDisplay.textContent = `Score : ${formatScore(score)} / ${TOTAL_QUESTIONS}`;
+      }
+
+      function renderQuestion() {
+        const question = questions[currentIndex];
+        locked = false;
+        currentMistakes = 0;
+        counter.textContent = `Question ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
+        progressFill.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
+        updateScoreDisplay();
+        makeInstruction(question);
+        drawNumberLine(question);
+        makeAnswerFields(question);
+        validateBtn.hidden = false;
+        nextBtn.hidden = true;
+        clearFeedback();
+        requestAnimationFrame(() => answerFields.querySelector("input")?.focus());
+      }
+
+      function correctionText(question) {
+        const answers = question.requestedLetters.map(letter => {
+          const point = pointByLetter(question, letter);
+          return `<strong>${letter}(${formatNumber(point.value)})</strong>`;
+        }).join(", ");
+        const firstLetter = question.requestedLetters[0];
+        const firstPoint = pointByLetter(question, firstLetter);
+        const previousLabelIndex = Math.floor(firstPoint.position / question.labelEvery) * question.labelEvery;
+        const previousLabelValue = cleanNumber((question.startIndex + previousLabelIndex) * question.step);
+        const intervalCount = firstPoint.position - previousLabelIndex;
+        const explanation = intervalCount === 0
+          ? `Le point ${firstLetter} est placé sur la graduation ${formatNumber(firstPoint.value)}.`
+          : `Pour ${firstLetter}, on part de ${formatNumber(previousLabelValue)} et on avance de ${intervalCount} graduation${intervalCount > 1 ? "s" : ""} de ${formatNumber(question.step)}.`;
+        return `Correction : ${answers}. ${explanation}`;
+      }
+
+      function validateAnswers(event) {
+        event.preventDefault();
+        if (locked) return;
+
+        const question = questions[currentIndex];
+        const inputs = [...answerFields.querySelectorAll("input")];
+        const activeInputs = inputs.filter(input => !input.disabled);
+        const parsed = activeInputs.map(input => ({ input, value: normalizeAnswer(input.value) }));
+
+        if (parsed.some(item => item.value === null)) {
+          setFeedback("error", "Complète chaque champ avec un <strong>nombre décimal</strong>, écrit avec une virgule ou un point. Les fractions ne sont pas acceptées.");
+          parsed.find(item => item.value === null)?.input.focus();
+          return;
+        }
+
+        let allCorrect = true;
+        for (const item of parsed) {
+          const expected = pointByLetter(question, item.input.dataset.letter).value;
+          const correct = isCorrect(item.value, expected);
+          item.input.classList.toggle("correct", correct);
+          item.input.classList.toggle("incorrect", !correct);
+          if (correct) item.input.disabled = true;
+          else allCorrect = false;
+        }
+
+        if (allCorrect) {
+          locked = true;
+          score += currentMistakes === 0 ? 1 : 0.5;
+          updateScoreDisplay();
+          validateBtn.hidden = true;
+          nextBtn.hidden = false;
+          progressFill.style.width = `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+          setFeedback("success", `Bravo ! ${correctionText(question)}`);
+          nextBtn.focus();
+          return;
+        }
+
+        currentMistakes += 1;
+        totalMistakes += 1;
+
+        if (currentMistakes === 1) {
+          setFeedback("error", "Certaines réponses sont à revoir. Les réponses justes sont conservées. Il te reste un essai : repère deux nombres écrits pour trouver la valeur d’une graduation, puis compte les graduations.");
+          const firstIncorrect = inputs.find(input => !input.disabled);
+          if (firstIncorrect) {
+            firstIncorrect.value = "";
+            firstIncorrect.focus();
+          }
+        } else {
+          locked = true;
+          for (const input of inputs) {
+            const expected = pointByLetter(question, input.dataset.letter).value;
+            input.value = formatNumber(expected);
+            input.disabled = true;
+            input.classList.remove("incorrect");
+            input.classList.add("correct");
+          }
+          validateBtn.hidden = true;
+          nextBtn.hidden = false;
+          progressFill.style.width = `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+          setFeedback("error", correctionText(question));
+          nextBtn.focus();
+        }
+      }
+
+      function nextQuestion() {
+        if (currentIndex < TOTAL_QUESTIONS - 1) {
+          currentIndex += 1;
+          renderQuestion();
+        } else {
+          showFinal();
+        }
+      }
+
+      function showFinal() {
+        exercise.style.display = "none";
+        final.classList.add("show");
+        counter.textContent = "Bilan";
+        progressFill.style.width = "100%";
+        updateScoreDisplay();
+
+        let message;
+        if (score === TOTAL_QUESTIONS) {
+          message = "Excellent : tu as lu toutes les abscisses sans erreur.";
+        } else if (score >= 7) {
+          message = "Très bon travail : tu sais repérer des nombres décimaux sur une demi-droite graduée.";
+        } else {
+          message = "Tu as terminé l’exercice. Recommence pour t’entraîner à trouver la valeur d’une graduation puis à compter les intervalles.";
+        }
+        finalMessage.textContent = `${message} Ton score est de ${formatScore(score)} sur ${TOTAL_QUESTIONS}.`;
+      }
+
+      function restart() {
+        questions = buildQuestions();
+        currentIndex = 0;
+        currentMistakes = 0;
+        totalMistakes = 0;
+        score = 0;
+        locked = false;
+        final.classList.remove("show");
+        exercise.style.display = "";
+        renderQuestion();
+      }
+
+      form.addEventListener("submit", validateAnswers);
+      nextBtn.addEventListener("click", nextQuestion);
+      restartBtn.addEventListener("click", restart);
+
+      restart();
+    })();
+  </script>
+</body>
+</html>
