@@ -74,8 +74,8 @@ function spacing(m){return (RIGHT-LEFT)/(m.tickCount+.7)}
 function xAt(m,p){return LEFT+p*spacing(m)}
 function marker(m,p,state,position){
   position=position===undefined?p.position:position;var x=xAt(m,position),colors={shown:"#1769aa",provisional:"#1769aa",correct:"#20864b",correction:"#c63d3d"},g=el("g",{class:"point-marker","data-letter":p.letter,"data-position":position,"data-state":state});
-  g.appendChild(el("circle",{cx:x,cy:Y,r:8,fill:colors[state],stroke:"#fff","stroke-width":2.5}));
-  var text=el("text",{x:x,y:p.side==="above"?Y-20:Y+40,"text-anchor":"middle","font-size":25,"font-weight":700,"font-family":"Arial, Helvetica, sans-serif",fill:state==="correction"?"#8f2727":"#0d4778"});text.textContent=p.letter;g.appendChild(text);return g
+  g.appendChild(el("line",{x1:x,y1:Y-22,x2:x,y2:Y+22,stroke:colors[state],"stroke-width":4,"stroke-linecap":"round"}));
+  var text=el("text",{x:x,y:p.side==="above"?Y-31:Y+51,"text-anchor":"middle","font-size":25,"font-weight":700,"font-family":"Arial, Helvetica, sans-serif",fill:state==="correction"?"#8f2727":"#0d4778"});text.textContent=p.letter;g.appendChild(text);return g
 }
 function draw(m,type){
   svg.replaceChildren();svg.setAttribute("viewBox","0 0 "+W+" 250");svg.setAttribute("preserveAspectRatio","xMidYMid meet");svg.dataset.tickCount=m.tickCount;svg.dataset.graduation=m.graduation;svg.dataset.showZero=m.showZero;svg.dataset.targetPosition=m.placePoint?m.placePoint.position:"";svg.dataset.snappedPosition="";
