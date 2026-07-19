@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <style>
+    :root {
+      --blue: #1769aa;
+      --blue-dark: #0d4778;
+      --blue-soft: #eaf4fc;
+      --green: #20864b;
+      --green-soft: #e9f7ef;
+      --red: #c63d3d;
+      --red-soft: #fff0f0;
+      --ink: #17212b;
+      --muted: #5f6d79;
+      --card: rgba(255, 255, 255, 0.96);
+      --shadow: 0 14px 35px rgba(17, 63, 103, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+    .app {
+      width: min(100%, 980px);
+      aspect-ratio: 16 / 9;
+      min-height: 480px;
+      max-height: calc(100vh - 24px);
+      background: var(--card);
+      border: 1px solid rgba(23, 105, 170, 0.14);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px 12px;
+    }
+
+    .progress-track {
+      height: 12px;
+      border-radius: 999px;
+      background: #dceaf5;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), #4f9ed8);
+      transition: width 260ms ease;
+    }
+
+    .counter,
+    .score {
+      min-width: 116px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--blue-dark);
+      background: var(--blue-soft);
+      border-radius: 999px;
+      padding: 9px 14px;
+      white-space: nowrap;
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      padding: 6px 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .instruction {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(1.05rem, 2.2vw, 1.38rem);
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .instruction strong { color: var(--blue-dark); }
+
+    .figure-card {
+      flex: 1;
+      min-height: 190px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff, #f8fbfe);
+      border: 1px solid #dce9f3;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    #numberLine {
+      width: 100%;
+      height: 100%;
+      min-height: 180px;
+      overflow: visible;
+    }
+
+    .answer-row {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .answer-wrap {
+      position: relative;
+      width: min(300px, 68vw);
+    }
+
+    #answer {
+      width: 100%;
+      height: 54px;
+      border: 2px solid #9fc5df;
+      border-radius: 14px;
+      padding: 0 52px 0 18px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--ink);
+      background: white;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    #answer:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(23, 105, 170, 0.13);
+    }
+
+    .decimal-hint {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    button {
+      min-height: 54px;
+      border: 0;
+      border-radius: 14px;
+      padding: 0 24px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 120ms ease, filter 120ms ease;
+      touch-action: manipulation;
+    }
+
+    button:hover { filter: brightness(1.04); }
+    button:active { transform: scale(0.98); }
+
+    .primary {
+      color: white;
+      background: var(--blue);
+    }
+
+    .secondary {
+      color: var(--blue-dark);
+      background: var(--blue-soft);
+    }
+
+    .feedback {
+      min-height: 62px;
+      border-radius: 14px;
+      padding: 12px 16px;
+      line-height: 1.4;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .feedback.show { display: flex; }
+    .feedback.success {
+      color: #165e36;
+      background: var(--green-soft);
+      border: 1px solid #a9ddbd;
+    }
+    .feedback.error {
+      color: #8f2727;
+      background: var(--red-soft);
+      border: 1px solid #efbcbc;
+    }
+
+    .final {
+      flex: 1;
+      display: none;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .final.show { display: grid; }
+
+    .final-card {
+      width: min(620px, 100%);
+      background: white;
+      border: 1px solid #dce9f3;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 12px 30px rgba(17, 63, 103, 0.1);
+    }
+
+    .final-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .final h2 {
+      margin: 0 0 10px;
+      color: var(--blue-dark);
+      font-size: clamp(1.55rem, 3vw, 2rem);
+    }
+
+    .final p {
+      margin: 8px 0 20px;
+      line-height: 1.5;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    @media (max-width: 700px), (max-height: 620px) {
+      body { padding: 6px; }
+      .app {
+        min-height: 0;
+        max-height: calc(100vh - 12px);
+        border-radius: 16px;
+      }
+      .topbar {
+        grid-template-columns: 1fr auto;
+        padding: 12px 14px 8px;
+      }
+      .progress-track { grid-column: 1 / -1; }
+      .counter, .score { min-width: 0; }
+      .main { padding: 4px 14px 12px; gap: 10px; }
+      .figure-card { min-height: 150px; padding: 8px; }
+      #numberLine { min-height: 140px; }
+      .feedback { min-height: 50px; padding: 8px 12px; }
+      button, #answer { min-height: 48px; height: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-live="polite">
+    <header class="topbar" id="topbar">
+      <div class="progress-track" aria-label="Progression">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="counter" id="counter">Question 1 / 10</div>
+      <div class="score" id="scoreDisplay">Score : 0 / 10</div>
+    </header>
+
+    <section class="main" id="exercise">
+      <p class="instruction">
+        Quelle est la valeur d'une graduation ?<br>
+        <strong>Écris ta réponse sous la forme d'un nombre décimal.</strong>
+      </p>
+
+      <div class="figure-card">
+        <svg id="numberLine" role="img" aria-label="Demi-droite graduée"></svg>
+      </div>
+
+      <form class="answer-row" id="answerForm" autocomplete="off">
+        <div class="answer-wrap">
+          <input
+            id="answer"
+            name="answer"
+            type="text"
+            inputmode="decimal"
+            aria-label="Valeur d'une graduation"
+            placeholder="Ta réponse"
+            maxlength="12"
+          >
+          <span class="decimal-hint">ex. 0,25</span>
+        </div>
+        <button class="primary" type="submit" id="validateBtn">Valider</button>
+        <button class="secondary" type="button" id="nextBtn" hidden>Suivant</button>
+      </form>
+
+      <div class="feedback" id="feedback"></div>
+    </section>
+
+    <section class="final" id="final">
+      <div class="final-card">
+        <div class="final-icon">🎉</div>
+        <h2>Exercice terminé !</h2>
+        <p id="finalMessage"></p>
+        <button class="primary" type="button" id="restartBtn">Recommencer avec de nouvelles questions</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const TOTAL_QUESTIONS = 10;
+      const VALUES = [1, 2, 5, 0.5, 0.25, 0.2, 0.1];
+      const INTEGER_VALUES = [1, 2, 5];
+      const DECIMAL_VALUES = [0.5, 0.25, 0.2, 0.1];
+
+      const svg = document.getElementById("numberLine");
+      const counter = document.getElementById("counter");
+      const progressFill = document.getElementById("progressFill");
+      const scoreDisplay = document.getElementById("scoreDisplay");
+      const form = document.getElementById("answerForm");
+      const input = document.getElementById("answer");
+      const validateBtn = document.getElementById("validateBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const feedback = document.getElementById("feedback");
+      const exercise = document.getElementById("exercise");
+      const final = document.getElementById("final");
+      const finalMessage = document.getElementById("finalMessage");
+      const restartBtn = document.getElementById("restartBtn");
+      const topbar = document.getElementById("topbar");
+
+      let questions = [];
+      let currentIndex = 0;
+      let currentMistakes = 0;
+      let totalMistakes = 0;
+      let score = 0;
+      let locked = false;
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function randomChoice(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      function formatNumber(value) {
+        return Number.isInteger(value)
+          ? String(value)
+          : String(value).replace(".", ",");
+      }
+
+      function cleanFloat(value) {
+        return Math.round(value * 100000000) / 100000000;
+      }
+
+      function buildQuestionPool() {
+        // Garantit la présence de valeurs entières et décimales,
+        // tout en renouvelant l'ordre et les répétitions à chaque partie.
+        const pool = [
+          ...shuffle(INTEGER_VALUES),
+          ...shuffle(DECIMAL_VALUES),
+          randomChoice(VALUES),
+          randomChoice(VALUES),
+          randomChoice(VALUES)
+        ];
+        return shuffle(pool).map(step => createQuestion(step));
+      }
+
+      function createQuestion(step) {
+        let labelEvery;
+        let startLabel;
+        let intervalCount;
+        let showZero;
+
+        if (step < 1) {
+          labelEvery = Math.round(1 / step);
+          showZero = Math.random() < 0.58;
+          startLabel = showZero ? 0 : randomChoice([1, 2, 3, 4, 5, 6, 7]);
+          intervalCount = randomChoice([2, 3]);
+        } else {
+          labelEvery = randomChoice([2, 3, 4]);
+          showZero = Math.random() < 0.42;
+          startLabel = showZero ? 0 : step * randomChoice([2, 3, 4, 5]);
+          intervalCount = randomChoice([2, 3]);
+        }
+
+        const tickCount = labelEvery * intervalCount;
+        return {
+          step,
+          labelEvery,
+          startLabel: cleanFloat(startLabel),
+          tickCount
+        };
+      }
+
+      function svgElement(name, attributes = {}) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attributes)) {
+          el.setAttribute(key, value);
+        }
+        return el;
+      }
+
+      function drawNumberLine(question) {
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 900 230");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        const left = 62;
+        const right = 838;
+        const y = 112;
+        const usableWidth = right - left;
+        const spacing = usableWidth / (question.tickCount + 0.7);
+
+        const defs = svgElement("defs");
+        const marker = svgElement("marker", {
+          id: "arrow",
+          markerWidth: "10",
+          markerHeight: "10",
+          refX: "8",
+          refY: "3",
+          orient: "auto",
+          markerUnits: "strokeWidth"
+        });
+        marker.appendChild(svgElement("path", {
+          d: "M0,0 L0,6 L9,3 z",
+          fill: "#17212b"
+        }));
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        svg.appendChild(svgElement("line", {
+          x1: left,
+          y1: y,
+          x2: right,
+          y2: y,
+          stroke: "#17212b",
+          "stroke-width": "4",
+          "stroke-linecap": "round",
+          "marker-end": "url(#arrow)"
+        }));
+
+        for (let i = 0; i <= question.tickCount; i++) {
+          const x = left + i * spacing;
+          const major = i % question.labelEvery === 0;
+          const halfHeight = major ? 24 : 15;
+
+          svg.appendChild(svgElement("line", {
+            x1: x,
+            y1: y - halfHeight,
+            x2: x,
+            y2: y + halfHeight,
+            stroke: "#17212b",
+            "stroke-width": major ? "4" : "3",
+            "stroke-linecap": "round"
+          }));
+
+          if (major) {
+            const labelValue = cleanFloat(
+              question.startLabel + i * question.step
+            );
+            const text = svgElement("text", {
+              x,
+              y: y + 62,
+              "text-anchor": "middle",
+              "font-size": "27",
+              "font-weight": "700",
+              "font-family": "Arial, Helvetica, sans-serif",
+              fill: "#17212b"
+            });
+            text.textContent = formatNumber(labelValue);
+            svg.appendChild(text);
+          }
+        }
+      }
+
+      function normalizeAnswer(raw) {
+        const text = raw.trim().replace(/\s+/g, "").replace(",", ".");
+        if (!text || text.includes("/") || !/^[+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) {
+          return null;
+        }
+        const value = Number(text);
+        return Number.isFinite(value) ? value : null;
+      }
+
+      function isCorrect(given, expected) {
+        return given !== null && Math.abs(given - expected) < 1e-9;
+      }
+
+      function setFeedback(type, html) {
+        feedback.className = `feedback show ${type}`;
+        feedback.innerHTML = html;
+      }
+
+      function clearFeedback() {
+        feedback.className = "feedback";
+        feedback.textContent = "";
+      }
+
+      function formatScore(value) {
+        return Number.isInteger(value)
+          ? String(value)
+          : String(value).replace(".", ",");
+      }
+
+      function updateScoreDisplay() {
+        scoreDisplay.textContent = `Score : ${formatScore(score)} / ${TOTAL_QUESTIONS}`;
+      }
+
+      function renderQuestion() {
+        const question = questions[currentIndex];
+        locked = false;
+        currentMistakes = 0;
+
+        counter.textContent = `Question ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
+        progressFill.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
+        updateScoreDisplay();
+
+        drawNumberLine(question);
+        input.value = "";
+        input.disabled = false;
+        validateBtn.hidden = false;
+        nextBtn.hidden = true;
+        clearFeedback();
+
+        requestAnimationFrame(() => input.focus());
+      }
+
+      function validateAnswer(event) {
+        event.preventDefault();
+        if (locked) return;
+
+        const question = questions[currentIndex];
+        const answer = normalizeAnswer(input.value);
+
+        if (answer === null) {
+          setFeedback(
+            "error",
+            "Écris un <strong>nombre décimal</strong>, avec une virgule ou un point. Les fractions ne sont pas acceptées."
+          );
+          input.focus();
+          return;
+        }
+
+        if (isCorrect(answer, question.step)) {
+          locked = true;
+          if (currentMistakes === 0) {
+            score += 1;
+          } else {
+            score += 0.5;
+          }
+          updateScoreDisplay();
+          input.disabled = true;
+          validateBtn.hidden = true;
+          nextBtn.hidden = false;
+          progressFill.style.width = `${((currentIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+
+          setFeedback(
+            "success",
+            `Bravo ! Une graduation vaut bien&nbsp;<strong>${formatNumber(question.step)}</strong>.`
+          );
+          nextBtn.focus();
+          return;
+        }
+
+        currentMistakes += 1;
+        totalMistakes += 1;
+
+        if (currentMistakes === 1) {
+          setFeedback(
+            "error",
+            "Ce n'est pas la bonne réponse. Il te reste un seul essai : calcule l'écart entre deux nombres écrits puis partage-le par le nombre d'intervalles."
+          );
+          input.select();
+        } else {
+          locked = true;
+          input.disabled = true;
+          validateBtn.hidden = true;
+          nextBtn.hidden = false;
+          setFeedback(
+            "error",
+            `La bonne réponse était <strong>${formatNumber(question.step)}</strong>.`
+          );
+          nextBtn.focus();
+        }
+      }
+
+      function nextQuestion() {
+        if (currentIndex < TOTAL_QUESTIONS - 1) {
+          currentIndex += 1;
+          renderQuestion();
+        } else {
+          showFinal();
+        }
+      }
+
+      function showFinal() {
+        exercise.style.display = "none";
+        topbar.style.display = "none";
+        final.classList.add("show");
+
+        let message;
+        if (totalMistakes === 0) {
+          message = "Excellent : tu as trouvé toutes les valeurs sans erreur.";
+        } else if (totalMistakes <= 3) {
+          message = `Très bon travail : tu as terminé avec ${totalMistakes} erreur${totalMistakes > 1 ? "s" : ""} corrigée${totalMistakes > 1 ? "s" : ""}.`;
+        } else {
+          message = `Tu as terminé l'exercice. Tu as corrigé ${totalMistakes} erreur${totalMistakes > 1 ? "s" : ""} : recommence pour automatiser la méthode.`;
+        }
+        finalMessage.textContent = `${message} Score : ${score}/${TOTAL_QUESTIONS}.`;
+      }
+
+      function restart() {
+        questions = buildQuestionPool();
+        currentIndex = 0;
+        currentMistakes = 0;
+        totalMistakes = 0;
+        score = 0;
+        locked = false;
+        updateScoreDisplay();
+
+        final.classList.remove("show");
+        exercise.style.display = "";
+        topbar.style.display = "";
+        renderQuestion();
+      }
+
+      form.addEventListener("submit", validateAnswer);
+      nextBtn.addEventListener("click", nextQuestion);
+      restartBtn.addEventListener("click", restart);
+
+      restart();
+    })();
+  </script>
+</body>
+</html>
