@@ -529,35 +529,15 @@
         for (const point of question.points) {
           const x = left + point.position * spacing;
           const above = point.side === "above";
-          const crossY = above ? axisY - 29 : axisY + 29;
-          const labelY = above ? crossY - 17 : crossY + 29;
+          const labelY = above ? axisY - 18 : axisY + 35;
 
-          svg.appendChild(svgElement("line", {
-            x1: x,
-            y1: axisY,
-            x2: x,
-            y2: crossY,
-            stroke: "#1769aa",
-            "stroke-width": "2",
-            "stroke-dasharray": "4 4"
-          }));
-          svg.appendChild(svgElement("line", {
-            x1: x - 7,
-            y1: crossY - 7,
-            x2: x + 7,
-            y2: crossY + 7,
-            stroke: "#1769aa",
-            "stroke-width": "4",
-            "stroke-linecap": "round"
-          }));
-          svg.appendChild(svgElement("line", {
-            x1: x - 7,
-            y1: crossY + 7,
-            x2: x + 7,
-            y2: crossY - 7,
-            stroke: "#1769aa",
-            "stroke-width": "4",
-            "stroke-linecap": "round"
+          svg.appendChild(svgElement("circle", {
+            cx: x,
+            cy: axisY,
+            r: "7",
+            fill: "#1769aa",
+            stroke: "#ffffff",
+            "stroke-width": "2"
           }));
 
           const letter = svgElement("text", {
