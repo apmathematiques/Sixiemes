@@ -41,7 +41,8 @@ Chapitre terminé.
 - [x] Exercice 1 — Déterminer la valeur d'une graduation
 - [x] Exercice 2 — Repérer des points d'abscisses décimales
 - [x] Exercice 3 — Placer des points d'abscisses données
+- [x] Défi final — Enchaîner la valeur d'une graduation, la lecture et le placement de points
 
 ## Prochaine étape
 
-Choisir le prochain chapitre et analyser sa trace écrite avant de concevoir les activités.
+Valider manuellement le défi final du chapitre 7 dans Genially, puis choisir le prochain chapitre.
