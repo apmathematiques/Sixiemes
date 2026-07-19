@@ -529,15 +529,16 @@
         for (const point of question.points) {
           const x = left + point.position * spacing;
           const above = point.side === "above";
-          const labelY = above ? axisY - 18 : axisY + 35;
+          const labelY = above ? axisY - 32 : axisY + 49;
 
-          svg.appendChild(svgElement("circle", {
-            cx: x,
-            cy: axisY,
-            r: "7",
-            fill: "#1769aa",
-            stroke: "#ffffff",
-            "stroke-width": "2"
+          svg.appendChild(svgElement("line", {
+            x1: x,
+            y1: above ? axisY - 22 : axisY,
+            x2: x,
+            y2: above ? axisY : axisY + 22,
+            stroke: "#1769aa",
+            "stroke-width": "4",
+            "stroke-linecap": "round"
           }));
 
           const letter = svgElement("text", {
