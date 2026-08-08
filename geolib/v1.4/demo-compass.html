@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GeoLib — Compas V4</title>
+<link rel="stylesheet" href="../v1.3/geolib.css">
+<link rel="stylesheet" href="./compass.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;background:#f8fafc;color:#17212b}
+body{display:grid;place-items:center;padding:12px}
+.demo{width:min(100%,1000px);height:min(760px,96vh);display:flex;flex-direction:column;gap:10px}
+h1{margin:0;text-align:center;font-size:1.35rem}
+.subtitle{margin:0;text-align:center;color:#64748b;font-weight:600}
+#scene{flex:1;min-height:450px}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+button{border:0;border-radius:12px;min-height:43px;padding:0 16px;font-weight:800;cursor:pointer;background:#eaf4fc;color:#0d4778}
+button.primary{background:#1769aa;color:#fff}
+#info{min-height:50px;padding:8px 12px;display:flex;align-items:center;justify-content:center;text-align:center;background:#eef6ff;color:#0d4778;font-weight:700;border-radius:12px}
+</style>
+</head>
+<body>
+<main class="demo">
+  <h1>Prototype du compas GeoLib — V4</h1>
+  <p class="subtitle">Tête redressée • branches affinées et allongées</p>
+  <div id="scene"></div>
+  <div class="controls">
+    <button id="circle" class="primary">Tracer le cercle</button>
+    <button id="clear">Effacer</button>
+    <button id="opening">Afficher l’ouverture</button>
+    <button id="reset">Replacer</button>
+  </div>
+  <div id="info">Cette version corrige la tête du compas et allège les branches.</div>
+</main>
+<script src="../v1.3/geolib.js"></script>
+<script src="./compass.js"></script>
+<script>
+(()=>{
+  'use strict';
+  const scene=new GeoLib.Scene('#scene',{width:900,height:520,keyboard:false});
+  const A=scene.add(new GeoLib.Point(250,390,{name:'A'}));
+  const B=scene.add(new GeoLib.Point(570,390,{name:'B'}));
+  let compass;
+  function reset(){
+    if(compass) compass.destroy();
+    compass=scene.add(new GeoLib.Compass({
+      x:250,
+      y:390,
+      radius:265,
+      angle:-10,
+      pxPerUnit:48,
+      unitLabel:'cm',
+      minRadius:90,
+      maxRadius:320,
+      showOpening:false,
+      snapTolerance:18,
+      pencilColor:'#c50062'
+    }));
+    compass.setSnapPoints([A,B]);
+    document.getElementById('opening').textContent='Afficher l’ouverture';
+  }
+  reset();
+  document.getElementById('circle').onclick=()=>{
+    const r=compass.drawCircle();
+    document.getElementById('info').textContent=`Cercle tracé — ouverture ${r.opening.toLocaleString('fr-FR',{maximumFractionDigits:2})} cm.`;
+  };
+  document.getElementById('clear').onclick=()=>{
+    scene.clearLayer('drawings');
+    document.getElementById('info').textContent='Cercles effacés.';
+  };
+  document.getElementById('opening').onclick=e=>{
+    compass.showOpening=!compass.showOpening;
+    compass.setOpening(compass.opening());
+    e.currentTarget.textContent=compass.showOpening?'Masquer l’ouverture':'Afficher l’ouverture';
+  };
+  document.getElementById('reset').onclick=()=>{
+    reset();
+    document.getElementById('info').textContent='Compas replacé.';
+  };
+})();
+</script>
+</body>
+</html>

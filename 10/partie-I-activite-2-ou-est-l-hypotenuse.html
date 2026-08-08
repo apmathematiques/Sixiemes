@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#24364a
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.instruction{
+  min-height:52px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.18rem,2.25vw,1.55rem);font-weight:650;line-height:1.25;text-align:center
+}
+.figure{
+  position:relative;flex:1;min-height:245px;padding:8px 14px;display:grid;place-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px;overflow:hidden
+}
+svg{width:100%;height:100%;min-height:225px;overflow:visible;touch-action:manipulation}
+.side-visible{fill:none;stroke:var(--line);stroke-width:5;stroke-linecap:round;transition:stroke .14s ease,stroke-width .14s ease}
+.side-hit{fill:none;stroke:transparent;stroke-width:34;stroke-linecap:round;cursor:pointer;pointer-events:stroke}
+.side-group.selected .side-visible{stroke:var(--b);stroke-width:7}
+.side-group.correct .side-visible{stroke:var(--g);stroke-width:7}
+.side-group.wrong .side-visible{stroke:var(--r);stroke-width:7}
+.locked .side-hit{cursor:default}
+.right-mark{fill:none;stroke:var(--b);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.point-label{
+  font:700 29px Arial,Helvetica,sans-serif;fill:var(--line);
+  paint-order:stroke;stroke:#fff;stroke-width:7px;stroke-linejoin:round;pointer-events:none
+}
+.feedback{
+  min-height:56px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;
+  touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+button:focus-visible,.side-hit:focus-visible{outline:4px solid rgba(23,105,170,.22);outline-offset:4px}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.05rem}
+  .figure{min-height:170px;padding:3px 6px}svg{min-height:162px}.point-label{font-size:32px}
+  .feedback{min-height:46px;padding:7px 10px;font-size:.88rem}.controls{min-height:43px}button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction">Clique sur l'hypoténuse du triangle.</p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 900 340" role="img" aria-label="Triangle rectangle : clique sur l'hypoténuse"></svg>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">Repère l'angle droit, puis clique sur le côté opposé.</div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 10;
+  const NS = 'http://www.w3.org/2000/svg';
+  const LETTERS = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','R','S','T','U','V'];
+  const ANGLES = [0,18,35,55,75,95,115,135,155,180,205,225,245,270,290,315,335];
+
+  const $ = id => document.getElementById(id);
+  const svg = $('scene');
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let selected = null;
+  let locked = false;
+  let previousSignature = '';
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+  function sample(array,n){ return shuffle(array).slice(0,n); }
+  function toRad(deg){ return deg*Math.PI/180; }
+  function sideKey(a,b){ return [Math.min(a,b),Math.max(a,b)].join('-'); }
+  function sideText(q,a,b){ return `[${q.labels[a]}${q.labels[b]}]`; }
+  function makeSvg(tag,attrs={}){
+    const node=document.createElementNS(NS,tag);
+    Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));
+    return node;
+  }
+
+  function buildGeometry(angleDeg,mirror,legA,legB,rightIndex){
+    const angle=toRad(angleDeg);
+    const sign=mirror ? -1 : 1;
+    const raw=[
+      {x:0,y:0},
+      {x:legA,y:0},
+      {x:0,y:sign*legB}
+    ].map(p=>({
+      x:p.x*Math.cos(angle)-p.y*Math.sin(angle),
+      y:p.x*Math.sin(angle)+p.y*Math.cos(angle)
+    }));
+
+    const xs=raw.map(p=>p.x),ys=raw.map(p=>p.y);
+    const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+    const w=maxX-minX||1,h=maxY-minY||1;
+    const scale=Math.min(650/w,250/h,1.25);
+    const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    const placed=raw.map(p=>({x:450+(p.x-cx)*scale,y:170+(p.y-cy)*scale}));
+
+    const vertices=new Array(3);
+    const others=[0,1,2].filter(i=>i!==rightIndex);
+    vertices[rightIndex]=placed[0];
+    vertices[others[0]]=placed[1];
+    vertices[others[1]]=placed[2];
+    return vertices;
+  }
+
+  function generateQuestions(){
+    for(let attempt=0;attempt<100;attempt++){
+      const rightIndices=shuffle([0,0,0,0,1,1,1,2,2,2]);
+      const angleSeries=sample(ANGLES,TOTAL);
+      const result=[];
+      const usedNames=new Set();
+
+      for(let i=0;i<TOTAL;i++){
+        let labels;
+        let name;
+        do{
+          labels=sample(LETTERS,3);
+          name=labels.join('');
+        }while(usedNames.has(name));
+        usedNames.add(name);
+
+        const rightIndex=rightIndices[i];
+        const mirror=Math.random()<.5;
+        const legA=randInt(210,310);
+        const legB=randInt(155,255);
+        const vertices=buildGeometry(angleSeries[i],mirror,legA,legB,rightIndex);
+        const hypotenuse=[0,1,2].filter(i=>i!==rightIndex);
+        result.push({labels,rightIndex,vertices,hypotenuse});
+      }
+
+      const signature=result.map(q=>q.labels.join('')+q.rightIndex).join('|');
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+    return [];
+  }
+
+  function unitVector(from,to){
+    const dx=to.x-from.x,dy=to.y-from.y,len=Math.hypot(dx,dy)||1;
+    return {x:dx/len,y:dy/len};
+  }
+
+  function addSide(q,a,b){
+    const group=makeSvg('g',{
+      class:'side-group',
+      'data-side':sideKey(a,b)
+    });
+    const p=q.vertices[a],s=q.vertices[b];
+    const visible=makeSvg('line',{
+      x1:p.x,y1:p.y,x2:s.x,y2:s.y,class:'side-visible'
+    });
+    const hit=makeSvg('line',{
+      x1:p.x,y1:p.y,x2:s.x,y2:s.y,class:'side-hit',
+      tabindex:'0',role:'button',
+      'aria-label':`côté ${q.labels[a]} ${q.labels[b]}`
+    });
+    hit.addEventListener('click',()=>selectSide(a,b));
+    hit.addEventListener('keydown',event=>{
+      if(event.key==='Enter' || event.key===' '){
+        event.preventDefault();
+        selectSide(a,b);
+      }
+    });
+    group.append(visible,hit);
+    svg.appendChild(group);
+  }
+
+  function drawQuestion(q){
+    svg.innerHTML='';
+    svg.classList.remove('locked');
+
+    addSide(q,0,1);
+    addSide(q,1,2);
+    addSide(q,2,0);
+
+    const r=q.vertices[q.rightIndex];
+    const otherIndices=[0,1,2].filter(i=>i!==q.rightIndex);
+    const p=q.vertices[otherIndices[0]];
+    const s=q.vertices[otherIndices[1]];
+    const u=unitVector(r,p);
+    const v=unitVector(r,s);
+    const size=31;
+    const p1={x:r.x+u.x*size,y:r.y+u.y*size};
+    const corner={x:p1.x+v.x*size,y:p1.y+v.y*size};
+    const p2={x:r.x+v.x*size,y:r.y+v.y*size};
+    svg.appendChild(makeSvg('path',{
+      d:`M ${p1.x} ${p1.y} L ${corner.x} ${corner.y} L ${p2.x} ${p2.y}`,
+      class:'right-mark'
+    }));
+
+    const center={
+      x:q.vertices.reduce((sum,p)=>sum+p.x,0)/3,
+      y:q.vertices.reduce((sum,p)=>sum+p.y,0)/3
+    };
+    q.vertices.forEach((p,i)=>{
+      let dx=p.x-center.x,dy=p.y-center.y,len=Math.hypot(dx,dy)||1;
+      dx/=len;dy/=len;
+      const label=makeSvg('text',{
+        x:p.x+dx*31,
+        y:p.y+dy*31+9,
+        class:'point-label',
+        'text-anchor':'middle'
+      });
+      label.textContent=q.labels[i];
+      svg.appendChild(label);
+    });
+  }
+
+  function getSideGroup(a,b){
+    return svg.querySelector(`[data-side="${sideKey(a,b)}"]`);
+  }
+
+  function selectSide(a,b){
+    if(locked) return;
+    selected=[a,b];
+    svg.querySelectorAll('.side-group').forEach(g=>g.classList.remove('selected'));
+    getSideGroup(a,b).classList.add('selected');
+    validateBtn.disabled=false;
+    feedback.className='feedback';
+    feedback.textContent='Côté choisi. Valide lorsque tu es prêt.';
+  }
+
+  function render(){
+    const q=questions[index];
+    selected=null;
+    locked=false;
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+    feedback.className='feedback';
+    feedback.textContent="Repère l'angle droit, puis clique sur le côté opposé.";
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    drawQuestion(q);
+  }
+
+  function validate(){
+    if(locked || selected===null) return;
+    locked=true;
+    svg.classList.add('locked');
+    const q=questions[index];
+    const correctKey=sideKey(q.hypotenuse[0],q.hypotenuse[1]);
+    const selectedKey=sideKey(selected[0],selected[1]);
+    const correct=selectedKey===correctKey;
+
+    svg.querySelectorAll('.side-hit').forEach(hit=>hit.setAttribute('tabindex','-1'));
+    const correctGroup=getSideGroup(q.hypotenuse[0],q.hypotenuse[1]);
+    correctGroup.classList.add('correct');
+
+    if(correct){
+      score++;
+      feedback.className='feedback success';
+      feedback.textContent=`Bravo ! ${sideText(q,q.hypotenuse[0],q.hypotenuse[1])} est bien l'hypoténuse.`;
+    }else{
+      getSideGroup(selected[0],selected[1]).classList.add('wrong');
+      feedback.className='feedback error';
+      feedback.textContent=`L'hypoténuse est ${sideText(q,q.hypotenuse[0],q.hypotenuse[1])} : c'est le côté opposé à l'angle droit.`;
+    }
+
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1 ? 'Voir le résultat' : 'Question suivante';
+  }
+
+  function next(){
+    if(index<TOTAL-1){
+      index++;
+      render();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    bar.style.width='100%';
+    counter.textContent=`${TOTAL} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    finalScore.textContent=`Ton score : ${score} / ${TOTAL}`;
+
+    if(score===TOTAL){
+      finalMessage.textContent="Parfait ! Tu repères l'hypoténuse sans hésiter.";
+    }else if(score>=8){
+      finalMessage.textContent="Très bien ! Souviens-toi : l'hypoténuse est toujours opposée à l'angle droit.";
+    }else if(score>=5){
+      finalMessage.textContent="Encore un peu d'entraînement : commence toujours par repérer l'angle droit.";
+    }else{
+      finalMessage.textContent="Repère d'abord l'angle droit, puis cherche le côté qui ne touche pas ce sommet.";
+    }
+  }
+
+  function start(){
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    selected=null;
+    locked=false;
+    final.classList.remove('show');
+    exercise.style.display='flex';
+    render();
+  }
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',start);
+
+  start();
+})();
+</script>
+</body>
+</html>
