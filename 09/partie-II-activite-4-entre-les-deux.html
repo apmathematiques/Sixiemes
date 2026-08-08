@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;
+  padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;
+  white-space:nowrap;background:var(--bs);border-radius:999px
+}
+
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.35rem,2.5vw,1.7rem);font-weight:600;line-height:1.2;text-align:center
+}
+.figure{
+  flex:1;min-height:230px;padding:20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.precision{
+  padding:7px 13px;color:var(--bd);font-weight:700;background:var(--bs);border-radius:999px
+}
+.inequality{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:nowrap
+}
+.bound{
+  width:min(23vw,180px);min-width:125px;height:78px;padding:0 12px;
+  color:var(--i);font-size:clamp(1.6rem,3.6vw,2.55rem);font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums;background:#fff;border:3px solid #bfd2e1;border-radius:15px;
+  outline:none;transition:border-color .13s ease,box-shadow .13s ease,background .13s ease
+}
+.bound:focus{
+  border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.10)
+}
+.bound.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.bound.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.sign{
+  color:#526579;font-size:clamp(2.1rem,4.2vw,3.15rem);font-weight:700;line-height:1
+}
+.target{
+  min-width:150px;color:var(--bd);font-size:clamp(1.9rem,4.1vw,2.9rem);
+  font-weight:800;text-align:center;font-variant-numeric:tabular-nums
+}
+.hintline{
+  min-height:24px;margin:0;color:var(--m);font-size:.93rem;font-weight:600;text-align:center
+}
+
+.feedback{
+  min-height:54px;padding:8px 13px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap
+}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:6px}
+  .instruction{min-height:44px;font-size:1.12rem}
+  .figure{min-height:180px;padding:10px;gap:12px}
+  .precision{padding:5px 9px;font-size:.78rem}
+  .inequality{gap:7px}
+  .bound{min-width:0;width:27%;height:58px;padding:0 5px;font-size:clamp(1.15rem,5vw,1.65rem);border-width:2px}
+  .target{min-width:0;width:25%;font-size:clamp(1.25rem,5.2vw,1.75rem)}
+  .sign{font-size:clamp(1.5rem,6vw,2rem)}
+  .hintline{font-size:.75rem}
+  .feedback{min-height:46px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:41px}
+  button.action{min-height:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <div class="precision" id="precision"></div>
+
+      <div class="inequality" aria-label="Encadrement à compléter">
+        <input class="bound" id="lower" type="text" inputmode="decimal"
+               autocomplete="off" spellcheck="false" aria-label="Borne inférieure">
+        <span class="sign">&lt;</span>
+        <div class="target" id="target"></div>
+        <span class="sign">&lt;</span>
+        <input class="bound" id="upper" type="text" inputmode="decimal"
+               autocomplete="off" spellcheck="false" aria-label="Borne supérieure">
+      </div>
+
+      <p class="hintline">Tu peux écrire avec une virgule ou un point.</p>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Écris les deux bornes de l’encadrement, puis valide.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 8;
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const instruction = $('instruction');
+  const precisionBox = $('precision');
+  const targetBox = $('target');
+  const lowerInput = $('lower');
+  const upperInput = $('upper');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let attempts = 0;
+  let locked = false;
+
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function formatScore(n){
+    return Number.isInteger(n) ? String(n) : n.toFixed(1).replace('.',',');
+  }
+
+  function formatScaled(value, decimals){
+    const sign=value<0?'-':'';
+    const abs=Math.abs(value);
+    if(decimals===0) return sign+String(abs);
+
+    const scale=10**decimals;
+    const intPart=Math.floor(abs/scale);
+    const frac=String(abs%scale).padStart(decimals,'0');
+    return `${sign}${intPart},${frac}`;
+  }
+
+  function parseFrenchNumber(text){
+    const cleaned=text.trim().replace(/\s+/g,'').replace(',','.');
+    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(cleaned)) return null;
+    const n=Number(cleaned);
+    return Number.isFinite(n)?n:null;
+  }
+
+  function normalizeVisible(input){
+    const value=input.value.trim();
+    if(value.includes('.')) input.value=value.replace('.',',');
+  }
+
+  function makeQuestion(precision){
+    // precision = 0 unité, 1 dixième, 2 centième.
+    // On fabrique toujours une cible strictement entre les deux bornes.
+    const scale=10**precision;
+    const extraDigits = precision===0 ? randInt(2,3) : 3;
+    const targetScale=10**extraDigits;
+
+    let targetInt;
+    let lowerScaled;
+    let upperScaled;
+
+    for(let guard=0;guard<200;guard++){
+      const integerPart=randInt(1,19);
+
+      if(precision===0){
+        const frac=randInt(1,targetScale-1);
+        targetInt=integerPart*targetScale+frac;
+        lowerScaled=integerPart;
+        upperScaled=integerPart+1;
+      }
+
+      if(precision===1){
+        const tenth=randInt(0,9);
+        const tailMax=targetScale/10-1;
+        const tail=randInt(1,tailMax);
+        targetInt=integerPart*targetScale+tenth*(targetScale/10)+tail;
+        lowerScaled=integerPart*10+tenth;
+        upperScaled=lowerScaled+1;
+      }
+
+      if(precision===2){
+        const hundredth=randInt(0,99);
+        const tailMax=targetScale/100-1;
+        const tail=randInt(1,tailMax);
+        targetInt=integerPart*targetScale+hundredth*(targetScale/100)+tail;
+        lowerScaled=integerPart*100+hundredth;
+        upperScaled=lowerScaled+1;
+      }
+
+      // Favorise quelques franchissements intéressants (9,9 -> 10,0, 12,99 -> 13,00...)
+      if(Math.random()<0.28){
+        if(precision===1){
+          const integerPart2=randInt(2,19);
+          targetInt=integerPart2*1000+900+randInt(1,99);
+          lowerScaled=integerPart2*10+9;
+          upperScaled=lowerScaled+1;
+        }else if(precision===2){
+          const integerPart2=randInt(2,19);
+          targetInt=integerPart2*1000+990+randInt(1,9);
+          lowerScaled=integerPart2*100+99;
+          upperScaled=lowerScaled+1;
+        }
+      }
+
+      const target=targetInt/targetScale;
+      const lower=lowerScaled/scale;
+      const upper=upperScaled/scale;
+
+      if(lower<target && target<upper){
+        return {
+          precision,
+          decimals:precision,
+          target,
+          targetDisplay:formatTarget(targetInt,targetScale),
+          lower,
+          upper,
+          lowerDisplay:formatScaled(lowerScaled,precision),
+          upperDisplay:formatScaled(upperScaled,precision)
+        };
+      }
+    }
+    throw new Error('Impossible de générer une question valide.');
+  }
+
+  function formatTarget(targetInt,targetScale){
+    const digits=Math.round(Math.log10(targetScale));
+    const intPart=Math.floor(targetInt/targetScale);
+    const frac=String(targetInt%targetScale).padStart(digits,'0');
+    return `${intPart},${frac}`;
+  }
+
+  function buildQuestions(){
+    const precisions=shuffle([0,0,0,1,1,1,2,2]);
+    return precisions.map(makeQuestion);
+  }
+
+  function precisionLabel(p){
+    if(p===0) return 'à l’unité';
+    if(p===1) return 'au dixième';
+    return 'au centième';
+  }
+
+  function updateValidate(){
+    if(locked){
+      validateBtn.disabled=true;
+      return;
+    }
+    validateBtn.disabled=!(lowerInput.value.trim() && upperInput.value.trim());
+  }
+
+  function resetInputStyles(){
+    lowerInput.classList.remove('correct','wrong');
+    upperInput.classList.remove('correct','wrong');
+  }
+
+  function render(){
+    const q=questions[index];
+    attempts=0;
+    locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    instruction.textContent=`Encadre ${q.targetDisplay} ${precisionLabel(q.precision)}.`;
+    precisionBox.textContent=`Précision demandée : ${precisionLabel(q.precision)}`;
+    targetBox.textContent=q.targetDisplay;
+
+    lowerInput.value='';
+    upperInput.value='';
+    lowerInput.disabled=false;
+    upperInput.disabled=false;
+    resetInputStyles();
+
+    feedback.className='feedback';
+    feedback.textContent='Écris les deux bornes de l’encadrement, puis valide.';
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+
+    setTimeout(()=>lowerInput.focus(),0);
+  }
+
+  function evaluate(){
+    const q=questions[index];
+    const lower=parseFrenchNumber(lowerInput.value);
+    const upper=parseFrenchNumber(upperInput.value);
+
+    return {
+      lower,
+      upper,
+      lowerOK:lower!==null && Math.abs(lower-q.lower)<1e-10,
+      upperOK:upper!==null && Math.abs(upper-q.upper)<1e-10
+    };
+  }
+
+  function markInputs(result){
+    lowerInput.classList.toggle('correct',result.lowerOK);
+    lowerInput.classList.toggle('wrong',!result.lowerOK);
+    upperInput.classList.toggle('correct',result.upperOK);
+    upperInput.classList.toggle('wrong',!result.upperOK);
+  }
+
+  function correctionText(q){
+    const unit = q.precision===0 ? 'deux entiers consécutifs'
+      : q.precision===1 ? 'deux dixièmes consécutifs'
+      : 'deux centièmes consécutifs';
+    return `${q.lowerDisplay} < ${q.targetDisplay} < ${q.upperDisplay}. Il faut chercher ${unit} qui entourent le nombre.`;
+  }
+
+  function showCorrection(){
+    const q=questions[index];
+    locked=true;
+
+    lowerInput.value=q.lowerDisplay;
+    upperInput.value=q.upperDisplay;
+    lowerInput.disabled=true;
+    upperInput.disabled=true;
+    lowerInput.classList.remove('wrong');
+    upperInput.classList.remove('wrong');
+    lowerInput.classList.add('correct');
+    upperInput.classList.add('correct');
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    updateValidate();
+  }
+
+  validateBtn.addEventListener('click',()=>{
+    if(locked) return;
+
+    normalizeVisible(lowerInput);
+    normalizeVisible(upperInput);
+
+    const result=evaluate();
+
+    if(result.lower===null || result.upper===null){
+      feedback.className='feedback error';
+      feedback.textContent='Écris deux nombres valides, avec une virgule ou un point.';
+      return;
+    }
+
+    attempts++;
+
+    if(result.lowerOK && result.upperOK){
+      score += attempts===1 ? 1 : .5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+      locked=true;
+      markInputs(result);
+      lowerInput.disabled=true;
+      upperInput.disabled=true;
+
+      feedback.className='feedback success';
+      feedback.textContent=`Bravo ! ${questions[index].lowerDisplay} < ${questions[index].targetDisplay} < ${questions[index].upperDisplay} est le bon encadrement.`;
+
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      return;
+    }
+
+    markInputs(result);
+
+    if(attempts===1){
+      let message='Vérifie que tes deux bornes respectent la précision demandée.';
+      if(result.lowerOK && !result.upperOK){
+        message='La borne inférieure est correcte. Vérifie maintenant la borne supérieure.';
+      }else if(!result.lowerOK && result.upperOK){
+        message='La borne supérieure est correcte. Vérifie maintenant la borne inférieure.';
+      }else if(result.lower!==null && result.upper!==null && !(result.lower<questions[index].target && questions[index].target<result.upper)){
+        message='Ton nombre doit être strictement compris entre les deux bornes. Vérifie aussi la précision demandée.';
+      }
+
+      feedback.className='feedback error';
+      feedback.textContent=message;
+      return;
+    }
+
+    if(attempts>=2){
+      feedback.className='feedback error';
+      feedback.textContent=`Correction : ${correctionText(questions[index])}`;
+      showCorrection();
+    }
+  });
+
+  [lowerInput,upperInput].forEach(input=>{
+    input.addEventListener('input',()=>{
+      input.classList.remove('correct','wrong');
+      updateValidate();
+    });
+    input.addEventListener('blur',()=>normalizeVisible(input));
+    input.addEventListener('keydown',ev=>{
+      if(ev.key==='Enter' && !validateBtn.disabled && !validateBtn.hidden){
+        validateBtn.click();
+      }
+    });
+  });
+
+  nextBtn.addEventListener('click',()=>{
+    if(index<TOTAL-1){
+      index++;
+      render();
+    }else{
+      showFinal();
+    }
+  });
+
+  restartBtn.addEventListener('click',start);
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    const ratio=score/TOTAL;
+    finalMessage.textContent=ratio>=.85
+      ? 'Très bien ! Tu sais encadrer un nombre décimal avec la précision demandée.'
+      : ratio>=.6
+      ? 'Bon travail. Vérifie toujours si on te demande un encadrement à l’unité, au dixième ou au centième.'
+      : 'Entraîne-toi encore : cherche les deux nombres consécutifs, à la précision demandée, qui entourent le nombre.';
+  }
+
+  function start(){
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    attempts=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='flex';
+    render();
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

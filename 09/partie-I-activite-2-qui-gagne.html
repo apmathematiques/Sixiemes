@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.35rem,2.5vw,1.7rem);font-weight:600;line-height:1.2;text-align:center
+}
+.number-zone{
+  flex:1;min-height:210px;display:grid;place-items:center;padding:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px
+}
+.number-grid{
+  width:min(800px,100%);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px
+}
+.number-btn{
+  min-height:100px;padding:14px 16px;color:var(--i);font-size:clamp(2.15rem,5vw,3.7rem);font-weight:800;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em;background:#fff;border:3px solid #dce9f3;border-radius:18px;
+  cursor:pointer;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease,background .12s ease,border-color .12s ease,color .12s ease
+}
+.number-btn:hover:not(:disabled){filter:brightness(1.02)}
+.number-btn:active:not(:disabled){transform:scale(.985)}
+.number-btn.selected{color:var(--bd);background:#d7ebfb;border-color:#69a9d5}
+.number-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.number-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+button:disabled{cursor:default}
+.feedback{
+  min-height:58px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;
+  touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.12rem}
+  .number-zone{min-height:160px;padding:10px}.number-grid{gap:10px}.number-btn{min-height:70px;padding:8px;font-size:clamp(1.65rem,7vw,2.6rem);border-radius:13px}
+  .feedback{min-height:48px;padding:7px 10px;font-size:.88rem}.controls{min-height:43px}button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="number-zone">
+      <div class="number-grid" id="numberGrid" aria-label="Nombres proposés"></div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">Clique sur un nombre puis valide ta réponse.</div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 10;
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const instruction = $('instruction');
+  const numberGrid = $('numberGrid');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let selectedIndex = null;
+  let attempts = 0;
+  let locked = false;
+  let previousSeriesSignature = '';
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function choice(array){ return array[Math.floor(Math.random()*array.length)]; }
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+  function pad(n,length){ return String(n).padStart(length,'0'); }
+  function decimal(integerPart,fraction){ return `${integerPart},${fraction}`; }
+
+  function splitDecimal(value){
+    const [integerPart,fraction=''] = value.split(',');
+    return {integerPart,fraction};
+  }
+
+  function decimalKey(value,scaleLength){
+    const p=splitDecimal(value);
+    const scale=10n**BigInt(scaleLength);
+    return BigInt(p.integerPart)*scale + BigInt((p.fraction+'0'.repeat(scaleLength)).slice(0,scaleLength)||'0');
+  }
+
+  function compareDecimals(a,b){
+    const A=splitDecimal(a),B=splitDecimal(b);
+    const length=Math.max(A.fraction.length,B.fraction.length);
+    const ka=decimalKey(a,length),kb=decimalKey(b,length);
+    return ka<kb ? -1 : ka>kb ? 1 : 0;
+  }
+
+  function normalize(values){
+    const maxLength=Math.max(...values.map(v=>splitDecimal(v).fraction.length));
+    return values.map(v=>{
+      const p=splitDecimal(v);
+      return maxLength===0 ? p.integerPart : `${p.integerPart},${p.fraction.padEnd(maxLength,'0')}`;
+    });
+  }
+
+  function findExtreme(values,mode){
+    let extreme=values[0];
+    for(let i=1;i<values.length;i++){
+      const cmp=compareDecimals(values[i],extreme);
+      if((mode==='max' && cmp>0)||(mode==='min' && cmp<0)) extreme=values[i];
+    }
+    const matches=values.map((v,i)=>compareDecimals(v,extreme)===0?i:-1).filter(i=>i>=0);
+    return matches.length===1 ? matches[0] : -1;
+  }
+
+  function makeQuestion(family,values,hint,mode){
+    const mixed=shuffle(values);
+    const answerIndex=findExtreme(mixed,mode);
+    return {family,values:mixed,hint,mode,answerIndex};
+  }
+
+  function generateIntegerParts(mode){
+    const base=randInt(2,13);
+    const ints=shuffle([base,base+2,base+4,base+7]);
+    const values=ints.map(i=>decimal(i,pad(randInt(0,99),2)));
+    return makeQuestion('integerParts',values,'Commence par comparer les parties entières.',mode);
+  }
+
+  function generateTenths(mode){
+    const integerPart=randInt(2,18);
+    const digits=shuffle([1,3,6,8].map(d=>Math.min(9,d+randInt(0,1))));
+    const unique=[...new Set(digits)];
+    while(unique.length<4){
+      const d=randInt(0,9);if(!unique.includes(d)) unique.push(d);
+    }
+    const values=unique.slice(0,4).map(d=>decimal(integerPart,String(d)));
+    return makeQuestion('tenths',values,'Les parties entières sont identiques. Compare les chiffres des dixièmes.',mode);
+  }
+
+  function generateHundredths(mode){
+    const integerPart=randInt(1,18),tenth=randInt(0,8);
+    const digits=shuffle([1,3,6,8]);
+    const values=digits.map(d=>decimal(integerPart,`${tenth}${d}`));
+    return makeQuestion('hundredths',values,'Ils ont les mêmes unités et les mêmes dixièmes. Compare les centièmes.',mode);
+  }
+
+  function generateThousandths(mode){
+    const integerPart=randInt(1,18),prefix=pad(randInt(0,89),2);
+    const digits=shuffle([1,4,7,9]);
+    const values=digits.map(d=>decimal(integerPart,`${prefix}${d}`));
+    return makeQuestion('thousandths',values,'Ils sont très proches : va jusqu’aux millièmes.',mode);
+  }
+
+  function generateUnequalLength(mode){
+    const integerPart=randInt(2,18),t=randInt(2,8);
+    const values=[
+      decimal(integerPart,String(t)),
+      decimal(integerPart,`${t-1}8`),
+      decimal(integerPart,`${t}03`),
+      decimal(integerPart,`${t}1`)
+    ];
+    return makeQuestion('unequalLength',values,'Le nombre de chiffres après la virgule ne suffit pas. Tu peux compléter avec des zéros.',mode);
+  }
+
+  function generateZeroEquality(mode){
+    const integerPart=randInt(2,18),t=randInt(2,8);
+    const values=[
+      decimal(integerPart,String(t)),
+      decimal(integerPart,`${t}0`),
+      decimal(integerPart,`${t-1}9`),
+      decimal(integerPart,`${t}01`)
+    ];
+    return makeQuestion('zeroEquality',values,'Deux écritures peuvent représenter le même nombre. Cherche seulement le plus petit ou le plus grand.',mode);
+  }
+
+  function generateFinePadding(mode){
+    const integerPart=randInt(1,18),t=randInt(1,8);
+    const values=[
+      decimal(integerPart,`0${t}9`),
+      decimal(integerPart,`0${t+1}`),
+      decimal(integerPart,`0${t}8`),
+      decimal(integerPart,`0${t+1}1`)
+    ];
+    return makeQuestion('finePadding',values,'Attention aux rangs : complète mentalement les écritures les plus courtes avec des zéros.',mode);
+  }
+
+  function generateBoundary(mode){
+    const lower=randInt(2,17);
+    const values=[
+      decimal(lower,'998'),
+      decimal(lower,'999'),
+      decimal(lower+1,'001'),
+      decimal(lower+1,'01')
+    ];
+    return makeQuestion('boundary',values,'Ici, la partie entière peut changer : compare-la avant la partie décimale.',mode);
+  }
+
+  function generateCloseDifferentLengths(mode){
+    const integerPart=randInt(2,18),t=randInt(3,7);
+    const values=[
+      decimal(integerPart,String(t)),
+      decimal(integerPart,`${t-1}9`),
+      decimal(integerPart,`${t}01`),
+      decimal(integerPart,`${t}09`)
+    ];
+    return makeQuestion('closeDifferentLengths',values,'Ces nombres sont proches. Écris mentalement le même nombre de chiffres après la virgule.',mode);
+  }
+
+  function generateVeryCloseFour(mode){
+    const integerPart=randInt(1,18),prefix=pad(randInt(10,89),2);
+    const digits=shuffle([2,4,6,8]);
+    const values=digits.map(d=>decimal(integerPart,`${prefix}${d}`));
+    return makeQuestion('veryCloseFour',values,'Un seul chiffre les départage : cherche le premier chiffre différent.',mode);
+  }
+
+  const GENERATORS=[
+    generateIntegerParts,
+    generateTenths,
+    generateHundredths,
+    generateThousandths,
+    generateUnequalLength,
+    generateZeroEquality,
+    generateFinePadding,
+    generateBoundary,
+    generateCloseDifferentLengths,
+    generateVeryCloseFour
+  ];
+
+  function validQuestion(q){
+    return q.answerIndex>=0 && new Set(q.values).size===4;
+  }
+
+  function buildQuestion(generator,mode){
+    for(let attempt=0;attempt<100;attempt++){
+      const q=generator(mode);
+      if(validQuestion(q)) return q;
+    }
+    throw new Error('Impossible de générer une question valide.');
+  }
+
+  function seriesSignature(series){
+    return series.map(q=>`${q.mode}:${q.values.slice().sort().join('|')}`).sort().join(';;');
+  }
+
+  function generateSeries(){
+    for(let attempt=0;attempt<80;attempt++){
+      const modes=shuffle(['max','max','max','max','max','min','min','min','min','min']);
+      const gens=shuffle(GENERATORS);
+      const candidate=shuffle(gens.map((gen,i)=>buildQuestion(gen,modes[i])));
+      const signature=seriesSignature(candidate);
+      if(signature!==previousSeriesSignature){
+        previousSeriesSignature=signature;
+        return candidate;
+      }
+    }
+    const modes=shuffle(['max','max','max','max','max','min','min','min','min','min']);
+    return shuffle(GENERATORS.map((gen,i)=>buildQuestion(gen,modes[i])));
+  }
+
+  function correctionFor(q){
+    const answer=q.values[q.answerIndex];
+    if(['integerParts','boundary'].includes(q.family)){
+      return `On compare d’abord les parties entières. Le ${q.mode==='max'?'plus grand':'plus petit'} nombre est <strong>${answer}</strong>.`;
+    }
+    if(['unequalLength','zeroEquality','finePadding','closeDifferentLengths'].includes(q.family)){
+      const normalized=normalize(q.values);
+      const equalities=q.values.map((v,i)=>v===normalized[i]?`<strong>${v}</strong>`:`<strong>${v} = ${normalized[i]}</strong>`).join(' ; ');
+      return `On peut compléter avec des zéros pour comparer les mêmes rangs : ${equalities}. Le ${q.mode==='max'?'plus grand':'plus petit'} est <strong>${answer}</strong>.`;
+    }
+    return `En comparant les chiffres de même rang jusqu’au premier qui diffère, le ${q.mode==='max'?'plus grand':'plus petit'} nombre est <strong>${answer}</strong>.`;
+  }
+
+  function formatScore(value){
+    return Number.isInteger(value) ? String(value) : String(value).replace('.',',');
+  }
+
+  function resetState(){
+    selectedIndex=null;attempts=0;locked=false;
+    validateBtn.disabled=true;validateBtn.hidden=false;nextBtn.hidden=true;
+    feedback.className='feedback';feedback.textContent='Clique sur un nombre puis valide ta réponse.';
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+    resetState();
+    instruction.textContent=q.mode==='max'?'Clique sur le plus grand nombre.':'Clique sur le plus petit nombre.';
+    numberGrid.innerHTML='';
+    q.values.forEach((value,i)=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='number-btn';
+      btn.textContent=value;
+      btn.dataset.index=String(i);
+      btn.setAttribute('aria-label',`Choisir ${value}`);
+      btn.addEventListener('click',()=>selectNumber(i));
+      numberGrid.appendChild(btn);
+    });
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+  }
+
+  function buttons(){ return [...numberGrid.querySelectorAll('.number-btn')]; }
+
+  function selectNumber(i){
+    if(locked) return;
+    selectedIndex=i;
+    buttons().forEach((btn,j)=>btn.classList.toggle('selected',j===i));
+    validateBtn.disabled=false;
+  }
+
+  function revealCorrection(q,wrongIndex=null){
+    buttons().forEach((btn,i)=>{
+      btn.disabled=true;
+      btn.classList.remove('selected');
+      if(i===q.answerIndex) btn.classList.add('correct');
+      if(wrongIndex!==null && i===wrongIndex && i!==q.answerIndex) btn.classList.add('wrong');
+    });
+  }
+
+  function validate(){
+    if(locked || selectedIndex===null) return;
+    const q=questions[index];
+    attempts++;
+
+    if(selectedIndex===q.answerIndex){
+      locked=true;
+      score += attempts===1 ? 1 : 0.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+      revealCorrection(q);
+      feedback.className='feedback success';
+      feedback.innerHTML=attempts===1
+        ? `Bravo !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.`
+        : `Oui !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.`;
+      validateBtn.hidden=true;nextBtn.hidden=false;
+      nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
+      return;
+    }
+
+    if(attempts===1){
+      const wrong=selectedIndex;
+      selectedIndex=null;
+      const bs=buttons();
+      bs.forEach((btn,i)=>{
+        btn.classList.remove('selected');
+        if(i===wrong){
+          btn.classList.add('wrong');
+          setTimeout(()=>btn.classList.remove('wrong'),450);
+        }
+      });
+      validateBtn.disabled=true;
+      feedback.className='feedback error';
+      feedback.textContent=q.hint;
+      return;
+    }
+
+    locked=true;
+    revealCorrection(q,selectedIndex);
+    feedback.className='feedback error';
+    feedback.innerHTML=correctionFor(q);
+    validateBtn.hidden=true;nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
+  }
+
+  function next(){
+    if(index<TOTAL-1){index++;renderQuestion();}
+    else showFinal();
+  }
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    if(score>=9){
+      finalMessage.textContent='Excellent ! Tu identifies très bien le plus grand et le plus petit nombre, même lorsque les valeurs sont très proches.';
+    }else if(score>=7){
+      finalMessage.textContent='Très bien ! Reste attentif aux zéros et aux nombres qui n’ont pas le même nombre de chiffres après la virgule.';
+    }else if(score>=5){
+      finalMessage.textContent='Tu progresses. Compare les chiffres de même rang et avance jusqu’au premier chiffre différent.';
+    }else{
+      finalMessage.textContent='Reprends la comparaison des nombres : partie entière, dixièmes, centièmes puis millièmes.';
+    }
+  }
+
+  function restart(){
+    questions=generateSeries();index=0;score=0;
+    exercise.style.display='flex';final.classList.remove('show');renderQuestion();
+  }
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  questions=generateSeries();
+  renderQuestion();
+})();
+</script>
+</body>
+</html>

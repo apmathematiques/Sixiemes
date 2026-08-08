@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;
+  padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;
+  white-space:nowrap;background:var(--bs);border-radius:999px
+}
+
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.35rem,2.5vw,1.7rem);font-weight:600;line-height:1.2;text-align:center
+}
+.figure{
+  flex:1;min-height:230px;padding:22px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.precision{
+  padding:7px 13px;color:var(--bd);font-weight:700;background:var(--bs);border-radius:999px
+}
+.prompt-number{
+  color:var(--bd);font-size:clamp(2.3rem,5.2vw,3.7rem);font-weight:800;
+  font-variant-numeric:tabular-nums;text-align:center
+}
+.answer-wrap{
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap
+}
+.answer-label{
+  color:var(--m);font-size:1rem;font-weight:700
+}
+.answer{
+  width:min(30vw,240px);min-width:160px;height:82px;padding:0 14px;
+  color:var(--i);font-size:clamp(1.75rem,3.8vw,2.7rem);font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums;background:#fff;border:3px solid #bfd2e1;border-radius:15px;
+  outline:none;transition:border-color .13s ease,box-shadow .13s ease,background .13s ease
+}
+.answer:focus{border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.10)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.hintline{
+  min-height:24px;margin:0;color:var(--m);font-size:.93rem;font-weight:600;text-align:center
+}
+
+.feedback{
+  min-height:58px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+
+.controls{
+  min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap
+}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:6px}
+  .instruction{min-height:44px;font-size:1.12rem}
+  .figure{min-height:180px;padding:10px;gap:12px}
+  .precision{padding:5px 9px;font-size:.78rem}
+  .prompt-number{font-size:clamp(1.8rem,8vw,2.5rem)}
+  .answer-wrap{gap:7px}.answer-label{font-size:.8rem}
+  .answer{min-width:120px;width:40%;height:58px;padding:0 6px;font-size:clamp(1.2rem,5vw,1.7rem);border-width:2px}
+  .hintline{font-size:.75rem}
+  .feedback{min-height:46px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:41px}
+  button.action{min-height:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <div class="precision" id="precision"></div>
+      <div class="prompt-number" id="number"></div>
+
+      <div class="answer-wrap">
+        <span class="answer-label">Arrondi :</span>
+        <input class="answer" id="answer" type="text" inputmode="decimal"
+               autocomplete="off" spellcheck="false" aria-label="Réponse">
+      </div>
+
+      <p class="hintline">Tu peux écrire avec une virgule ou un point. Les zéros inutiles sont acceptés.</p>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Écris directement l’arrondi demandé.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const $=id=>document.getElementById(id);
+
+  const counter=$('counter'),scoreBox=$('score'),bar=$('bar');
+  const instruction=$('instruction'),precisionBox=$('precision'),numberBox=$('number');
+  const answerInput=$('answer'),feedback=$('feedback'),validateBtn=$('validate'),nextBtn=$('next');
+  const exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
+
+  let questions=[],index=0,score=0,attempts=0,locked=false;
+
+  function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+  function choice(a){return a[Math.floor(Math.random()*a.length)]}
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]]
+    }
+    return copy
+  }
+  function formatScore(n){return Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',')}
+  function parseFrenchNumber(text){
+    const cleaned=text.trim().replace(/\s+/g,'').replace(',','.');
+    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(cleaned))return null;
+    const n=Number(cleaned);
+    return Number.isFinite(n)?n:null
+  }
+  function normalizeVisible(){
+    const v=answerInput.value.trim();
+    if(v.includes('.'))answerInput.value=v.replace('.',',')
+  }
+  function stripZeros(text){
+    if(!text.includes(','))return text;
+    return text.replace(/0+$/,'').replace(/,$/,'')
+  }
+  function precisionLabel(p){
+    return p===0?'à l’unité':p===1?'au dixième':'au centième'
+  }
+
+  function makeNormal(p,mode){
+    // p = précision d'arrondi : 0, 1 ou 2
+    // On construit toujours avec un chiffre supplémentaire au minimum.
+    const ip=randInt(1,24);
+    let target, nextDigit;
+
+    if(p===0){
+      nextDigit=mode==='down'?choice([1,2,3,4]):mode==='five'?5:choice([6,7,8,9]);
+      const hundredth=randInt(0,9);
+      target=ip+nextDigit/10+hundredth/100;
+    }else if(p===1){
+      const tenth=randInt(0,9);
+      nextDigit=mode==='down'?choice([1,2,3,4]):mode==='five'?5:choice([6,7,8,9]);
+      const thousandth=randInt(0,9);
+      target=ip+tenth/10+nextDigit/100+thousandth/1000;
+    }else{
+      const tenth=randInt(0,9),hundredth=randInt(0,9);
+      nextDigit=mode==='down'?choice([1,2,3,4]):mode==='five'?5:choice([6,7,8,9]);
+      target=ip+tenth/10+hundredth/100+nextDigit/1000;
+    }
+
+    return buildQuestion(target,p,nextDigit,false)
+  }
+
+  function makeCarry(p){
+    let target;
+    if(p===0){
+      const ip=randInt(4,24);
+      target=ip+choice([0.95,0.96,0.97,0.98,0.99]);
+    }else if(p===1){
+      const ip=randInt(2,20);
+      target=ip+0.9+choice([0.05,0.06,0.07,0.08,0.09]);
+    }else{
+      const ip=randInt(2,20);
+      target=ip+0.99+choice([0.005,0.006,0.007,0.008,0.009]);
+    }
+    const factor=10**(p+1);
+    const nextDigit=Math.floor(target*factor+1e-9)%10;
+    return buildQuestion(target,p,nextDigit,true)
+  }
+
+  function buildQuestion(target,p,nextDigit,carry){
+    const factor=10**p;
+    const expected=Math.round((target+1e-12)*factor)/factor;
+
+    // Affichage du nombre de départ avec assez de décimales pour montrer le chiffre décisif.
+    const targetDecimals=p===0?2:p===1?3:3;
+    let targetDisplay=target.toFixed(targetDecimals).replace('.',',');
+    targetDisplay=stripZeros(targetDisplay);
+
+    // Correction affichée avec la précision demandée.
+    const correctionDisplay=expected.toFixed(p).replace('.',',');
+
+    return{
+      precision:p,target,expected,nextDigit,carry,
+      targetDisplay,correctionDisplay
+    }
+  }
+
+  function buildQuestions(){
+    // 3 unité, 4 dixième, 3 centième.
+    // Au moins 2 cas avec chiffre 5 et 2 cas avec retenue.
+    const specs=[
+      {p:0,type:'down'},
+      {p:0,type:'five'},
+      {p:0,type:'carry'},
+
+      {p:1,type:'down'},
+      {p:1,type:'up'},
+      {p:1,type:'five'},
+      {p:1,type:'carry'},
+
+      {p:2,type:'down'},
+      {p:2,type:'up'},
+      {p:2,type:'five'}
+    ];
+
+    return shuffle(specs).map(s=>{
+      if(s.type==='carry')return makeCarry(s.p);
+      return makeNormal(s.p,s.type)
+    })
+  }
+
+  function render(){
+    const q=questions[index];
+    attempts=0;locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    instruction.textContent=`Arrondis ${q.targetDisplay} ${precisionLabel(q.precision)}.`;
+    precisionBox.textContent=`Précision demandée : ${precisionLabel(q.precision)}`;
+    numberBox.textContent=q.targetDisplay;
+
+    answerInput.value='';
+    answerInput.disabled=false;
+    answerInput.classList.remove('correct','wrong');
+
+    feedback.className='feedback';
+    feedback.textContent='Écris directement l’arrondi demandé.';
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+
+    setTimeout(()=>answerInput.focus(),0)
+  }
+
+  function updateValidate(){
+    validateBtn.disabled=locked||!answerInput.value.trim()
+  }
+
+  function explanation(q){
+    const rank=q.precision===0?'dixièmes':q.precision===1?'centièmes':'millièmes';
+    if(q.nextDigit<5){
+      return `Le chiffre des ${rank} est ${q.nextDigit}, donc on garde le chiffre précédent. L’arrondi est ${q.correctionDisplay}.`
+    }
+    if(q.nextDigit===5){
+      return `Le chiffre des ${rank} est 5, donc on augmente le chiffre précédent de 1. L’arrondi est ${q.correctionDisplay}.`
+    }
+    return `Le chiffre des ${rank} est ${q.nextDigit}, donc on augmente le chiffre précédent de 1. L’arrondi est ${q.correctionDisplay}.`
+  }
+
+  validateBtn.addEventListener('click',()=>{
+    if(locked)return;
+
+    normalizeVisible();
+    const q=questions[index];
+    const value=parseFrenchNumber(answerInput.value);
+
+    if(value===null){
+      feedback.className='feedback error';
+      feedback.textContent='Écris un nombre valide, avec une virgule ou un point.';
+      answerInput.classList.add('wrong');
+      return
+    }
+
+    attempts++;
+    const ok=Math.abs(value-q.expected)<1e-10;
+
+    if(ok){
+      score+=attempts===1?1:.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+      locked=true;
+
+      answerInput.disabled=true;
+      answerInput.classList.remove('wrong');
+      answerInput.classList.add('correct');
+
+      feedback.className='feedback success';
+      feedback.textContent=`Bravo ! L’arrondi de ${q.targetDisplay} ${precisionLabel(q.precision)} est ${q.correctionDisplay}.`;
+
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      return
+    }
+
+    answerInput.classList.remove('correct');
+    answerInput.classList.add('wrong');
+
+    if(attempts===1){
+      feedback.className='feedback error';
+      feedback.textContent=q.carry
+        ? 'Regarde le chiffre situé juste à droite de la précision demandée. Attention : l’arrondi peut provoquer une retenue.'
+        : 'Regarde le chiffre situé juste à droite de la précision demandée.';
+      return
+    }
+
+    locked=true;
+    answerInput.value=q.correctionDisplay;
+    answerInput.disabled=true;
+    answerInput.classList.remove('wrong');
+    answerInput.classList.add('correct');
+
+    feedback.className='feedback error';
+    feedback.textContent=`Correction : ${explanation(q)}`;
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false
+  });
+
+  answerInput.addEventListener('input',()=>{
+    answerInput.classList.remove('correct','wrong');
+    updateValidate()
+  });
+  answerInput.addEventListener('blur',normalizeVisible);
+  answerInput.addEventListener('keydown',ev=>{
+    if(ev.key==='Enter'&&!validateBtn.disabled&&!validateBtn.hidden)validateBtn.click()
+  });
+
+  nextBtn.addEventListener('click',()=>{
+    if(index<TOTAL-1){index++;render()}
+    else showFinal()
+  });
+
+  restartBtn.addEventListener('click',start);
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    const ratio=score/TOTAL;
+    finalMessage.textContent=ratio>=.85
+      ? 'Très bien ! Tu sais arrondir un nombre décimal à la précision demandée.'
+      : ratio>=.6
+      ? 'Bon travail. Pense toujours à regarder le chiffre situé juste à droite de la précision demandée.'
+      : 'Entraîne-toi encore : repère d’abord le rang demandé, puis observe le chiffre juste à sa droite.'
+  }
+
+  function start(){
+    questions=buildQuestions();
+    index=0;score=0;attempts=0;locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='flex';
+    render()
+  }
+
+  start()
+})();
+</script>
+</body>
+</html>

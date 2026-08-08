@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.35rem,2.5vw,1.7rem);font-weight:600;line-height:1.2;text-align:center
+}
+.comparison{
+  flex:1;min-height:190px;display:grid;place-items:center;padding:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px
+}
+.expression{
+  width:min(760px,100%);display:grid;grid-template-columns:1fr 112px 1fr;align-items:center;gap:22px;
+  font-variant-numeric:tabular-nums
+}
+.number{
+  min-width:0;color:var(--i);font-size:clamp(2.6rem,7vw,5.2rem);font-weight:800;line-height:1;
+  text-align:center;letter-spacing:.015em
+}
+.sign-slot{
+  width:112px;height:92px;display:grid;place-items:center;color:var(--bd);
+  font-size:clamp(3rem,6vw,4.8rem);font-weight:800;background:var(--bs);
+  border:3px solid #c9dfef;border-radius:18px;transition:background .15s ease,border-color .15s ease,color .15s ease
+}
+.sign-slot.chosen{background:#d7ebfb;border-color:#69a9d5}
+.sign-slot.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.sign-slot.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-row{min-height:76px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+.sign-btn{
+  width:112px;height:64px;color:var(--bd);font-size:2.4rem;font-weight:800;line-height:1;
+  background:var(--bs);border:2px solid transparent;border-radius:15px;cursor:pointer;
+  touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease,background .12s ease,border-color .12s ease
+}
+.sign-btn:hover:not(:disabled){filter:brightness(1.03)}
+.sign-btn:active:not(:disabled){transform:scale(.98)}
+.sign-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.sign-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.sign-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+button:disabled{cursor:default}
+.feedback{
+  min-height:58px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;
+  touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.12rem}
+  .comparison{min-height:145px;padding:10px}.expression{grid-template-columns:1fr 74px 1fr;gap:8px}
+  .number{font-size:clamp(2rem,8vw,3.7rem)}.sign-slot{width:74px;height:64px;font-size:3rem;border-radius:13px}
+  .choice-row{min-height:58px;gap:10px}.sign-btn{width:84px;height:50px;font-size:2rem;border-radius:12px}
+  .feedback{min-height:48px;padding:7px 10px;font-size:.88rem}.controls{min-height:43px}button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Compare les deux nombres puis choisis le bon symbole.</p>
+
+    <div class="comparison" aria-label="Comparaison à compléter">
+      <div class="expression">
+        <div class="number" id="leftNumber"></div>
+        <div class="sign-slot" id="signSlot" aria-live="polite">?</div>
+        <div class="number" id="rightNumber"></div>
+      </div>
+    </div>
+
+    <div class="choice-row" id="choices" aria-label="Choix du symbole">
+      <button class="sign-btn" type="button" data-sign="&lt;" aria-label="inférieur à">&lt;</button>
+      <button class="sign-btn" type="button" data-sign="=" aria-label="égal à">=</button>
+      <button class="sign-btn" type="button" data-sign="&gt;" aria-label="supérieur à">&gt;</button>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">Choisis un symbole puis valide ta réponse.</div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 10;
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const leftNumber = $('leftNumber');
+  const rightNumber = $('rightNumber');
+  const signSlot = $('signSlot');
+  const choices = [...document.querySelectorAll('.sign-btn')];
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let selected = null;
+  let attempts = 0;
+  let locked = false;
+  let previousSeriesSignature = '';
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function choice(array){ return array[Math.floor(Math.random()*array.length)]; }
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+  function pad(n,length){ return String(n).padStart(length,'0'); }
+  function decimal(integerPart,fraction){ return `${integerPart},${fraction}`; }
+
+  function splitDecimal(value){
+    const [integerPart,fraction=''] = value.split(',');
+    return {integerPart,fraction};
+  }
+
+  function compareDecimals(a,b){
+    const A=splitDecimal(a),B=splitDecimal(b);
+    const maxFrac=Math.max(A.fraction.length,B.fraction.length);
+    const scale=10n**BigInt(maxFrac);
+    const aInt=BigInt(A.integerPart)*scale+BigInt((A.fraction+'0'.repeat(maxFrac)).slice(0,maxFrac)||'0');
+    const bInt=BigInt(B.integerPart)*scale+BigInt((B.fraction+'0'.repeat(maxFrac)).slice(0,maxFrac)||'0');
+    return aInt<bInt ? '<' : aInt>bInt ? '>' : '=';
+  }
+
+  function paddedForms(a,b){
+    const A=splitDecimal(a),B=splitDecimal(b);
+    const maxFrac=Math.max(A.fraction.length,B.fraction.length);
+    const make=v=>{
+      const p=splitDecimal(v);
+      return maxFrac===0 ? p.integerPart : `${p.integerPart},${p.fraction.padEnd(maxFrac,'0')}`;
+    };
+    return [make(a),make(b)];
+  }
+
+  function makeQuestion(family,low,high,hint){
+    return {family,low,high,hint};
+  }
+
+  function generateIntegerPart(){
+    const lowInt=randInt(1,17);
+    const highInt=lowInt+randInt(1,8);
+    const lowFrac=pad(randInt(0,999),3).replace(/0+$/,'') || '0';
+    const highFrac=pad(randInt(0,999),3).replace(/0+$/,'') || '0';
+    return makeQuestion(
+      'integerPart',
+      decimal(lowInt,lowFrac),
+      decimal(highInt,highFrac),
+      'Commence par comparer les parties entières.'
+    );
+  }
+
+  function generateTenths(){
+    const integerPart=randInt(2,19);
+    const lowTenth=randInt(0,7);
+    const highTenth=randInt(lowTenth+1,9);
+    const tailLength=choice([0,1,2]);
+    const lowTail=tailLength ? pad(randInt(0,10**tailLength-1),tailLength) : '';
+    const highTail=tailLength ? pad(randInt(0,10**tailLength-1),tailLength) : '';
+    return makeQuestion(
+      'tenths',
+      decimal(integerPart,`${lowTenth}${lowTail}`),
+      decimal(integerPart,`${highTenth}${highTail}`),
+      'Les parties entières sont égales. Compare maintenant les chiffres des dixièmes.'
+    );
+  }
+
+  function generateVeryClose(){
+    const integerPart=randInt(1,18);
+    const prefixLength=choice([1,2]);
+    const prefix=pad(randInt(0,10**prefixLength-1),prefixLength);
+    const lowLast=randInt(0,7);
+    const highLast=randInt(lowLast+1,9);
+    return makeQuestion(
+      'veryClose',
+      decimal(integerPart,`${prefix}${lowLast}`),
+      decimal(integerPart,`${prefix}${highLast}`),
+      'Ils sont très proches : compare les chiffres de même rang jusqu’au premier qui diffère.'
+    );
+  }
+
+  function generateUnequalLengthTrap(){
+    const integerPart=randInt(2,18);
+    const highTenth=randInt(1,9);
+    const high=decimal(integerPart,String(highTenth));
+    const lowThousandths=highTenth*100-randInt(1,18);
+    const low=decimal(integerPart,pad(lowThousandths,3));
+    return makeQuestion(
+      'unequalLength',
+      low,
+      high,
+      'Le nombre de chiffres après la virgule ne permet pas de conclure. Tu peux compléter avec des zéros.'
+    );
+  }
+
+  function generateEqualityZero(){
+    const integerPart=randInt(1,20);
+    const baseLength=choice([1,2]);
+    let fraction;
+    if(baseLength===1){
+      fraction=String(randInt(1,9));
+    }else{
+      fraction=pad(randInt(10,99),2);
+      if(fraction.endsWith('0')) fraction=fraction.slice(0,1)+String(randInt(1,9));
+    }
+    const base=decimal(integerPart,fraction);
+    const withZeros=decimal(integerPart,fraction+'0'.repeat(choice([1,2])));
+    return {
+      family:'equalityZero',
+      low:base,
+      high:withZeros,
+      equal:true,
+      hint:'Un ou plusieurs zéros ajoutés à droite de la partie décimale changent-ils le nombre ?'
+    };
+  }
+
+  function generateVeryFine(){
+    const integerPart=randInt(1,18);
+    const shortLength=choice([1,2]);
+    const shortValue=shortLength===1 ? randInt(1,9) : randInt(10,99);
+    const multiplier=shortLength===1 ? 100 : 10;
+    const lowValue=shortValue*multiplier-1;
+    const low=decimal(integerPart,pad(lowValue,3));
+    const high=decimal(integerPart,pad(shortValue,shortLength));
+    return makeQuestion(
+      'veryFine',
+      low,
+      high,
+      'Attention : ces deux nombres sont extrêmement proches. Complète si besoin le plus court avec des zéros.'
+    );
+  }
+
+  function buildBaseQuestions(){
+    return [
+      generateIntegerPart(),generateIntegerPart(),
+      generateTenths(),generateTenths(),
+      generateVeryClose(),generateVeryClose(),
+      generateUnequalLengthTrap(),generateUnequalLengthTrap(),
+      generateEqualityZero(),
+      generateVeryFine()
+    ];
+  }
+
+  function orientQuestions(base){
+    const nonEqualRelations=shuffle(['<','<','<','<','>','>','>','>','>']);
+    let relationIndex=0;
+    return base.map(q=>{
+      if(q.equal){
+        const swap=Math.random()<.5;
+        return {
+          ...q,
+          left:swap?q.high:q.low,
+          right:swap?q.low:q.high,
+          answer:'='
+        };
+      }
+      const wanted=nonEqualRelations[relationIndex++];
+      return {
+        ...q,
+        left:wanted==='<'?q.low:q.high,
+        right:wanted==='<'?q.high:q.low,
+        answer:wanted
+      };
+    });
+  }
+
+  function seriesSignature(series){
+    return series.map(q=>`${q.left}|${q.right}`).sort().join(';;');
+  }
+
+  function generateSeries(){
+    for(let attempt=0;attempt<100;attempt++){
+      const candidate=shuffle(orientQuestions(buildBaseQuestions()));
+      const visible=new Set(candidate.map(q=>`${q.left}|${q.right}`));
+      const signature=seriesSignature(candidate);
+      if(visible.size===TOTAL && signature!==previousSeriesSignature){
+        previousSeriesSignature=signature;
+        return candidate;
+      }
+    }
+    return shuffle(orientQuestions(buildBaseQuestions()));
+  }
+
+  function correctionFor(q){
+    if(q.answer==='='){
+      return `Ajouter des zéros à droite de la partie décimale ne change pas le nombre : <strong>${q.left} = ${q.right}</strong>.`;
+    }
+
+    if(q.family==='integerPart'){
+      const A=splitDecimal(q.left),B=splitDecimal(q.right);
+      return `On compare d’abord les parties entières : <strong>${A.integerPart}</strong> et <strong>${B.integerPart}</strong>. Donc <strong>${q.left} ${q.answer} ${q.right}</strong>.`;
+    }
+
+    const [aPad,bPad]=paddedForms(q.left,q.right);
+    if(aPad!==q.left || bPad!==q.right){
+      return `On peut compléter avec des zéros : <strong>${q.left} = ${aPad}</strong> et <strong>${q.right} = ${bPad}</strong>. Donc <strong>${q.left} ${q.answer} ${q.right}</strong>.`;
+    }
+    return `En comparant les chiffres de même rang, le premier chiffre différent permet de conclure : <strong>${q.left} ${q.answer} ${q.right}</strong>.`;
+  }
+
+  function resetChoiceState(){
+    selected=null;
+    attempts=0;
+    locked=false;
+    signSlot.textContent='?';
+    signSlot.className='sign-slot';
+    choices.forEach(btn=>{
+      btn.disabled=false;
+      btn.className='sign-btn';
+    });
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    feedback.className='feedback';
+    feedback.textContent='Choisis un symbole puis valide ta réponse.';
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+    resetChoiceState();
+    leftNumber.textContent=q.left;
+    rightNumber.textContent=q.right;
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+  }
+
+  function formatScore(value){
+    return Number.isInteger(value) ? String(value) : String(value).replace('.',',');
+  }
+
+  function selectSign(sign){
+    if(locked) return;
+    selected=sign;
+    signSlot.textContent=sign;
+    signSlot.className='sign-slot chosen';
+    choices.forEach(btn=>btn.classList.toggle('selected',btn.dataset.sign===sign));
+    validateBtn.disabled=false;
+  }
+
+  function markCorrection(q,chosen){
+    choices.forEach(btn=>{
+      btn.disabled=true;
+      btn.classList.remove('selected');
+      if(btn.dataset.sign===q.answer) btn.classList.add('correct');
+      if(chosen && btn.dataset.sign===chosen && chosen!==q.answer) btn.classList.add('wrong');
+    });
+    signSlot.textContent=q.answer;
+    signSlot.className='sign-slot correct';
+  }
+
+  function validate(){
+    if(locked || !selected) return;
+    const q=questions[index];
+    attempts++;
+
+    if(selected===q.answer){
+      locked=true;
+      score += attempts===1 ? 1 : 0.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+      markCorrection(q,null);
+      feedback.className='feedback success';
+      feedback.innerHTML=attempts===1
+        ? `Bravo ! <strong>${q.left} ${q.answer} ${q.right}</strong>.`
+        : `Oui ! <strong>${q.left} ${q.answer} ${q.right}</strong>. Bonne correction au deuxième essai.`;
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
+      return;
+    }
+
+    if(attempts===1){
+      const wrong=selected;
+      selected=null;
+      signSlot.textContent='?';
+      signSlot.className='sign-slot';
+      choices.forEach(btn=>{
+        btn.classList.remove('selected');
+        if(btn.dataset.sign===wrong){
+          btn.classList.add('wrong');
+          setTimeout(()=>btn.classList.remove('wrong'),450);
+        }
+      });
+      validateBtn.disabled=true;
+      feedback.className='feedback error';
+      feedback.textContent=q.hint;
+      return;
+    }
+
+    locked=true;
+    markCorrection(q,selected);
+    feedback.className='feedback error';
+    feedback.innerHTML=correctionFor(q);
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
+  }
+
+  function next(){
+    if(index<TOTAL-1){
+      index++;
+      renderQuestion();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    const displayed=formatScore(score);
+    finalScore.textContent=`Score : ${displayed} / ${TOTAL}`;
+
+    if(score>=9){
+      finalMessage.textContent='Excellent ! Tu compares les nombres décimaux avec beaucoup de précision.';
+    }else if(score>=7){
+      finalMessage.textContent='Très bien ! Les comparaisons sont maîtrisées. Reste attentif lorsque les nombres sont très proches.';
+    }else if(score>=5){
+      finalMessage.textContent='Tu progresses. Pense à comparer les chiffres de même rang et à utiliser les zéros lorsque cela aide.';
+    }else{
+      finalMessage.textContent='Reprends tranquillement les comparaisons : partie entière, dixièmes, centièmes, puis millièmes.';
+    }
+  }
+
+  function restart(){
+    questions=generateSeries();
+    index=0;
+    score=0;
+    exercise.style.display='flex';
+    final.classList.remove('show');
+    renderQuestion();
+  }
+
+  choices.forEach(btn=>btn.addEventListener('click',()=>selectSign(btn.dataset.sign)));
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  questions=generateSeries();
+  renderQuestion();
+})();
+</script>
+</body>
+</html>

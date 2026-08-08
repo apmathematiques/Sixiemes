@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+
+.main{flex:1;min-height:0;padding:4px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.35rem,2.5vw,1.7rem);font-weight:600;line-height:1.2;text-align:center
+}
+.workspace{
+  flex:1;min-height:245px;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px
+}
+.pool-label,.order-label{
+  margin:0;color:var(--m);font-size:.9rem;font-weight:700;text-align:center
+}
+.pool,.slots{
+  width:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px
+}
+.pool{
+  min-height:82px;padding:6px;background:#f4f7fb;border-radius:15px
+}
+.slots{min-height:96px}
+.tile,.slot{
+  min-width:0;min-height:74px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+  font-variant-numeric:tabular-nums;user-select:none;-webkit-user-select:none
+}
+.tile{
+  padding:8px;color:var(--i);font-size:clamp(1.55rem,3.5vw,2.5rem);font-weight:800;
+  background:#fff;border:3px solid #dce9f3;box-shadow:0 4px 10px rgba(17,63,103,.06);
+  cursor:grab;touch-action:none;transition:transform 110ms ease,border-color .12s ease,background .12s ease,color .12s ease,box-shadow .12s ease
+}
+.tile:active{cursor:grabbing}
+.tile:hover{border-color:#b7d4e9}
+.tile.selected{color:var(--bd);background:#d7ebfb;border-color:#69a9d5;box-shadow:0 0 0 4px rgba(23,105,170,.09)}
+.tile.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.tile.dragging{opacity:.45}
+.slot{
+  position:relative;padding:6px;border:3px dashed #b8ccdc;background:rgba(255,255,255,.72);
+  transition:border-color .12s ease,background .12s ease,transform .12s ease
+}
+.slot::before{
+  content:attr(data-rank);position:absolute;top:5px;left:8px;color:#89a0b2;font-size:.72rem;font-weight:800
+}
+.slot.over{border-color:var(--b);background:#edf6fd;transform:translateY(-2px)}
+.slot.correct{border-style:solid;border-color:#79c798;background:var(--gs)}
+.slot .tile{width:100%;height:100%;min-height:60px}
+.placeholder{
+  color:#9cafbd;font-size:1.35rem;font-weight:800;pointer-events:none
+}
+button:focus-visible,.tile:focus-visible,.slot:focus-visible{outline:4px solid rgba(23,105,170,.22);outline-offset:2px}
+
+.feedback{
+  min-height:54px;padding:8px 13px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;
+  touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:6px}.instruction{min-height:44px;font-size:1.12rem}
+  .workspace{min-height:190px;padding:8px;gap:9px}.pool,.slots{gap:5px}.pool{min-height:60px;padding:4px}.slots{min-height:70px}
+  .tile,.slot{min-height:54px;border-radius:11px}.tile{padding:5px;font-size:clamp(1.05rem,4.7vw,1.7rem);border-width:2px}
+  .slot{padding:4px;border-width:2px}.slot .tile{min-height:46px}.slot::before{top:2px;left:4px;font-size:.58rem}
+  .pool-label,.order-label{font-size:.72rem}.feedback{min-height:46px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:41px}button.action{min-height:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="workspace">
+      <p class="pool-label">Nombres à ranger</p>
+      <div class="pool" id="pool" aria-label="Nombres à ranger"></div>
+
+      <p class="order-label">Déplace les nombres dans les cases</p>
+      <div class="slots" id="slots" aria-label="Ordre choisi"></div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">Fais glisser les cinq nombres dans les cases, puis valide.</div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles séries</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 8;
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const instruction = $('instruction');
+  const pool = $('pool');
+  const slots = $('slots');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let attempts = 0;
+  let locked = false;
+  let selectedTileId = null;
+  let draggedTileId = null;
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function choice(array){ return array[Math.floor(Math.random()*array.length)]; }
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+  function pad(n,length){ return String(n).padStart(length,'0'); }
+
+  function splitDecimal(value){
+    const [integerPart,fraction=''] = value.split(',');
+    return {integerPart,fraction};
+  }
+
+  function decimalKey(value,scaleLength){
+    const p=splitDecimal(value);
+    const scale=10n**BigInt(scaleLength);
+    return BigInt(p.integerPart)*scale + BigInt((p.fraction+'0'.repeat(scaleLength)).slice(0,scaleLength)||'0');
+  }
+
+  function compareDecimals(a,b){
+    const A=splitDecimal(a),B=splitDecimal(b);
+    const length=Math.max(A.fraction.length,B.fraction.length);
+    const ka=decimalKey(a,length),kb=decimalKey(b,length);
+    return ka<kb ? -1 : ka>kb ? 1 : 0;
+  }
+
+  function uniqueValues(values){
+    for(let i=0;i<values.length;i++){
+      for(let j=i+1;j<values.length;j++){
+        if(compareDecimals(values[i],values[j])===0) return false;
+      }
+    }
+    return true;
+  }
+
+  function format(integerPart,fraction){ return `${integerPart},${fraction}`; }
+
+  function generateDifferentIntegers(direction){
+    const base=randInt(1,10);
+    const ints=shuffle([base,base+2,base+5,base+7,base+10]);
+    const values=ints.map(i=>format(i,pad(randInt(0,99),2)));
+    return {family:'differentIntegers',direction,values};
+  }
+
+  function generateSameInteger(direction){
+    const ip=randInt(2,18);
+    const tenths=shuffle([1,3,5,7,9]);
+    const values=tenths.map(t=>{
+      const extra=choice(['',String(randInt(1,9)),pad(randInt(1,99),2)]);
+      return format(ip,String(t)+extra);
+    });
+    if(!uniqueValues(values)) return generateSameInteger(direction);
+    return {family:'sameInteger',direction,values};
+  }
+
+  function generateVeryClose(direction){
+    const ip=randInt(1,20);
+    const t=randInt(0,8);
+    const h=randInt(0,8);
+    const milli=shuffle([1,3,5,7,9]);
+    const values=milli.map(m=>format(ip,`${t}${h}${m}`));
+    return {family:'veryClose',direction,values};
+  }
+
+  function generateMixedLengths(direction){
+    const ip=randInt(2,15);
+    const t=randInt(2,7);
+    let values;
+    for(let guard=0;guard<100;guard++){
+      const candidates=[
+        format(ip,`${t}`),
+        format(ip,`${Math.max(0,t-1)}${randInt(5,9)}`),
+        format(ip,`${t}0${randInt(1,9)}`),
+        format(ip,`${t}${randInt(1,4)}`),
+        format(ip,`${Math.min(9,t+1)}0`)
+      ];
+      if(uniqueValues(candidates)){ values=candidates; break; }
+    }
+    if(!values) return generateMixedLengths(direction);
+    return {family:'mixedLengths',direction,values};
+  }
+
+  function generateZeroWriting(direction){
+    const ip=randInt(3,16);
+    const t=randInt(2,7);
+    let values=[
+      format(ip,`${t}0`),
+      format(ip,`${t-1}${randInt(5,9)}`),
+      format(ip,`${t}0${randInt(1,4)}`),
+      format(ip,`${t}${randInt(1,4)}`),
+      format(ip,`${t+1}`)
+    ];
+    if(!uniqueValues(values)) return generateZeroWriting(direction);
+    return {family:'zeroWriting',direction,values};
+  }
+
+  function generateHundredths(direction){
+    const ip=randInt(1,20);
+    const t=randInt(0,8);
+    const hs=shuffle([1,3,5,7,9]);
+    const values=hs.map(h=>format(ip,`${t}${h}`));
+    return {family:'hundredths',direction,values};
+  }
+
+  function generateQuestion(family,direction){
+    if(family==='differentIntegers') return generateDifferentIntegers(direction);
+    if(family==='sameInteger') return generateSameInteger(direction);
+    if(family==='veryClose') return generateVeryClose(direction);
+    if(family==='mixedLengths') return generateMixedLengths(direction);
+    if(family==='zeroWriting') return generateZeroWriting(direction);
+    return generateHundredths(direction);
+  }
+
+  function buildQuestions(){
+    const families=[
+      'differentIntegers','differentIntegers',
+      'sameInteger','hundredths',
+      'veryClose','veryClose',
+      'mixedLengths','zeroWriting'
+    ];
+    const directions=shuffle(['asc','asc','asc','asc','desc','desc','desc','desc']);
+    const qs=shuffle(families).map((family,i)=>generateQuestion(family,directions[i]));
+    return qs.map(q=>({
+      ...q,
+      values:shuffle(q.values),
+      answer:q.values.slice().sort((a,b)=>q.direction==='asc'?compareDecimals(a,b):compareDecimals(b,a))
+    }));
+  }
+
+  function makeTile(value,id){
+    const tile=document.createElement('div');
+    tile.className='tile';
+    tile.dataset.id=id;
+    tile.dataset.value=value;
+    tile.tabIndex=0;
+    tile.setAttribute('role','button');
+    tile.setAttribute('aria-label',`Nombre ${value}`);
+    tile.textContent=value;
+
+    tile.addEventListener('pointerdown',ev=>{
+      if(locked) return;
+      if(ev.pointerType==='mouse') return;
+      startPointerDrag(ev,tile);
+    });
+
+    tile.addEventListener('dragstart',ev=>{
+      if(locked){ ev.preventDefault(); return; }
+      draggedTileId=id;
+      tile.classList.add('dragging');
+      ev.dataTransfer.effectAllowed='move';
+      ev.dataTransfer.setData('text/plain',id);
+    });
+    tile.addEventListener('dragend',()=>{
+      tile.classList.remove('dragging');
+      draggedTileId=null;
+      clearOver();
+    });
+    tile.draggable=true;
+
+    tile.addEventListener('click',()=>{
+      if(locked) return;
+      selectTile(id);
+    });
+    tile.addEventListener('keydown',ev=>{
+      if(locked) return;
+      if(ev.key==='Enter'||ev.key===' '){
+        ev.preventDefault();
+        selectTile(id);
+      }
+    });
+    return tile;
+  }
+
+  function selectTile(id){
+    selectedTileId = selectedTileId===id ? null : id;
+    document.querySelectorAll('.tile').forEach(t=>t.classList.toggle('selected',t.dataset.id===selectedTileId));
+    if(selectedTileId){
+      feedback.className='feedback';
+      feedback.textContent='Nombre sélectionné : touche maintenant une case pour le placer.';
+    }else{
+      feedback.className='feedback';
+      feedback.textContent='Fais glisser les cinq nombres dans les cases, puis valide.';
+    }
+  }
+
+  function makeSlot(i){
+    const slot=document.createElement('div');
+    slot.className='slot';
+    slot.dataset.slot=String(i);
+    slot.dataset.rank=String(i+1);
+    slot.tabIndex=0;
+    slot.setAttribute('role','button');
+    slot.setAttribute('aria-label',`Position ${i+1}`);
+    slot.innerHTML='<span class="placeholder">…</span>';
+
+    slot.addEventListener('dragover',ev=>{
+      if(locked) return;
+      ev.preventDefault();
+      slot.classList.add('over');
+    });
+    slot.addEventListener('dragleave',()=>slot.classList.remove('over'));
+    slot.addEventListener('drop',ev=>{
+      if(locked) return;
+      ev.preventDefault();
+      const id=ev.dataTransfer.getData('text/plain')||draggedTileId;
+      slot.classList.remove('over');
+      if(id) moveTileToSlot(id,slot);
+    });
+    slot.addEventListener('click',()=>{
+      if(locked||!selectedTileId) return;
+      moveTileToSlot(selectedTileId,slot);
+      selectedTileId=null;
+      document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
+    });
+    slot.addEventListener('keydown',ev=>{
+      if(locked||!selectedTileId) return;
+      if(ev.key==='Enter'||ev.key===' '){
+        ev.preventDefault();
+        moveTileToSlot(selectedTileId,slot);
+        selectedTileId=null;
+        document.querySelectorAll('.tile').forEach(t=>t.classList.remove('selected'));
+      }
+    });
+    return slot;
+  }
+
+  pool.addEventListener('dragover',ev=>{
+    if(locked) return;
+    ev.preventDefault();
+  });
+  pool.addEventListener('drop',ev=>{
+    if(locked) return;
+    ev.preventDefault();
+    const id=ev.dataTransfer.getData('text/plain')||draggedTileId;
+    const tile=findTile(id);
+    if(tile) pool.appendChild(tile);
+    refreshPlaceholders();
+    updateValidate();
+  });
+
+  function findTile(id){ return document.querySelector(`.tile[data-id="${id}"]`); }
+
+  function moveTileToSlot(id,slot){
+    const tile=findTile(id);
+    if(!tile) return;
+    const existing=slot.querySelector('.tile');
+    const oldParent=tile.parentElement;
+
+    if(existing && existing!==tile){
+      if(oldParent && oldParent.classList.contains('slot')){
+        oldParent.appendChild(existing);
+      }else{
+        pool.appendChild(existing);
+      }
+    }
+    slot.appendChild(tile);
+    refreshPlaceholders();
+    updateValidate();
+    feedback.className='feedback';
+    feedback.textContent=allPlaced() ? 'Tout est placé. Vérifie ton ordre puis valide.' : 'Continue : place les nombres restants.';
+  }
+
+  function refreshPlaceholders(){
+    document.querySelectorAll('.slot').forEach(slot=>{
+      let ph=slot.querySelector('.placeholder');
+      const hasTile=!!slot.querySelector('.tile');
+      if(hasTile && ph) ph.remove();
+      if(!hasTile && !ph){
+        ph=document.createElement('span');
+        ph.className='placeholder';
+        ph.textContent='…';
+        slot.appendChild(ph);
+      }
+    });
+  }
+
+  function allPlaced(){
+    return [...document.querySelectorAll('.slot')].every(s=>s.querySelector('.tile'));
+  }
+
+  function updateValidate(){
+    validateBtn.disabled=locked||!allPlaced();
+  }
+
+  function currentOrder(){
+    return [...document.querySelectorAll('.slot')].map(s=>s.querySelector('.tile')?.dataset.value||null);
+  }
+
+  function isCorrect(){
+    const q=questions[index],order=currentOrder();
+    return order.every((v,i)=>v===q.answer[i]);
+  }
+
+  function clearOver(){
+    document.querySelectorAll('.slot').forEach(s=>s.classList.remove('over'));
+  }
+
+  function startPointerDrag(ev,tile){
+    if(locked) return;
+    const startX=ev.clientX,startY=ev.clientY;
+    let moved=false;
+    const ghost=tile.cloneNode(true);
+    ghost.style.position='fixed';
+    ghost.style.zIndex='9999';
+    ghost.style.pointerEvents='none';
+    ghost.style.width=`${tile.getBoundingClientRect().width}px`;
+    ghost.style.height=`${tile.getBoundingClientRect().height}px`;
+    ghost.style.opacity='.92';
+    ghost.style.transform='translate(-50%,-50%)';
+    ghost.style.left=`${startX}px`;
+    ghost.style.top=`${startY}px`;
+    ghost.style.display='none';
+    document.body.appendChild(ghost);
+
+    tile.setPointerCapture(ev.pointerId);
+
+    const onMove=e=>{
+      const dx=e.clientX-startX,dy=e.clientY-startY;
+      if(!moved && Math.hypot(dx,dy)>8){
+        moved=true;
+        ghost.style.display='flex';
+        tile.classList.add('dragging');
+      }
+      if(moved){
+        ghost.style.left=`${e.clientX}px`;
+        ghost.style.top=`${e.clientY}px`;
+        clearOver();
+        const under=document.elementFromPoint(e.clientX,e.clientY);
+        const slot=under?.closest?.('.slot');
+        if(slot) slot.classList.add('over');
+      }
+    };
+
+    const onUp=e=>{
+      tile.removeEventListener('pointermove',onMove);
+      tile.removeEventListener('pointerup',onUp);
+      tile.removeEventListener('pointercancel',onUp);
+      tile.classList.remove('dragging');
+      ghost.remove();
+      clearOver();
+      if(moved){
+        const under=document.elementFromPoint(e.clientX,e.clientY);
+        const slot=under?.closest?.('.slot');
+        const poolTarget=under?.closest?.('#pool');
+        if(slot) moveTileToSlot(tile.dataset.id,slot);
+        else if(poolTarget){ pool.appendChild(tile); refreshPlaceholders(); updateValidate(); }
+      }
+    };
+
+    tile.addEventListener('pointermove',onMove);
+    tile.addEventListener('pointerup',onUp);
+    tile.addEventListener('pointercancel',onUp);
+  }
+
+  function render(){
+    const q=questions[index];
+    locked=false;
+    attempts=0;
+    selectedTileId=null;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+    instruction.textContent=q.direction==='asc'
+      ? 'Range les nombres dans l’ordre croissant.'
+      : 'Range les nombres dans l’ordre décroissant.';
+
+    pool.innerHTML='';
+    slots.innerHTML='';
+
+    q.values.forEach((value,i)=>pool.appendChild(makeTile(value,`q${index}-n${i}`)));
+    for(let i=0;i<5;i++) slots.appendChild(makeSlot(i));
+
+    feedback.className='feedback';
+    feedback.textContent='Fais glisser les cinq nombres dans les cases, puis valide.';
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+  }
+
+  function formatScore(n){ return Number.isInteger(n)?String(n):n.toFixed(1).replace('.',','); }
+
+  function showCorrection(){
+    const q=questions[index];
+    locked=true;
+    selectedTileId=null;
+    q.answer.forEach((value,i)=>{
+      const slot=document.querySelector(`.slot[data-slot="${i}"]`);
+      const tile=[...document.querySelectorAll('.tile')].find(t=>t.dataset.value===value);
+      if(tile) slot.appendChild(tile);
+      slot.classList.add('correct');
+      tile?.classList.add('correct');
+    });
+    refreshPlaceholders();
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+  }
+
+  validateBtn.addEventListener('click',()=>{
+    if(locked||!allPlaced()) return;
+    attempts++;
+
+    if(isCorrect()){
+      score += attempts===1 ? 1 : .5;
+      locked=true;
+      document.querySelectorAll('.slot').forEach(s=>s.classList.add('correct'));
+      document.querySelectorAll('.tile').forEach(t=>t.classList.add('correct'));
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+      feedback.className='feedback success';
+      feedback.textContent='Bravo ! Les nombres sont rangés dans le bon ordre.';
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      return;
+    }
+
+    if(attempts===1){
+      feedback.className='feedback error';
+      feedback.textContent='Pas encore. Vérifie l’ordre demandé et compare les nombres deux à deux.';
+      return;
+    }
+
+    if(attempts>=2){
+      feedback.className='feedback error';
+      feedback.textContent='Voici le bon ordre. Commence par repérer le plus petit ou le plus grand, puis place les autres progressivement.';
+      showCorrection();
+      return;
+    }
+  });
+
+  nextBtn.addEventListener('click',()=>{
+    if(index<TOTAL-1){
+      index++;
+      render();
+    }else{
+      showFinal();
+    }
+  });
+
+  restartBtn.addEventListener('click',start);
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    const ratio=score/TOTAL;
+    finalMessage.textContent=ratio>=.85
+      ? 'Très bien ! Tu sais ranger des nombres décimaux avec précision.'
+      : ratio>=.6
+      ? 'Bon travail. Pense à comparer les chiffres de même rang lorsque les nombres sont proches.'
+      : 'Entraîne-toi encore : repère d’abord le plus petit ou le plus grand, puis avance progressivement.';
+  }
+
+  function start(){
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    attempts=0;
+    locked=false;
+    selectedTileId=null;
+    final.classList.remove('show');
+    exercise.style.display='flex';
+    render();
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
