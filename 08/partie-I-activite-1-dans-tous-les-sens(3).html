@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#20864b;--gs:#e9f7ef;--r:#c63d3d;--rs:#fff0f0;--i:#17212b;--m:#5f6d79;--line:#24364a}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:4px 18px 18px;display:flex;flex-direction:column;gap:9px}.instruction{width:calc(100% + 36px);min-height:42px;margin:0 -18px;display:block;padding:4px 10px 0;font-size:clamp(.96rem,1.75vw,1.16rem);font-weight:800;line-height:1.2;text-align:center;white-space:nowrap}.instruction strong{color:var(--bd)}
+.figure{position:relative;flex:1;min-height:205px;padding:5px 10px;display:grid;place-items:center;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px;overflow:hidden}svg{width:100%;height:100%;min-height:195px;overflow:visible;touch-action:manipulation}
+.side-visible{stroke:var(--line);stroke-width:4;stroke-linecap:round}.extra-visible{stroke:#526579;stroke-width:3.5;stroke-linecap:round}.click-target{stroke:transparent;stroke-width:28;stroke-linecap:round;cursor:pointer}.point-dot{fill:var(--line);stroke:#fff;stroke-width:2.5}.point-hit{fill:transparent;cursor:pointer}.point-label{font:700 26px Arial,Helvetica,sans-serif;fill:var(--line);paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round;pointer-events:none}.free-label{font:700 23px Arial,Helvetica,sans-serif;fill:#526579;paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round;pointer-events:none}
+.selectable .side-visible,.selectable .extra-visible,.selectable .point-dot{transition:stroke .13s ease,fill .13s ease,stroke-width .13s ease}.selected .side-visible,.selected .extra-visible{stroke:var(--b);stroke-width:6}.selected .point-dot{fill:var(--b)}.answer-correct .side-visible,.answer-correct .extra-visible{stroke:var(--g);stroke-width:6}.answer-correct .point-dot{fill:var(--g)}.answer-wrong .side-visible,.answer-wrong .extra-visible{stroke:var(--r);stroke-width:6}.answer-wrong .point-dot{fill:var(--r)}.locked .click-target,.locked .point-hit{cursor:default}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}.name-options{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}.name-btn{min-width:83px;height:44px;padding:0 15px;color:var(--bd);font-size:1.04rem;font-weight:800;background:var(--bs);border:2px solid transparent;border-radius:12px;cursor:pointer}.name-btn.selected{background:#d7ebfb;border-color:#69a9d5}.name-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}.name-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+button.action{min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease}button.action:hover:not(:disabled),.name-btn:hover:not(:disabled){filter:brightness(1.03)}button.action:active:not(:disabled),.name-btn:active:not(:disabled){transform:scale(.98)}button:focus-visible{outline:4px solid rgba(23,105,170,.22)}button:disabled{opacity:.48;cursor:default}.primary{color:#fff;background:var(--b)}.secondary{color:var(--bd);background:var(--bs)}
+.feedback{min-height:50px;padding:8px 13px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;line-height:1.3;text-align:center;background:#f4f7fb;border-radius:14px}.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid;animation:reveal 280ms ease both}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}@media(max-width:700px),(max-height:620px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 10px 10px;gap:6px}.instruction{width:calc(100% + 20px);min-height:38px;margin:0 -10px;padding:3px 6px 0;font-size:.9rem;line-height:1.15;white-space:normal}.figure{min-height:150px;padding:2px 5px}svg{min-height:142px}.controls{min-height:43px;gap:7px}.feedback{min-height:43px;padding:6px 9px;font-size:.88rem}.name-options{gap:6px}.name-btn{min-width:69px;height:40px;padding:0 10px}.point-label{font-size:29px}.free-label{font-size:26px}button.action{min-height:42px;height:42px}}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+    <div class="figure"><svg id="scene" viewBox="0 0 900 360" role="img" aria-label="Triangle et éléments à identifier"></svg></div>
+    <div class="name-options" id="nameOptions" hidden></div>
+    <div class="feedback" id="feedback" role="status">Observe la figure puis sélectionne ta réponse.</div>
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 8;
+  const NS = 'http://www.w3.org/2000/svg';
+  const LETTERS = ['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T','U','V'];
+  const SHAPES = [
+    [[230,285],[700,275],[450,70]],
+    [[180,110],[720,85],[570,300]],
+    [[180,290],[360,70],[740,240]],
+    [[150,185],[700,70],[640,305]],
+    [[240,100],[735,210],[330,300]],
+    [[170,260],[760,285],[610,125]],
+    [[210,70],[710,120],[400,310]],
+    [[155,115],[390,305],[760,180]],
+    [[260,300],[735,260],[650,70]],
+    [[150,250],[560,300],[750,80]]
+  ];
+  const ANCHORS = [[95,75],[810,75],[92,302],[812,302],[450,326],[455,40],[125,188],[785,188],[300,42],[620,330]];
+
+  const $ = id => document.getElementById(id);
+  const svg = $('scene');
+  const counter = $('counter');
+  const bar = $('bar');
+  const scoreBox = $('score');
+  const instruction = $('instruction');
+  const nameOptions = $('nameOptions');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let selected = new Set();
+  let locked = false;
+  let lastSeriesSignature = '';
+
+  function shuffle(array){
+    const copy = array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+  function choice(array){ return array[Math.floor(Math.random()*array.length)]; }
+  function sample(array,n){ return shuffle(array).slice(0,n); }
+  function sideId(a,b){ return 's'+Math.min(a,b)+Math.max(a,b); }
+  function sideText(labels,a,b){ return '['+labels[a]+labels[b]+']'; }
+  function exactSet(a,b){ return a.size===b.size && [...a].every(x=>b.has(x)); }
+  function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+  function makeSvg(tag,attrs={}){
+    const node=document.createElementNS(NS,tag);
+    Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));
+    return node;
+  }
+  function labelPosition(point,center){
+    let dx=point.x-center.x,dy=point.y-center.y,len=Math.hypot(dx,dy)||1;
+    dx/=len;dy/=len;
+    return {x:point.x+dx*27,y:point.y+dy*27+8};
+  }
+  function verticesFor(shapeIndex,labels){
+    return SHAPES[shapeIndex].map((p,i)=>({id:'v'+i,index:i,x:p[0],y:p[1],label:labels[i]}));
+  }
+  function centroid(vertices){
+    return {x:(vertices[0].x+vertices[1].x+vertices[2].x)/3,y:(vertices[0].y+vertices[1].y+vertices[2].y)/3};
+  }
+  function remainingLetters(labels){ return LETTERS.filter(l=>!labels.includes(l)); }
+  function familyOrder(){
+    const base=['oppositeVertex','oppositeVertex','oppositeSide','oppositeSide','vertices','sides','names','adjacentSides'];
+    for(let attempt=0;attempt<300;attempt++){
+      const s=shuffle(base);
+      if(s.every((f,i)=>i===0||f!==s[i-1])) return s;
+    }
+    return ['oppositeVertex','oppositeSide','vertices','oppositeVertex','sides','oppositeSide','names','adjacentSides'];
+  }
+
+  function parasitePoints(vertices,labels,count,withSidePoint=false){
+    const result=[];
+    const freeLetters=shuffle(remainingLetters(labels));
+    let letterIndex=0;
+    if(withSidePoint){
+      const pair=choice([[0,1],[1,2],[2,0]]),a=vertices[pair[0]],b=vertices[pair[1]],t=choice([.34,.42,.58,.66]);
+      result.push({id:'p-side',x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,label:freeLetters[letterIndex++],onSide:true});
+    }
+    const anchors=shuffle(ANCHORS);
+    for(const anchor of anchors){
+      if(result.length>=count) break;
+      const p={x:anchor[0]+(Math.random()*24-12),y:anchor[1]+(Math.random()*20-10)};
+      if(vertices.every(v=>dist(p,v)>72) && result.every(q=>dist(p,q)>62)){
+        result.push({id:'p'+result.length,x:p.x,y:p.y,label:freeLetters[letterIndex++],onSide:false});
+      }
+    }
+    return result;
+  }
+
+  function extraSegments(vertices,labels,count=2,attachOne=true){
+    const extras=[];
+    const free=shuffle(remainingLetters(labels));
+    const c=centroid(vertices);
+    if(attachOne){
+      const vi=Math.floor(Math.random()*3),v=vertices[vi],dx=v.x-c.x,dy=v.y-c.y,len=Math.hypot(dx,dy)||1;
+      const end={x:Math.max(48,Math.min(852,v.x+dx/len*115)),y:Math.max(48,Math.min(312,v.y+dy/len*105)),label:free[0]};
+      extras.push({id:'x0',a:{x:v.x,y:v.y,label:v.label,vertex:true},b:end});
+    }
+    const pairs=[[[82,62],[205,92]],[[690,322],[820,286]],[[70,292],[175,250]],[[700,58],[828,112]],[[365,332],[515,320]]];
+    for(const pair of shuffle(pairs)){
+      if(extras.length>=count) break;
+      const k=extras.length;
+      extras.push({id:'x'+k,a:{x:pair[0][0],y:pair[0][1],label:free[k*2]||'X'},b:{x:pair[1][0],y:pair[1][1],label:free[k*2+1]||'Y'}});
+    }
+    return extras;
+  }
+
+  function buildQuestion(family,shapeIndex){
+    const labels=sample(LETTERS,3);
+    const vertices=verticesFor(shapeIndex,labels);
+    const q={family,shapeIndex,labels,vertices,points:[],extras:[],options:[],correct:new Set(),required:null,instruction:'',feedbackOk:'',feedbackNo:'',signature:''};
+
+    if(family==='oppositeVertex'){
+      const side=choice([[0,1],[1,2],[2,0]]),opposite=[0,1,2].find(i=>!side.includes(i));
+      q.points=parasitePoints(vertices,labels,choice([2,3,4]),false);
+      q.correct=new Set(['v'+opposite]);q.required=1;
+      q.instruction=`Clique sur le <strong>sommet opposé</strong> au côté ${sideText(labels,side[0],side[1])}.`;
+      q.feedbackOk=`Exact ! ${labels[opposite]} est le sommet opposé au côté ${sideText(labels,side[0],side[1])}.`;
+      q.feedbackNo=`Le sommet opposé au côté ${sideText(labels,side[0],side[1])} est ${labels[opposite]} : c'est le seul sommet du triangle qui n'est pas une extrémité de ce côté.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+side.join('');
+    }
+
+    if(family==='oppositeSide'){
+      const vi=Math.floor(Math.random()*3),others=[0,1,2].filter(i=>i!==vi);
+      q.correct=new Set([sideId(others[0],others[1])]);q.required=1;
+      q.instruction=`Clique sur le <strong>côté opposé</strong> au sommet ${labels[vi]}.`;
+      q.feedbackOk=`Exact ! ${sideText(labels,others[0],others[1])} est le côté opposé au sommet ${labels[vi]}.`;
+      q.feedbackNo=`Le côté opposé au sommet ${labels[vi]} est ${sideText(labels,others[0],others[1])} : c'est le seul côté du triangle qui n'a pas ${labels[vi]} pour extrémité.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+vi;
+    }
+
+    if(family==='vertices'){
+      q.points=parasitePoints(vertices,labels,choice([3,4]),true);
+      q.correct=new Set(['v0','v1','v2']);q.required=3;
+      q.instruction='Sélectionne les <strong>trois sommets</strong> du triangle.';
+      q.feedbackOk=`Exact ! Les sommets sont ${labels[0]}, ${labels[1]} et ${labels[2]}.`;
+      q.feedbackNo=`Les trois sommets du triangle sont ${labels[0]}, ${labels[1]} et ${labels[2]}. Un point placé sur un côté n'est pas forcément un sommet.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+q.points.map(p=>p.label).join('');
+    }
+
+    if(family==='sides'){
+      q.extras=extraSegments(vertices,labels,choice([2,3]),true);
+      q.correct=new Set([sideId(0,1),sideId(1,2),sideId(2,0)]);q.required=3;
+      q.instruction='Sélectionne les <strong>trois côtés</strong> du triangle.';
+      q.feedbackOk=`Exact ! Les côtés sont ${sideText(labels,0,1)}, ${sideText(labels,1,2)} et ${sideText(labels,2,0)}.`;
+      q.feedbackNo=`Les côtés du triangle sont ${sideText(labels,0,1)}, ${sideText(labels,1,2)} et ${sideText(labels,2,0)} : ils relient les trois sommets du triangle.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('');
+    }
+
+    if(family==='names'){
+      q.points=parasitePoints(vertices,labels,2,false);
+      const perms=[labels[0]+labels[1]+labels[2],labels[0]+labels[2]+labels[1],labels[1]+labels[0]+labels[2],labels[1]+labels[2]+labels[0],labels[2]+labels[0]+labels[1],labels[2]+labels[1]+labels[0]];
+      const correctCount=choice([3,4]);
+      const good=sample(perms,correctCount);
+      const parasites=q.points.map(p=>p.label);
+      const wrong=new Set();
+      let guard=0;
+      while(wrong.size<6-correctCount && guard++<100){
+        const pair=sample(labels,2),bad=shuffle([pair[0],pair[1],choice(parasites)]).join('');
+        if(!perms.includes(bad)) wrong.add(bad);
+      }
+      q.options=shuffle(good.concat([...wrong]));
+      q.correct=new Set(good);q.required=null;
+      q.instruction='Parmi les propositions, sélectionne <strong>tous les noms possibles</strong> de ce triangle.';
+      q.feedbackOk='Exact ! Un triangle peut être nommé avec ses trois sommets dans n’importe quel ordre.';
+      q.feedbackNo=`Un nom correct doit contenir exactement les trois sommets ${labels[0]}, ${labels[1]} et ${labels[2]}, dans n’importe quel ordre.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+q.options.join('|');
+    }
+
+    if(family==='adjacentSides'){
+      const vi=Math.floor(Math.random()*3),others=[0,1,2].filter(i=>i!==vi);
+      q.extras=extraSegments(vertices,labels,2,true);
+      q.correct=new Set([sideId(vi,others[0]),sideId(vi,others[1])]);q.required=2;
+      q.instruction=`Clique sur les <strong>deux côtés du triangle</strong> qui ont pour sommet commun ${labels[vi]}.`;
+      q.feedbackOk=`Exact ! ${sideText(labels,vi,others[0])} et ${sideText(labels,vi,others[1])} se rencontrent au sommet ${labels[vi]}.`;
+      q.feedbackNo=`Les deux côtés du triangle qui ont ${labels[vi]} pour sommet commun sont ${sideText(labels,vi,others[0])} et ${sideText(labels,vi,others[1])}.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+vi;
+    }
+    return q;
+  }
+
+  function buildSeries(){
+    let built,signature,guard=0;
+    do{
+      const families=familyOrder();
+      const shapeIndices=shuffle(SHAPES.map((_,i)=>i)).slice(0,TOTAL);
+      built=families.map((family,i)=>buildQuestion(family,shapeIndices[i]));
+      signature=built.map(q=>q.signature).join('||');
+      guard++;
+    }while(signature===lastSeriesSignature && guard<20);
+    lastSeriesSignature=signature;
+    return built;
+  }
+
+  function addSegment(id,a,b,extra=false){
+    const group=makeSvg('g',{'data-id':id,class:'selectable'});
+    group.append(makeSvg('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'click-target'}));
+    group.append(makeSvg('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:extra?'extra-visible':'side-visible'}));
+    group.addEventListener('click',()=>selectItem(id));
+    svg.append(group);
+  }
+
+  function addPoint(p,center,clickable=true,free=false){
+    const group=makeSvg('g',{'data-id':p.id,class:clickable?'selectable':''});
+    if(clickable) group.append(makeSvg('circle',{cx:p.x,cy:p.y,r:25,class:'point-hit'}));
+    group.append(makeSvg('circle',{cx:p.x,cy:p.y,r:7,class:'point-dot'}));
+    const lp=free?{x:p.x+16,y:p.y-13}:labelPosition(p,center);
+    const text=makeSvg('text',{x:lp.x,y:lp.y,'text-anchor':'middle',class:free?'free-label':'point-label'});text.textContent=p.label;group.append(text);
+    if(clickable) group.addEventListener('click',()=>selectItem(p.id));
+    svg.append(group);
+  }
+
+  function drawQuestion(q){
+    svg.replaceChildren();svg.classList.remove('locked');
+    const c=centroid(q.vertices);
+    const sides=[[0,1],[1,2],[2,0]];
+    const clickableSides=['oppositeSide','sides','adjacentSides'].includes(q.family);
+    sides.forEach(pair=>{
+      const id=sideId(pair[0],pair[1]),a=q.vertices[pair[0]],b=q.vertices[pair[1]];
+      if(clickableSides) addSegment(id,a,b,false);
+      else svg.append(makeSvg('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'side-visible'}));
+    });
+
+    q.extras.forEach(ex=>{
+      const clickable=['sides','adjacentSides'].includes(q.family);
+      if(clickable) addSegment(ex.id,ex.a,ex.b,true);
+      else svg.append(makeSvg('line',{x1:ex.a.x,y1:ex.a.y,x2:ex.b.x,y2:ex.b.y,class:'extra-visible'}));
+      if(!ex.a.vertex) addPoint({id:'label-'+ex.id+'a',x:ex.a.x,y:ex.a.y,label:ex.a.label},c,false,true);
+      addPoint({id:'label-'+ex.id+'b',x:ex.b.x,y:ex.b.y,label:ex.b.label},c,false,true);
+    });
+
+    const clickableVertices=['oppositeVertex','vertices'].includes(q.family);
+    q.vertices.forEach(v=>addPoint(v,c,clickableVertices,false));
+    q.points.forEach(p=>addPoint(p,c,['oppositeVertex','vertices'].includes(q.family),true));
+
+    nameOptions.hidden=q.family!=='names';
+    nameOptions.replaceChildren();
+    if(q.family==='names'){
+      q.options.forEach(name=>{
+        const btn=document.createElement('button');btn.type='button';btn.className='name-btn';btn.dataset.id=name;btn.textContent=name;
+        btn.addEventListener('click',()=>selectItem(name));nameOptions.append(btn);
+      });
+    }
+  }
+
+  function selectableNodes(){ return [...svg.querySelectorAll('[data-id]'),...nameOptions.querySelectorAll('[data-id]')]; }
+  function nodeFor(id){ return selectableNodes().find(n=>n.dataset.id===id); }
+  function setSelectedStyle(){
+    selectableNodes().forEach(node=>node.classList.toggle('selected',selected.has(node.dataset.id)));
+  }
+  function updateValidate(q){
+    if(locked){validateBtn.disabled=true;return;}
+    validateBtn.disabled=q.required===null ? selected.size===0 : selected.size!==q.required;
+  }
+  function selectItem(id){
+    if(locked) return;
+    const q=questions[index];
+    if(q.required===1){ selected.clear();selected.add(id); }
+    else if(selected.has(id)){ selected.delete(id); }
+    else if(q.required===null || selected.size<q.required){ selected.add(id); }
+    setSelectedStyle();updateValidate(q);
+  }
+
+  function showQuestion(){
+    locked=false;selected=new Set();
+    const q=questions[index];
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    bar.style.width=`${(index+1)/TOTAL*100}%`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    instruction.innerHTML=q.instruction;
+    feedback.className='feedback';feedback.textContent='Observe la figure puis sélectionne ta réponse.';
+    validateBtn.hidden=false;validateBtn.disabled=true;nextBtn.hidden=true;
+    drawQuestion(q);updateValidate(q);
+  }
+
+  function markCorrection(q,ok){
+    selectableNodes().forEach(node=>{
+      const id=node.dataset.id;
+      node.classList.remove('selected');
+      if(q.correct.has(id)){
+        if(node.classList.contains('name-btn')) node.classList.add('correct');
+        else node.classList.add('answer-correct');
+      }else if(selected.has(id)){
+        if(node.classList.contains('name-btn')) node.classList.add('wrong');
+        else node.classList.add('answer-wrong');
+      }
+      if(node.tagName==='BUTTON') node.disabled=true;
+    });
+    svg.classList.add('locked');
+    feedback.className='feedback '+(ok?'success':'error');
+    feedback.textContent=(ok?'✓ ':'✗ ')+(ok?q.feedbackOk:q.feedbackNo);
+  }
+
+  function validate(){
+    if(locked) return;
+    const q=questions[index];
+    if(validateBtn.disabled) return;
+    locked=true;
+    const ok=exactSet(selected,q.correct);
+    if(ok) score++;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    markCorrection(q,ok);
+    validateBtn.hidden=true;nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir mon score':'Question suivante';
+  }
+
+  function showFinal(){
+    exercise.style.display='none';final.classList.add('show');
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+    if(score===8) finalMessage.textContent='Excellent : le vocabulaire du triangle est parfaitement maîtrisé.';
+    else if(score>=6) finalMessage.textContent='Très bien ! Quelques détails à consolider, mais le vocabulaire est bien compris.';
+    else if(score>=4) finalMessage.textContent='Tu as compris une partie du vocabulaire. Rejoue : les figures et les questions vont changer.';
+    else finalMessage.textContent='Reprends le vocabulaire du cours puis retente l’activité avec une nouvelle série.';
+  }
+
+  function next(){
+    if(index===TOTAL-1){showFinal();return;}
+    index++;showQuestion();
+  }
+
+  function restart(){
+    questions=buildSeries();index=0;score=0;locked=false;selected=new Set();
+    final.classList.remove('show');exercise.style.display='flex';showQuestion();
+  }
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  restart();
+})();
+</script>
+</body>
+</html>

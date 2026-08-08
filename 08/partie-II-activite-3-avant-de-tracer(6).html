@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#20864b;--gs:#e9f7ef;--r:#c63d3d;--rs:#fff0f0;--i:#17212b;--m:#5f6d79;--line:#24364a;--gold:#b26a00;--goldsoft:#fff7df}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}.pill{min-width:128px;padding:10px 16px;color:var(--bd);font-size:1.08rem;font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:4px 18px 16px;display:flex;flex-direction:column;gap:8px}.instruction{width:calc(100% + 36px);min-height:48px;margin:0 -18px;padding:4px 12px 0;font-size:clamp(1.12rem,2.15vw,1.38rem);font-weight:600;line-height:1.22;text-align:center}.instruction strong{color:var(--bd)}
+.figure{position:relative;flex:1;min-height:190px;padding:7px 10px;display:grid;place-items:center;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px;overflow:hidden}.figure.single svg{width:100%;height:100%;min-height:180px}.prompt-card{width:min(900px,98%);padding:14px 20px;text-align:center;background:#fff;border:1px solid #dce9f3;border-radius:16px;box-shadow:0 5px 16px rgba(17,63,103,.07)}.prompt-card .given{font-size:clamp(1.18rem,2.35vw,1.48rem);font-weight:500;line-height:1.45}.prompt-card .given strong{color:var(--bd)}
+.options{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;min-height:52px}.options[hidden]{display:none!important}.option-btn{min-height:48px;padding:0 19px;color:var(--bd);font-size:1.1rem;font-weight:600;background:var(--bs);border:2px solid transparent;border-radius:12px;cursor:pointer;white-space:nowrap}.option-btn.selected{background:#d7ebfb;border-color:#69a9d5}.option-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}.option-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.sketches{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:11px;align-items:stretch}.sketch-card{position:relative;min-width:0;height:100%;min-height:150px;padding:5px;background:#fff;border:2px solid #dce9f3;border-radius:15px;cursor:pointer;transition:border-color .14s ease,box-shadow .14s ease,transform .12s ease}.sketch-card:hover:not(.locked){border-color:#9fc5df;transform:translateY(-1px)}.sketch-card.selected{border-color:var(--b);box-shadow:0 0 0 3px rgba(23,105,170,.1)}.sketch-card.correct{border-color:#79c798;background:var(--gs)}.sketch-card.wrong{border-color:#df8585;background:var(--rs)}.sketch-card.locked{cursor:default}.sketch-label{position:absolute;top:7px;left:9px;width:32px;height:32px;display:grid;place-items:center;color:var(--bd);font-size:1.05rem;font-weight:700;background:var(--bs);border-radius:50%;z-index:2}.sketch-card svg{width:100%;height:100%;min-height:138px;overflow:visible;pointer-events:none}
+.side{stroke:var(--line);stroke-width:3.2;stroke-linecap:round}.vertex{fill:var(--line);stroke:#fff;stroke-width:2}.vlabel{font:600 31px Arial,Helvetica,sans-serif;fill:var(--line);paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round}.len{font:600 46px Arial,Helvetica,sans-serif;fill:var(--bd);paint-order:stroke;stroke:#fff;stroke-width:9px;stroke-linejoin:round}.tick{stroke:#c63d3d;stroke-width:3.4;stroke-linecap:round}.rough{stroke-dasharray:0}
+.controls{min-height:52px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}button.action{min-height:48px;padding:0 22px;font-size:1.1rem;font-weight:600;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease}button.action:hover:not(:disabled),.option-btn:hover:not(:disabled){filter:brightness(1.03)}button.action:active:not(:disabled),.option-btn:active:not(:disabled){transform:scale(.98)}button:focus-visible{outline:4px solid rgba(23,105,170,.22)}button:disabled{opacity:.48;cursor:default}.primary{color:#fff;background:var(--b)}.secondary{color:var(--bd);background:var(--bs)}
+.feedback{min-height:52px;padding:8px 14px;display:flex;align-items:center;justify-content:center;color:var(--m);font-size:1.05rem;font-weight:500;line-height:1.32;text-align:center;background:#f4f7fb;border-radius:14px}.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}.feedback.info{color:#805300;background:var(--goldsoft);border:1px solid #ead391}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid;animation:reveal 280ms ease both}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:8px 0;font-size:1.25rem;font-weight:700}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
+@media(max-width:700px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 9px 9px;gap:5px}.instruction{width:calc(100% + 18px);min-height:42px;margin:0 -9px;padding:2px 6px 0;font-size:1rem;line-height:1.18}.figure{min-height:145px;padding:4px 5px}.prompt-card{padding:8px 10px}.prompt-card .given{font-size:1.08rem}.options{gap:6px;min-height:38px}.option-btn{min-height:42px;padding:0 10px;font-size:.95rem;white-space:normal}.sketches{gap:5px}.sketch-card{min-height:135px;padding:2px}.sketch-card svg{min-height:125px}.sketch-label{width:26px;height:26px;top:4px;left:5px;font-size:.9rem}.feedback{min-height:43px;padding:6px 8px;font-size:.95rem}.controls{min-height:40px}button.action{min-height:43px;height:43px;font-size:1rem}.vlabel{font-size:28px}.len{font-size:42px}}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+    <div class="figure" id="figure"></div>
+    <div class="options" id="options" hidden></div>
+    <div class="feedback" id="feedback" role="status">Analyse d’abord les informations données.</div>
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">📐</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles données</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const TOTAL=8,NS='http://www.w3.org/2000/svg';
+const LETTERS=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T','U','V','W','Z'];
+const SHAPES=[
+ [[170,285],[730,270],[455,70]],
+ [[170,110],[735,90],[580,300]],
+ [[180,290],[350,70],[750,235]],
+ [[155,190],[720,75],[645,305]],
+ [[235,95],[735,215],[325,305]],
+ [[165,260],[755,290],[610,120]],
+ [[205,70],[720,120],[405,310]],
+ [[150,115],[390,305],[755,180]]
+];
+const LENGTHS=[3,3.5,4,4.5,4.8,5,5.5,6,6.5,7];
+const $=id=>document.getElementById(id);
+const figure=$('figure'),options=$('options'),instruction=$('instruction'),feedback=$('feedback'),validateBtn=$('validate'),nextBtn=$('next'),counter=$('counter'),bar=$('bar'),scoreBox=$('score'),exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
+let questions=[],index=0,score=0,selected=null,locked=false,lastSignature='';
+function shuffle(a){const c=a.slice();for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+function sample(a,n){return shuffle(a).slice(0,n)}
+function fmt(v){return String(v).replace('.',',')+' cm'}
+function sideName(labels,a,b){return '['+labels[a]+labels[b]+']'}
+function sideKey(a,b){return 's'+Math.min(a,b)+Math.max(a,b)}
+function pairs(){return [[0,1],[1,2],[0,2]]}
+function pairFor(id){return {s01:[0,1],s12:[1,2],s02:[0,2]}[id]}
+function otherVertex(a,b){return [0,1,2].find(x=>x!==a&&x!==b)}
+function centroid(v){return{x:(v[0][0]+v[1][0]+v[2][0])/3,y:(v[0][1]+v[1][1]+v[2][1])/3}}
+function makeSvg(tag,attrs={}){const n=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));return n}
+function labelPos(p,c){let dx=p[0]-c.x,dy=p[1]-c.y,len=Math.hypot(dx,dy)||1;return{x:p[0]+dx/len*27,y:p[1]+dy/len*27+7}}
+function randomDistinctLengths(){let vals=sample(LENGTHS,3);while(vals[0]+vals[1]<=vals[2]||vals[0]+vals[2]<=vals[1]||vals[1]+vals[2]<=vals[0])vals=sample(LENGTHS,3);return vals}
+function isoInfo(){const principal=Math.floor(Math.random()*3),others=[0,1,2].filter(x=>x!==principal);return{principal,others,equal:[sideKey(principal,others[0]),sideKey(principal,others[1])],base:sideKey(others[0],others[1])}}
+function familyOrder(){
+ const base=['directValue','directSketch','isoMissing','isoMissingBase','isoSketch','equiMissing','equiAll','mixedSketch'];
+ for(let k=0;k<300;k++){const s=shuffle(base);if(s.every((f,i)=>i===0||f!==s[i-1]))return s}
+ return base;
+}
+function option(id,label){return{id,label}}
+function buildQuestion(family,shapeIndex){
+ const labels=sample(LETTERS,3),shape=SHAPES[shapeIndex],q={family,labels,shape,mode:'buttons',options:[],correct:'',instruction:'',given:'',feedbackOk:'',feedbackNo:'',sketches:null,signature:''};
+ if(family==='directValue'){
+   const vals=randomDistinctLengths(),assign={[sideKey(0,1)]:vals[0],[sideKey(1,2)]:vals[1],[sideKey(0,2)]:vals[2]},asked=choice(Object.keys(assign)),p=pairFor(asked);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;tel que ${sideName(labels,0,1)} = ${fmt(assign.s01)}, ${sideName(labels,1,2)} = ${fmt(assign.s12)} et ${sideName(labels,0,2)} = ${fmt(assign.s02)}.`;
+   q.instruction=`Quelle longueur faut-il inscrire sur&nbsp;<strong>${sideName(labels,p[0],p[1])}</strong>&nbsp;sur la figure à main levée ?`;
+   const correct=assign[asked],wrong=sample(LENGTHS.filter(v=>v!==correct),2);q.options=shuffle([option(String(correct),fmt(correct)),...wrong.map(v=>option(String(v),fmt(v)))]);q.correct=String(correct);
+   q.feedbackOk=`Exact ! ${sideName(labels,p[0],p[1])} mesure ${fmt(correct)}.`;q.feedbackNo=`La consigne donne directement ${sideName(labels,p[0],p[1])} = ${fmt(correct)}.`;
+   q.signature=family+'-'+labels.join('')+'-'+JSON.stringify(assign)+'-'+asked;
+ }
+ if(family==='directSketch'){
+   const vals=randomDistinctLengths(),assign={[sideKey(0,1)]:vals[0],[sideKey(1,2)]:vals[1],[sideKey(0,2)]:vals[2]};
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;tel que ${sideName(labels,0,1)} = ${fmt(assign.s01)}, ${sideName(labels,1,2)} = ${fmt(assign.s12)} et ${sideName(labels,0,2)} = ${fmt(assign.s02)}.`;
+   q.instruction='Quelle&nbsp;<strong>figure à main levée</strong>&nbsp;prépare correctement cette construction ?';q.mode='sketch';q.correct='A';
+   const wrong1={...assign,[sideKey(0,1)]:assign.s12,[sideKey(1,2)]:assign.s01};
+   const wrong2={...assign,[sideKey(0,2)]:assign.s01,[sideKey(0,1)]:assign.s02};
+   q.sketches=shuffle([{key:'A',type:'direct',lengths:assign},{key:'B',type:'direct',lengths:wrong1},{key:'C',type:'direct',lengths:wrong2}]);
+   q.feedbackOk='Exact ! Les trois longueurs sont reportées sur les bons côtés.';q.feedbackNo='La bonne figure est celle qui place chacune des trois longueurs sur le côté correspondant à la consigne.';
+   q.signature=family+'-'+labels.join('')+'-'+JSON.stringify(assign);
+ }
+ if(family==='isoMissing'){
+   const iso=isoInfo(),equal=choice([4,4.5,5,5.5,6]),base=choice(LENGTHS.filter(v=>v!==equal&&v<2*equal)),knownEqual=choice(iso.equal),missing=iso.equal.find(x=>x!==knownEqual),kp=pairFor(knownEqual),bp=pairFor(iso.base),mp=pairFor(missing);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;isocèle en&nbsp;<strong>${labels[iso.principal]}</strong>, avec ${sideName(labels,kp[0],kp[1])} = ${fmt(equal)} et ${sideName(labels,bp[0],bp[1])} = ${fmt(base)}.`;
+   q.instruction=`Quelle longueur faut-il déduire pour&nbsp;<strong>${sideName(labels,mp[0],mp[1])}</strong>&nbsp;?`;
+   const wrong=sample(LENGTHS.filter(v=>v!==equal),2);q.options=shuffle([option(String(equal),fmt(equal)),...wrong.map(v=>option(String(v),fmt(v)))]);q.correct=String(equal);
+   q.feedbackOk=`Exact ! Le triangle est isocèle en ${labels[iso.principal]} : les deux côtés issus de ce sommet ont la même longueur.`;
+   q.feedbackNo=`Comme le triangle est isocèle en ${labels[iso.principal]}, ${sideName(labels,pairFor(iso.equal[0])[0],pairFor(iso.equal[0])[1])} et ${sideName(labels,pairFor(iso.equal[1])[0],pairFor(iso.equal[1])[1])} ont la même longueur : ${fmt(equal)}.`;
+   q.signature=family+'-'+labels.join('')+'-'+iso.principal+'-'+equal+'-'+base+'-'+knownEqual;
+ }
+ if(family==='isoMissingBase'){
+   const basePair=choice(pairs()),baseId=sideKey(basePair[0],basePair[1]),principal=otherVertex(basePair[0],basePair[1]),equalSides=[sideKey(principal,basePair[0]),sideKey(principal,basePair[1])],equal=choice([4,4.5,5,5.5,6]),base=choice(LENGTHS.filter(v=>v!==equal&&v<2*equal)),known=choice(equalSides),missing=equalSides.find(x=>x!==known),kp=pairFor(known),mp=pairFor(missing);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;isocèle de base&nbsp;<strong>${sideName(labels,basePair[0],basePair[1])}</strong>, avec ${sideName(labels,kp[0],kp[1])} = ${fmt(equal)} et ${sideName(labels,basePair[0],basePair[1])} = ${fmt(base)}.`;
+   q.instruction=`Quelle longueur faut-il inscrire sur&nbsp;<strong>${sideName(labels,mp[0],mp[1])}</strong>&nbsp;?`;
+   const wrong=sample(LENGTHS.filter(v=>v!==equal),2);q.options=shuffle([option(String(equal),fmt(equal)),...wrong.map(v=>option(String(v),fmt(v)))]);q.correct=String(equal);
+   q.feedbackOk=`Exact ! La base est ${sideName(labels,basePair[0],basePair[1])}, donc les deux autres côtés ont la même longueur.`;
+   q.feedbackNo=`Dans un triangle isocèle de base ${sideName(labels,basePair[0],basePair[1])}, les deux autres côtés sont égaux : la longueur cherchée est ${fmt(equal)}.`;
+   q.signature=family+'-'+labels.join('')+'-'+baseId+'-'+equal+'-'+base+'-'+known;
+ }
+ if(family==='isoSketch'){
+   const iso=isoInfo(),equal=choice([4,4.5,5,5.5,6]),base=choice(LENGTHS.filter(v=>v!==equal&&v<2*equal)),known=choice(iso.equal),kp=pairFor(known),bp=pairFor(iso.base);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;isocèle en&nbsp;<strong>${labels[iso.principal]}</strong>, avec ${sideName(labels,kp[0],kp[1])} = ${fmt(equal)} et ${sideName(labels,bp[0],bp[1])} = ${fmt(base)}.`;
+   q.instruction='Quelle&nbsp;<strong>figure à main levée</strong>&nbsp;traduit correctement la consigne ?';q.mode='sketch';q.correct='A';
+   const goodLengths={[known]:equal,[iso.base]:base},goodTicks={[iso.equal[0]]:1,[iso.equal[1]]:1};
+   const wrongTicksBase={[iso.equal[0]]:1,[iso.base]:1};
+   const wrongPrincipal=(iso.principal+1)%3,wo=[0,1,2].filter(x=>x!==wrongPrincipal),wrongTicksVertex={[sideKey(wrongPrincipal,wo[0])]:1,[sideKey(wrongPrincipal,wo[1])]:1};
+   q.sketches=shuffle([{key:'A',type:'coded',lengths:goodLengths,ticks:goodTicks},{key:'B',type:'coded',lengths:goodLengths,ticks:wrongTicksBase},{key:'C',type:'coded',lengths:goodLengths,ticks:wrongTicksVertex}]);
+   q.feedbackOk=`Exact ! Les deux côtés égaux se rencontrent bien au sommet ${labels[iso.principal]}, et les longueurs données sont bien placées.`;
+   q.feedbackNo=`Pour être isocèle en ${labels[iso.principal]}, les deux côtés qui se rencontrent en ${labels[iso.principal]} doivent porter le même codage.`;
+   q.signature=family+'-'+labels.join('')+'-'+iso.principal+'-'+equal+'-'+base+'-'+known;
+ }
+ if(family==='equiMissing'){
+   const givenSide=choice(pairs()),givenId=sideKey(givenSide[0],givenSide[1]),otherId=choice(Object.keys({s01:1,s12:1,s02:1}).filter(x=>x!==givenId)),op=pairFor(otherId),len=choice([3.5,4,4.5,4.8,5,5.5,6]);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;équilatéral avec ${sideName(labels,givenSide[0],givenSide[1])} = ${fmt(len)}.`;
+   q.instruction=`Quelle longueur faut-il inscrire sur&nbsp;<strong>${sideName(labels,op[0],op[1])}</strong>&nbsp;?`;
+   const wrong=sample(LENGTHS.filter(v=>v!==len),2);q.options=shuffle([option(String(len),fmt(len)),...wrong.map(v=>option(String(v),fmt(v)))]);q.correct=String(len);
+   q.feedbackOk='Exact ! Dans un triangle équilatéral, les trois côtés ont la même longueur.';q.feedbackNo=`Le triangle est équilatéral : ses trois côtés mesurent donc ${fmt(len)}.`;
+   q.signature=family+'-'+labels.join('')+'-'+givenId+'-'+len+'-'+otherId;
+ }
+ if(family==='equiAll'){
+   const givenSide=choice(pairs()),len=choice([3.5,4,4.5,4.8,5,5.5,6]);
+   q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;équilatéral avec ${sideName(labels,givenSide[0],givenSide[1])} = ${fmt(len)}.`;
+   q.instruction='Quelles longueurs faut-il avoir sur la figure à main levée avant de construire ?';
+   const all=`${sideName(labels,0,1)} = ${sideName(labels,1,2)} = ${sideName(labels,0,2)} = ${fmt(len)}`;
+   const only=`Seulement ${sideName(labels,givenSide[0],givenSide[1])} = ${fmt(len)}`;
+   const other=choice(LENGTHS.filter(v=>v!==len));
+   const mixed=`Deux côtés mesurent ${fmt(len)} et le troisième ${fmt(other)}`;
+   q.options=shuffle([option('all',all),option('only',only),option('mixed',mixed)]);q.correct='all';
+   q.feedbackOk='Exact ! « Équilatéral » permet de déduire les deux longueurs qui ne sont pas écrites dans la consigne.';q.feedbackNo=`Dans un triangle équilatéral, les trois côtés ont la même longueur : ils mesurent tous ${fmt(len)}.`;
+   q.signature=family+'-'+labels.join('')+'-'+len+'-'+givenSide.join('');
+ }
+ if(family==='mixedSketch'){
+   const kind=choice(['direct','iso','equi']);q.mode='sketch';q.correct='A';q.instruction='Quelle&nbsp;<strong>figure à main levée</strong>&nbsp;contient toutes les informations utiles avant la construction ?';
+   if(kind==='direct'){
+     const vals=randomDistinctLengths(),assign={s01:vals[0],s12:vals[1],s02:vals[2]};q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;avec ${sideName(labels,0,1)} = ${fmt(vals[0])}, ${sideName(labels,1,2)} = ${fmt(vals[1])} et ${sideName(labels,0,2)} = ${fmt(vals[2])}.`;
+     const incomplete={s01:vals[0],s12:vals[1]},wrong={s01:vals[1],s12:vals[0],s02:vals[2]};q.sketches=shuffle([{key:'A',type:'direct',lengths:assign},{key:'B',type:'direct',lengths:incomplete},{key:'C',type:'direct',lengths:wrong}]);
+   }else if(kind==='iso'){
+     const iso=isoInfo(),equal=choice([4,4.5,5,5.5,6]),base=choice(LENGTHS.filter(v=>v!==equal&&v<2*equal)),known=choice(iso.equal),kp=pairFor(known),bp=pairFor(iso.base);q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;isocèle en&nbsp;<strong>${labels[iso.principal]}</strong>, avec ${sideName(labels,kp[0],kp[1])} = ${fmt(equal)} et ${sideName(labels,bp[0],bp[1])} = ${fmt(base)}.`;
+     const full={[iso.equal[0]]:equal,[iso.equal[1]]:equal,[iso.base]:base},ticks={[iso.equal[0]]:1,[iso.equal[1]]:1},incomplete={[known]:equal,[iso.base]:base};q.sketches=shuffle([{key:'A',type:'coded',lengths:full,ticks},{key:'B',type:'coded',lengths:incomplete,ticks:{}},{key:'C',type:'coded',lengths:full,ticks:{[iso.equal[0]]:1,[iso.base]:1}}]);
+   }else{
+     const len=choice([3.5,4,4.5,4.8,5,5.5,6]),given=choice(pairs());q.given=`On veut construire le triangle&nbsp;<strong>${labels.join('')}</strong>&nbsp;équilatéral avec ${sideName(labels,given[0],given[1])} = ${fmt(len)}.`;
+     const full={s01:len,s12:len,s02:len},ticks={s01:1,s12:1,s02:1},one={[sideKey(given[0],given[1])]:len},wrong={s01:len,s12:len,s02:choice(LENGTHS.filter(v=>v!==len))};q.sketches=shuffle([{key:'A',type:'coded',lengths:full,ticks},{key:'B',type:'coded',lengths:one,ticks:{}},{key:'C',type:'coded',lengths:wrong,ticks:{s01:1,s12:1}}]);
+   }
+   q.feedbackOk='Exact ! La figure à main levée doit faire apparaître les longueurs données et celles que l’on peut déduire.';q.feedbackNo='Avant de construire, la figure à main levée doit rassembler les données de la consigne et les informations que la nature du triangle permet de déduire.';
+   q.signature=family+'-'+kind+'-'+labels.join('')+'-'+q.given;
+ }
+ return q;
+}
+function buildSeries(){let built,sig,guard=0;do{const fam=familyOrder(),shapes=shuffle(SHAPES.map((_,i)=>i)).slice(0,TOTAL);built=fam.map((f,i)=>buildQuestion(f,shapes[i]));sig=built.map(q=>q.signature).join('||');guard++}while(sig===lastSignature&&guard<20);lastSignature=sig;return built}
+function drawTick(svg,a,b,count=1){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,tx=dx/len,ty=dy/len;for(let k=0;k<count;k++){const sh=(k-(count-1)/2)*9,cx=mx+tx*sh,cy=my+ty*sh;svg.appendChild(makeSvg('line',{x1:cx-nx*9,y1:cy-ny*9,x2:cx+nx*9,y2:cy+ny*9,class:'tick'}))}}
+function drawLength(svg,shape,id,val){const p=pairFor(id),a=shape[p[0]],b=shape[p[1]],c=centroid(shape),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=mx-c.x,dy=my-c.y,len=Math.hypot(dx,dy)||1,offset=66,t=makeSvg('text',{x:mx+dx/len*offset,y:my+dy/len*offset+8,'text-anchor':'middle',class:'len'});t.textContent=fmt(val);svg.appendChild(t)}
+function drawTriangle(svg,shape,labels,lengths={},ticks={}){svg.setAttribute('viewBox','0 0 900 360');svg.setAttribute('preserveAspectRatio','xMidYMid meet');const originalCenter=centroid(shape),scale=.76,compact=shape.map(p=>[originalCenter.x+(p[0]-originalCenter.x)*scale,originalCenter.y+(p[1]-originalCenter.y)*scale]),c=centroid(compact);pairs().forEach(([a,b])=>svg.appendChild(makeSvg('line',{x1:compact[a][0],y1:compact[a][1],x2:compact[b][0],y2:compact[b][1],class:'side'})));Object.entries(ticks||{}).forEach(([id,n])=>{const p=pairFor(id);drawTick(svg,compact[p[0]],compact[p[1]],n)});Object.entries(lengths||{}).forEach(([id,v])=>drawLength(svg,compact,id,v));compact.forEach((p,i)=>{svg.appendChild(makeSvg('circle',{cx:p[0],cy:p[1],r:5.5,class:'vertex'}));const lp=labelPos(p,c),t=makeSvg('text',{x:lp.x,y:lp.y,'text-anchor':'middle',class:'vlabel'});t.textContent=labels[i];svg.appendChild(t)})}
+function renderPrompt(q){figure.replaceChildren();figure.className='figure';const card=document.createElement('div');card.className='prompt-card';const given=document.createElement('div');given.className='given';given.innerHTML=q.given;card.appendChild(given);if(q.mode==='buttons'){const svg=makeSvg('svg');svg.style.width='100%';svg.style.height='135px';svg.setAttribute('role','img');svg.setAttribute('aria-label','Figure à main levée du triangle');drawTriangle(svg,q.shape,q.labels,{},{});card.appendChild(svg)}figure.appendChild(card)}
+function renderSketches(q){figure.replaceChildren();figure.className='figure';const wrap=document.createElement('div');wrap.className='sketches';q.sketches.forEach((s,i)=>{const card=document.createElement('button');card.type='button';card.className='sketch-card'+(selected===s.key?' selected':'')+(locked?' locked':'');card.dataset.key=s.key;const lab=document.createElement('span');lab.className='sketch-label';lab.textContent=String.fromCharCode(65+i);card.appendChild(lab);const svg=makeSvg('svg');drawTriangle(svg,q.shape,q.labels,s.lengths||{},s.ticks||{});card.appendChild(svg);card.addEventListener('click',()=>chooseSketch(s.key));wrap.appendChild(card)});figure.appendChild(wrap)}
+function renderOptions(q){options.replaceChildren();if(q.mode!=='buttons'){options.hidden=true;return}options.hidden=false;q.options.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='option-btn'+(selected===o.id?' selected':'');b.dataset.id=o.id;b.textContent=o.label;b.addEventListener('click',()=>chooseButton(o.id));options.appendChild(b)})}
+function chooseButton(id){if(locked)return;selected=id;validateBtn.disabled=false;renderOptions(questions[index])}
+function chooseSketch(key){if(locked)return;selected=key;validateBtn.disabled=false;renderSketches(questions[index])}
+function showQuestion(){locked=false;selected=null;options.replaceChildren();options.hidden=true;const q=questions[index];counter.textContent=`Question ${index+1} / ${TOTAL}`;scoreBox.textContent=`Score : ${score} / ${TOTAL}`;bar.style.width=`${(index+1)/TOTAL*100}%`;instruction.innerHTML=q.instruction;feedback.className='feedback info';feedback.innerHTML=q.given;validateBtn.disabled=true;validateBtn.hidden=false;nextBtn.hidden=true;if(q.mode==='sketch'){options.hidden=true;renderSketches(q)}else{renderPrompt(q);renderOptions(q)}}
+function markResult(q,ok){if(q.mode==='buttons'){[...options.children].forEach(b=>{if(b.dataset.id===q.correct)b.classList.add('correct');if(b.dataset.id===selected&&!ok)b.classList.add('wrong');b.disabled=true})}else{[...figure.querySelectorAll('.sketch-card')].forEach(card=>{if(card.dataset.key===q.correct)card.classList.add('correct');if(card.dataset.key===selected&&!ok)card.classList.add('wrong');card.classList.add('locked');card.disabled=true})}}
+function validate(){if(locked||selected===null)return;locked=true;const q=questions[index],ok=selected===q.correct;if(ok)score++;scoreBox.textContent=`Score : ${score} / ${TOTAL}`;markResult(q,ok);feedback.className='feedback '+(ok?'success':'error');feedback.textContent=ok?q.feedbackOk:q.feedbackNo;validateBtn.hidden=true;nextBtn.hidden=false;nextBtn.textContent=index===TOTAL-1?'Voir mon score':'Question suivante'}
+function next(){if(index<TOTAL-1){index++;showQuestion()}else showFinal()}
+function showFinal(){exercise.style.display='none';final.classList.add('show');finalScore.textContent=`Score : ${score} / ${TOTAL}`;if(score===8)finalMessage.textContent='Très bien : tu sais analyser une consigne avant de sortir la règle et le compas.';else if(score>=6)finalMessage.textContent='Bon travail. Relis surtout les mots « isocèle », « sommet principal », « base » et « équilatéral » avant de construire.';else finalMessage.textContent='Refais une série : l’objectif est de savoir quelles longueurs et quels codages préparer avant toute construction.'}
+function restart(){index=0;score=0;questions=buildSeries();exercise.style.display='flex';final.classList.remove('show');showQuestion()}
+validateBtn.addEventListener('click',validate);nextBtn.addEventListener('click',next);restartBtn.addEventListener('click',restart);questions=buildSeries();showQuestion();
+})();
+</script>
+</body>
+</html>
