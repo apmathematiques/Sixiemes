@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Possible ou impossible ?</title>
+<style>
+:root{
+  --blue:#1769aa;
+  --blue-dark:#0d4778;
+  --blue-soft:#eaf4fc;
+  --green:#20864b;
+  --green-soft:#e9f7ef;
+  --red:#c63d3d;
+  --red-soft:#fff0f0;
+  --ink:#17212b;
+  --muted:#5f6d79;
+  --line:#1f2937;
+  --arc:#1769aa;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+}
+body{
+  display:grid;
+  place-items:center;
+  padding:10px;
+}
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:470px;
+  max-height:calc(100vh - 20px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.13);
+}
+.topbar{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:12px;
+  align-items:center;
+  padding:14px 20px 8px;
+}
+.progress-track{
+  height:11px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+.progress-fill{
+  height:100%;
+  width:12.5%;
+  background:linear-gradient(90deg,var(--blue),#4f9ed8);
+  border-radius:inherit;
+  transition:width .25s ease;
+}
+.counter,.score{
+  padding:8px 12px;
+  color:var(--blue-dark);
+  background:var(--blue-soft);
+  border-radius:999px;
+  font-size:1rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+.main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:2px 20px 14px;
+}
+.instruction{
+  margin:0;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:clamp(1.16rem,2.25vw,1.45rem);
+  line-height:1.3;
+  font-weight:400;
+}
+.data{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:clamp(1.08rem,2vw,1.3rem);
+  line-height:1.25;
+  color:var(--blue-dark);
+}
+.figure-card{
+  flex:1;
+  min-height:190px;
+  display:grid;
+  place-items:center;
+  padding:4px 12px 2px;
+  background:linear-gradient(180deg,#fff,#f9fbfe);
+  border:1px solid #dce9f3;
+  border-radius:17px;
+}
+svg{
+  width:100%;
+  height:100%;
+  min-height:185px;
+  overflow:visible;
+}
+.base-line{
+  stroke:var(--line);
+  stroke-width:4;
+  stroke-linecap:round;
+}
+.arc-line{
+  fill:none;
+  stroke:var(--arc);
+  stroke-width:3.6;
+  stroke-linecap:round;
+}
+.arc-hidden{opacity:0}
+.vertex{
+  fill:var(--line);
+}
+.vertex-label{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:30px;
+  font-weight:400;
+  fill:var(--ink);
+  paint-order:stroke;
+  stroke:white;
+  stroke-width:5px;
+  stroke-linejoin:round;
+}
+.measure{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:28px;
+  font-weight:400;
+  fill:var(--blue-dark);
+  paint-order:stroke;
+  stroke:white;
+  stroke-width:7px;
+  stroke-linejoin:round;
+}
+.intersection{
+  fill:var(--green);
+  stroke:white;
+  stroke-width:3;
+}
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+button{
+  min-height:50px;
+  padding:0 24px;
+  border:0;
+  border-radius:13px;
+  font:inherit;
+  font-size:1.08rem;
+  font-weight:700;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform .12s ease,filter .12s ease;
+}
+button:hover:not(:disabled){filter:brightness(1.03)}
+button:active:not(:disabled){transform:scale(.98)}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+button:disabled{cursor:default;opacity:.65}
+.answer{
+  min-width:190px;
+  color:white;
+}
+.possible{background:var(--blue)}
+.impossible{background:#596579}
+.next,.restart{
+  color:var(--blue-dark);
+  background:var(--blue-soft);
+}
+.feedback{
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 12px;
+  text-align:center;
+  font-size:1.02rem;
+  line-height:1.35;
+  border-radius:13px;
+  color:var(--muted);
+  background:#f4f7fb;
+}
+.feedback.correct{
+  color:#165e36;
+  background:var(--green-soft);
+  border:1px solid #a9ddbd;
+}
+.feedback.wrong{
+  color:#8f2727;
+  background:var(--red-soft);
+  border:1px solid #efbcbc;
+}
+.hidden{display:none!important}
+.final{
+  flex:1;
+  display:none;
+  place-items:center;
+  text-align:center;
+  padding:24px;
+}
+.final.show{display:grid}
+.final-card{
+  width:min(620px,100%);
+  padding:28px;
+  background:white;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 28px rgba(17,63,103,.10);
+}
+.final-icon{font-size:3rem;margin-bottom:4px}
+.final h2{
+  margin:0 0 10px;
+  color:var(--blue-dark);
+  font-size:1.8rem;
+}
+.final p{
+  margin:0 0 20px;
+  color:var(--muted);
+  font-size:1.14rem;
+  line-height:1.45;
+}
+@media(max-width:700px){
+  body{padding:5px}
+  .app{min-height:0;max-height:calc(100vh - 10px);border-radius:15px}
+  .topbar{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .progress-track{grid-column:1/-1}
+  .counter,.score{font-size:.92rem;padding:6px 9px}
+  .main{padding:0 10px 8px;gap:5px}
+  .instruction{min-height:42px;font-size:1.04rem}
+  .data{font-size:1rem}
+  .figure-card{min-height:155px}
+  svg{min-height:150px}
+  .vertex-label{font-size:27px}
+  .measure{font-size:25px}
+  button{min-height:44px;padding:0 15px;font-size:.98rem}
+  .answer{min-width:145px}
+  .feedback{min-height:48px;font-size:.92rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="topbar">
+    <div class="progress-track" aria-label="Progression">
+      <div id="progress" class="progress-fill"></div>
+    </div>
+    <div id="counter" class="counter">Question 1 / 8</div>
+    <div id="score" class="score">Score : 0 / 8</div>
+  </header>
+
+  <section id="exercise" class="main">
+    <p id="instruction" class="instruction"></p>
+    <div id="data" class="data"></div>
+
+    <div class="figure-card">
+      <svg id="scene" viewBox="0 0 900 300" role="img" aria-label="Construction d'un triangle à l'aide de deux arcs de cercle"></svg>
+    </div>
+
+    <div id="answers" class="controls">
+      <button type="button" class="answer possible" data-answer="true">Possible</button>
+      <button type="button" class="answer impossible" data-answer="false">Impossible</button>
+    </div>
+
+    <div id="feedback" class="feedback" role="status">Observe les longueurs et la construction.</div>
+
+    <div class="controls">
+      <button id="next" type="button" class="next hidden">Question suivante</button>
+    </div>
+  </section>
+
+  <section id="final" class="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🏁</div>
+      <h2>Série terminée</h2>
+      <p id="finalText"></p>
+      <button id="restart" class="restart" type="button">Recommencer avec de nouvelles constructions</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const TOTAL = 8;
+  const LETTERS = ["A","B","C","D","E","F","G","H","K","L","M","N","P","R","S","T","U","V"];
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 900, H = 300;
+  const BASE_Y = 190;
+  const SCALE = 58; // pixels par cm environ dans la figure
+
+  const scene = document.getElementById("scene");
+  const instruction = document.getElementById("instruction");
+  const data = document.getElementById("data");
+  const feedback = document.getElementById("feedback");
+  const counter = document.getElementById("counter");
+  const scoreBox = document.getElementById("score");
+  const progress = document.getElementById("progress");
+  const answers = [...document.querySelectorAll(".answer")];
+  const nextBtn = document.getElementById("next");
+  const exercise = document.getElementById("exercise");
+  const final = document.getElementById("final");
+  const finalText = document.getElementById("finalText");
+  const restartBtn = document.getElementById("restart");
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let locked = false;
+  let lastSignature = "";
+
+  function shuffle(a){
+    a = [...a];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function choice(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function randint(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+  function round1(x){ return Math.round(x*10)/10; }
+  function fmt(x){ return Number.isInteger(x) ? String(x) : String(x).replace(".",","); }
+
+  function pickLetters(){
+    return shuffle(LETTERS).slice(0,3);
+  }
+
+  function possibleTriplet(){
+    // On génère un triangle nettement constructible, sans être trop loin de la limite.
+    for(let tries=0; tries<500; tries++){
+      const base = choice([4.5,5,5.5,6,6.5,7,7.5]);
+      const r1 = round1(choice([2.5,3,3.5,4,4.5,5,5.5,6]));
+      const r2 = round1(choice([2.5,3,3.5,4,4.5,5,5.5,6]));
+      const margin1 = r1 + r2 - base;
+      const margin2 = base - Math.abs(r1-r2);
+      if(margin1 > 0.35 && margin2 > 0.45){
+        return {base,r1,r2,possible:true};
+      }
+    }
+    return {base:6,r1:4,r2:5,possible:true};
+  }
+
+  function impossibleTriplet(){
+    // Deux familles : rayons trop courts ensemble, ou un cercle contenu dans l'autre.
+    if(Math.random() < 0.8){
+      const r1 = choice([2,2.5,3,3.5,4]);
+      const r2 = choice([2,2.5,3,3.5,4]);
+      const sum = r1+r2;
+      const base = round1(sum + choice([0.5,0.8,1,1.2,1.5]));
+      return {base,r1,r2,possible:false};
+    } else {
+      const small = choice([1.5,2,2.5]);
+      const base = choice([3,3.5,4]);
+      const large = round1(base + small + choice([0.5,0.8,1]));
+      return {base,r1:large,r2:small,possible:false};
+    }
+  }
+
+  function makeQuestion(possible, mode){
+    const t = possible ? possibleTriplet() : impossibleTriplet();
+    const letters = pickLetters();
+    return {
+      ...t,
+      mode,
+      A: letters[0],
+      B: letters[1],
+      C: letters[2]
+    };
+  }
+
+  function buildSeries(){
+    let built, sig;
+    do{
+      const modes = ["observe","observe","observe","predict","predict","predict","predict","predict"];
+      const flags = shuffle([true,true,true,true,false,false,false,false]);
+      built = flags.map((flag,i)=>makeQuestion(flag,modes[i]));
+      sig = JSON.stringify(built);
+    }while(sig === lastSignature);
+    lastSignature = sig;
+    return built;
+  }
+
+  function el(tag, attrs={}){
+    const n = document.createElementNS(NS,tag);
+    for(const [k,v] of Object.entries(attrs)) n.setAttribute(k,v);
+    return n;
+  }
+
+  function circleIntersections(x0,y0,r0,x1,y1,r1){
+    const dx=x1-x0, dy=y1-y0;
+    const d=Math.hypot(dx,dy);
+    if(d > r0+r1 || d < Math.abs(r0-r1) || d===0) return [];
+    const a=(r0*r0-r1*r1+d*d)/(2*d);
+    const h2=r0*r0-a*a;
+    if(h2 < 0) return [];
+    const h=Math.sqrt(Math.max(0,h2));
+    const xm=x0+a*dx/d, ym=y0+a*dy/d;
+    const rx=-dy*(h/d), ry=dx*(h/d);
+    if(h < 0.001) return [{x:xm,y:ym}];
+    return [{x:xm+rx,y:ym+ry},{x:xm-rx,y:ym-ry}];
+  }
+
+  function arcPath(cx,cy,r,startDeg,endDeg){
+    const rad=d=>d*Math.PI/180;
+    const sx=cx+r*Math.cos(rad(startDeg)), sy=cy+r*Math.sin(rad(startDeg));
+    const ex=cx+r*Math.cos(rad(endDeg)), ey=cy+r*Math.sin(rad(endDeg));
+    const delta=((endDeg-startDeg)%360+360)%360;
+    const large=delta>180?1:0;
+    return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
+  }
+
+  function draw(q, reveal){
+    scene.replaceChildren();
+
+    // Mise à l'échelle : on garde la figure compacte et centrée.
+    const maxLen = Math.max(q.base,q.r1,q.r2);
+    const scale = Math.min(SCALE, 620 / Math.max(q.base, 1), 165 / Math.max(maxLen,1));
+    const basePx = q.base * scale;
+    const r1Px = q.r1 * scale;
+    const r2Px = q.r2 * scale;
+    const xA = (W-basePx)/2;
+    const xB = xA+basePx;
+    const y = BASE_Y;
+
+    // segment de base
+    scene.appendChild(el("line",{x1:xA,y1:y,x2:xB,y2:y,class:"base-line"}));
+
+    // points
+    scene.appendChild(el("circle",{cx:xA,cy:y,r:6,class:"vertex"}));
+    scene.appendChild(el("circle",{cx:xB,cy:y,r:6,class:"vertex"}));
+
+    const la=el("text",{x:xA-22,y:y+38,class:"vertex-label","text-anchor":"middle"});
+    la.textContent=q.A; scene.appendChild(la);
+    const lb=el("text",{x:xB+22,y:y+38,class:"vertex-label","text-anchor":"middle"});
+    lb.textContent=q.B; scene.appendChild(lb);
+
+    const mbase=el("text",{x:(xA+xB)/2,y:y+42,class:"measure","text-anchor":"middle"});
+    mbase.textContent=`${fmt(q.base)} cm`; scene.appendChild(mbase);
+
+    const shouldShowArcs = q.mode==="observe" || reveal;
+    if(shouldShowArcs){
+      // On ne dessine que les arcs utiles vers le haut de la figure.
+      const p1=el("path",{d:arcPath(xA,y,r1Px,200,340),class:"arc-line"});
+      const p2=el("path",{d:arcPath(xB,y,r2Px,200,340),class:"arc-line"});
+      scene.appendChild(p1); scene.appendChild(p2);
+
+      // Mesures décalées nettement à l'extérieur des arcs.
+      const m1=el("text",{x:xA+r1Px*0.58,y:y-r1Px*0.62-10,class:"measure","text-anchor":"middle"});
+      m1.textContent=`${fmt(q.r1)} cm`; scene.appendChild(m1);
+      const m2=el("text",{x:xB-r2Px*0.58,y:y-r2Px*0.62-10,class:"measure","text-anchor":"middle"});
+      m2.textContent=`${fmt(q.r2)} cm`; scene.appendChild(m2);
+
+      const ints=circleIntersections(xA,y,r1Px,xB,y,r2Px).filter(p=>p.y<y-4);
+      if(ints.length){
+        const p=ints[0];
+        scene.appendChild(el("circle",{cx:p.x,cy:p.y,r:7,class:"intersection"}));
+        const lc=el("text",{x:p.x,y:p.y-16,class:"vertex-label","text-anchor":"middle"});
+        lc.textContent=q.C; scene.appendChild(lc);
+      }
+    }
+  }
+
+  function triangleLengthExplanation(q){
+    const lengths = [q.base,q.r1,q.r2].sort((a,b)=>a-b);
+    const small1 = lengths[0], small2 = lengths[1], largest = lengths[2];
+
+    if(q.possible){
+      return `${fmt(small1)} cm et ${fmt(small2)} cm, mises bout à bout, dépassent ${fmt(largest)} cm : les arcs peuvent se rencontrer.`;
+    }
+    return `${fmt(small1)} cm et ${fmt(small2)} cm, mises bout à bout, n’atteignent pas ${fmt(largest)} cm : les arcs ne peuvent pas se rencontrer.`;
+  }
+
+  function questionText(q){
+    if(q.mode==="observe"){
+      instruction.textContent="Observe la construction commencée. Peut-on placer le troisième sommet ?";
+    }else{
+      instruction.textContent=`On veut construire le triangle ${q.A}${q.B}${q.C}. Cette construction est-elle possible ?`;
+    }
+    data.textContent=`${q.A}${q.B} = ${fmt(q.base)} cm   •   ${q.A}${q.C} = ${fmt(q.r1)} cm   •   ${q.B}${q.C} = ${fmt(q.r2)} cm`;
+  }
+
+  function showQuestion(){
+    locked=false;
+    nextBtn.classList.add("hidden");
+    answers.forEach(b=>{
+      b.disabled=false;
+      b.classList.remove("selected");
+    });
+    feedback.className="feedback";
+    feedback.textContent = questions[index].mode==="predict"
+      ? "Choisis avant de voir les deux arcs."
+      : "Observe si les deux arcs se rencontrent.";
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    progress.style.width=`${(index+1)/TOTAL*100}%`;
+    questionText(questions[index]);
+    draw(questions[index], false);
+  }
+
+  function answer(value){
+    if(locked) return;
+    locked=true;
+    const q=questions[index];
+    const correct = value===q.possible;
+    if(correct) score++;
+
+    answers.forEach(b=>b.disabled=true);
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+
+    // Pour les questions d'anticipation, on révèle la construction après la réponse.
+    if(q.mode==="predict") draw(q,true);
+
+    const explanation = triangleLengthExplanation(q);
+
+    if(q.possible){
+      feedback.className=`feedback ${correct?"correct":"wrong"}`;
+      feedback.textContent = correct
+        ? `Oui. ${explanation}`
+        : `La construction est possible. ${explanation}`;
+    }else{
+      feedback.className=`feedback ${correct?"correct":"wrong"}`;
+      feedback.textContent = correct
+        ? `Non. ${explanation}`
+        : `La construction est impossible. ${explanation}`;
+    }
+
+    nextBtn.textContent = index===TOTAL-1 ? "Voir le résultat" : "Question suivante";
+    nextBtn.classList.remove("hidden");
+  }
+
+  function finish(){
+    exercise.classList.add("hidden");
+    final.classList.add("show");
+    let msg;
+    if(score===8) msg=`Excellent : ${score} / 8. Tu sais reconnaître quand une construction de triangle est possible.`;
+    else if(score>=6) msg=`Très bien : ${score} / 8. Encore quelques essais pour être totalement à l'aise.`;
+    else if(score>=4) msg=`Score : ${score} / 8. Recommence une nouvelle série pour mieux observer le rôle des deux arcs.`;
+    else msg=`Score : ${score} / 8. Recommence en observant surtout si les deux arcs peuvent se rencontrer.`;
+    finalText.textContent=msg;
+  }
+
+  answers.forEach(btn=>{
+    btn.addEventListener("click",()=>answer(btn.dataset.answer==="true"));
+  });
+
+  nextBtn.addEventListener("click",()=>{
+    if(!locked) return;
+    if(index===TOTAL-1){ finish(); return; }
+    index++;
+    showQuestion();
+  });
+
+  restartBtn.addEventListener("click",()=>{
+    questions=buildSeries();
+    index=0; score=0; locked=false;
+    final.classList.remove("show");
+    exercise.classList.remove("hidden");
+    showQuestion();
+  });
+
+  questions=buildSeries();
+  showQuestion();
+})();
+</script>
+</body>
+</html>

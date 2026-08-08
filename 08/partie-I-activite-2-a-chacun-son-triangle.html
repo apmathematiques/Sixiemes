@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#20864b;--gs:#e9f7ef;--r:#c63d3d;--rs:#fff0f0;--i:#17212b;--m:#5f6d79;--line:#24364a}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:4px 18px 18px;display:flex;flex-direction:column;gap:9px}.instruction{width:calc(100% + 36px);min-height:42px;margin:0 -18px;display:block;padding:4px 10px 0;font-size:clamp(.96rem,1.75vw,1.16rem);font-weight:800;line-height:1.2;text-align:center;white-space:nowrap}.instruction strong{color:var(--bd)}
+.figure{position:relative;flex:1;min-height:205px;padding:5px 10px;display:grid;place-items:center;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px;overflow:hidden}svg{width:100%;height:100%;min-height:195px;overflow:visible;touch-action:manipulation}
+.side-visible{stroke:var(--line);stroke-width:4;stroke-linecap:round}.click-target{stroke:transparent;stroke-width:28;stroke-linecap:round;cursor:pointer}.point-dot{fill:var(--line);stroke:#fff;stroke-width:2.5}.point-hit{fill:transparent;cursor:pointer}.point-label{font:700 26px Arial,Helvetica,sans-serif;fill:var(--line);paint-order:stroke;stroke:#fff;stroke-width:6px;stroke-linejoin:round;pointer-events:none}.length-label{font:700 23px Arial,Helvetica,sans-serif;fill:var(--bd);paint-order:stroke;stroke:#fff;stroke-width:7px;stroke-linejoin:round;pointer-events:none}.tick{stroke:#c63d3d;stroke-width:4.2;stroke-linecap:round;pointer-events:none}
+.selectable .side-visible,.selectable .point-dot{transition:stroke .13s ease,fill .13s ease,stroke-width .13s ease}.selected .side-visible{stroke:var(--b);stroke-width:6}.selected .point-dot{fill:var(--b)}.answer-correct .side-visible{stroke:var(--g);stroke-width:6}.answer-correct .point-dot{fill:var(--g)}.answer-wrong .side-visible{stroke:var(--r);stroke-width:6}.answer-wrong .point-dot{fill:var(--r)}.locked .click-target,.locked .point-hit{cursor:default}
+.options{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;min-height:46px}.option-btn{min-height:44px;padding:0 16px;color:var(--bd);font-size:.98rem;font-weight:800;background:var(--bs);border:2px solid transparent;border-radius:12px;cursor:pointer;white-space:nowrap}.option-btn.selected{background:#d7ebfb;border-color:#69a9d5}.option-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}.option-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}button.action{min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease}button.action:hover:not(:disabled),.option-btn:hover:not(:disabled){filter:brightness(1.03)}button.action:active:not(:disabled),.option-btn:active:not(:disabled){transform:scale(.98)}button:focus-visible{outline:4px solid rgba(23,105,170,.22)}button:disabled{opacity:.48;cursor:default}.primary{color:#fff;background:var(--b)}.secondary{color:var(--bd);background:var(--bs)}
+.feedback{min-height:50px;padding:8px 13px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;line-height:1.3;text-align:center;background:#f4f7fb;border-radius:14px}.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid;animation:reveal 280ms ease both}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}@media(max-width:700px),(max-height:620px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 10px 10px;gap:6px}.instruction{width:calc(100% + 20px);min-height:38px;margin:0 -10px;padding:3px 6px 0;font-size:.9rem;line-height:1.15;white-space:normal}.figure{min-height:150px;padding:2px 5px}svg{min-height:142px}.controls{min-height:43px;gap:7px}.feedback{min-height:43px;padding:6px 9px;font-size:.88rem}.options{gap:6px;min-height:40px}.option-btn{min-height:40px;padding:0 10px;font-size:.85rem;white-space:normal}.point-label{font-size:29px}.length-label{font-size:24px}button.action{min-height:42px;height:42px}}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+    <div class="figure"><svg id="scene" viewBox="0 0 900 360" role="img" aria-label="Triangle à analyser"></svg></div>
+    <div class="options" id="options" hidden></div>
+    <div class="feedback" id="feedback" role="status">Observe les codages ou les longueurs données.</div>
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🔺</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=8,NS='http://www.w3.org/2000/svg';
+  const LETTERS=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T','U','V'];
+  const SHAPES=[
+    [[230,285],[700,275],[450,70]],
+    [[180,110],[720,85],[570,300]],
+    [[180,290],[360,70],[740,240]],
+    [[150,185],[700,70],[640,305]],
+    [[240,100],[735,210],[330,300]],
+    [[170,260],[760,285],[610,125]],
+    [[210,70],[710,120],[400,310]],
+    [[155,115],[390,305],[760,180]],
+    [[260,300],[735,260],[650,70]],
+    [[150,250],[560,300],[750,80]]
+  ];
+  const LOOKS_SPECIAL=[
+    [[210,290],[690,290],[450,82]],
+    [[205,285],[695,285],[450,78]],
+    [[205,95],[695,95],[450,305]],
+    [[180,265],[720,265],[450,80]]
+  ];
+  const NATURE_OPTIONS=[
+    {id:'equilateral',label:'Triangle équilatéral'},
+    {id:'isosceles',label:'Triangle isocèle'},
+    {id:'unknown',label:'On ne peut pas déterminer sa nature'}
+  ];
+
+  const $=id=>document.getElementById(id);
+  const svg=$('scene'),counter=$('counter'),bar=$('bar'),scoreBox=$('score'),instruction=$('instruction'),options=$('options'),feedback=$('feedback'),validateBtn=$('validate'),nextBtn=$('next'),exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
+
+  let questions=[],index=0,score=0,selected=new Set(),locked=false,lastSeriesSignature='';
+
+  function shuffle(a){const c=a.slice();for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
+  function choice(a){return a[Math.floor(Math.random()*a.length)]}
+  function sample(a,n){return shuffle(a).slice(0,n)}
+  function sideId(a,b){return 's'+Math.min(a,b)+Math.max(a,b)}
+  function sideText(labels,a,b){return '['+labels[a]+labels[b]+']'}
+  function exactSet(a,b){return a.size===b.size&&[...a].every(x=>b.has(x))}
+  function makeSvg(tag,attrs={}){const n=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v));return n}
+  function verticesFor(points,labels){return points.map((p,i)=>({id:'v'+i,index:i,x:p[0],y:p[1],label:labels[i]}))}
+  function centroid(v){return{x:(v[0].x+v[1].x+v[2].x)/3,y:(v[0].y+v[1].y+v[2].y)/3}}
+  function labelPosition(p,c){let dx=p.x-c.x,dy=p.y-c.y,len=Math.hypot(dx,dy)||1;dx/=len;dy/=len;return{x:p.x+dx*28,y:p.y+dy*28+8}}
+  function formatLength(v){return String(v).replace('.',',')+' cm'}
+  function familyOrder(){
+    const base=['codedNature','codedNature','lengthNature','lengthNature','appearance','principalVertex','base','isocelesAt'];
+    for(let k=0;k<300;k++){const s=shuffle(base);if(s.every((f,i)=>i===0||f!==s[i-1]))return s}
+    return ['codedNature','lengthNature','principalVertex','codedNature','appearance','base','lengthNature','isocelesAt'];
+  }
+
+  function isoscelesData(){
+    const principal=Math.floor(Math.random()*3),others=[0,1,2].filter(i=>i!==principal);
+    return{principal,others,equalSides:[sideId(principal,others[0]),sideId(principal,others[1])],base:sideId(others[0],others[1])};
+  }
+
+  function makeLengths(nature,iso){
+    if(nature==='equilateral'){
+      const l=choice([3.5,4,4.5,4.8,5,5.5,6]);
+      return{[sideId(0,1)]:l,[sideId(1,2)]:l,[sideId(2,0)]:l};
+    }
+    const equal=choice([4,4.5,5,5.5,6]),possibleBases=[3,3.5,4,4.5,5,5.5,6,6.5,7].filter(x=>x!==equal&&x<2*equal),base=choice(possibleBases);
+    const out={};out[iso.equalSides[0]]=equal;out[iso.equalSides[1]]=equal;out[iso.base]=base;return out;
+  }
+
+  function buildQuestion(family,shapeIndex,forcedNature=null){
+    const labels=sample(LETTERS,3),shape=SHAPES[shapeIndex],vertices=verticesFor(shape,labels);
+    const q={family,shapeIndex,labels,vertices,codings:{},lengths:null,correct:new Set(),required:1,mode:'options',options:[],instruction:'',feedbackOk:'',feedbackNo:'',signature:''};
+
+    if(family==='codedNature'){
+      const nature=forcedNature||choice(['equilateral','isosceles']);
+      if(nature==='equilateral'){
+        q.codings={[sideId(0,1)]:1,[sideId(1,2)]:1,[sideId(2,0)]:1};
+        q.correct=new Set(['equilateral']);
+        q.feedbackOk='Exact ! Les trois côtés portent le même codage : le triangle est équilatéral.';
+        q.feedbackNo='Les trois côtés portent le même codage : ils ont la même longueur. La nature du triangle est donc équilatérale.';
+      }else{
+        const iso=isoscelesData();q.iso=iso;q.codings={[iso.equalSides[0]]:1,[iso.equalSides[1]]:1};q.correct=new Set(['isosceles']);
+        q.feedbackOk='Exact ! Deux côtés portent le même codage : le triangle est isocèle.';
+        q.feedbackNo='Deux côtés portent le même codage : ils ont la même longueur. La nature du triangle est donc isocèle.';
+      }
+      q.options=shuffle(NATURE_OPTIONS);q.instruction='Quelle est la <strong>nature</strong> de ce triangle ?';
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+nature;
+    }
+
+    if(family==='lengthNature'){
+      const nature=forcedNature||choice(['equilateral','isosceles']);
+      let iso=null;if(nature==='isosceles')iso=isoscelesData();
+      q.lengths=makeLengths(nature,iso);q.correct=new Set([nature]);q.options=shuffle(NATURE_OPTIONS);q.instruction='Quelle est la <strong>nature</strong> de ce triangle ?';
+      if(nature==='equilateral'){
+        q.feedbackOk='Exact ! Les trois côtés ont la même longueur : le triangle est équilatéral.';
+        q.feedbackNo='Les trois longueurs indiquées sont égales. La nature du triangle est donc équilatérale.';
+      }else{
+        q.iso=iso;q.feedbackOk='Exact ! Deux côtés ont la même longueur : le triangle est isocèle.';
+        q.feedbackNo='Deux longueurs indiquées sont égales. La nature du triangle est donc isocèle.';
+      }
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+nature+'-'+JSON.stringify(q.lengths);
+    }
+
+    if(family==='appearance'){
+      const look=choice(LOOKS_SPECIAL),lookIndex=LOOKS_SPECIAL.indexOf(look);q.vertices=verticesFor(look,labels);q.correct=new Set(['unknown']);q.options=shuffle(NATURE_OPTIONS);q.instruction='Quelle est la <strong>nature</strong> de ce triangle ?';
+      q.feedbackOk='Exact ! Aucun codage ni aucune longueur n’est donné : l’apparence de la figure ne suffit pas pour déterminer sa nature.';
+      q.feedbackNo='On ne peut pas déterminer sa nature : aucun codage ni aucune longueur n’est donné. Une figure ne se lit pas seulement à l’œil.';
+      q.signature=family+'-'+lookIndex+'-'+labels.join('');
+    }
+
+    if(family==='principalVertex'){
+      const iso=isoscelesData();q.iso=iso;q.codings={[iso.equalSides[0]]:1,[iso.equalSides[1]]:1};q.mode='vertex';q.correct=new Set(['v'+iso.principal]);q.instruction='Clique sur le <strong>sommet principal</strong> de ce triangle isocèle.';
+      q.feedbackOk=`Exact ! ${labels[iso.principal]} est le sommet commun aux deux côtés de même longueur.`;
+      q.feedbackNo=`Le sommet principal est ${labels[iso.principal]} : c’est le sommet commun aux deux côtés de même longueur.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+iso.principal;
+    }
+
+    if(family==='base'){
+      const iso=isoscelesData();q.iso=iso;q.codings={[iso.equalSides[0]]:1,[iso.equalSides[1]]:1};q.mode='side';q.correct=new Set([iso.base]);q.instruction='Clique sur la <strong>base</strong> de ce triangle isocèle.';
+      q.feedbackOk=`Exact ! ${sideText(labels,iso.others[0],iso.others[1])} est le côté opposé au sommet principal ${labels[iso.principal]}.`;
+      q.feedbackNo=`La base est ${sideText(labels,iso.others[0],iso.others[1])} : c’est le côté opposé au sommet principal ${labels[iso.principal]}.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+iso.principal;
+    }
+
+    if(family==='isocelesAt'){
+      const iso=isoscelesData();q.iso=iso;q.codings={[iso.equalSides[0]]:1,[iso.equalSides[1]]:1};q.mode='options';q.options=shuffle(labels.map((l,i)=>({id:'v'+i,label:l})));q.correct=new Set(['v'+iso.principal]);q.instruction='Ce triangle est isocèle. <strong>En quel sommet</strong> est-il isocèle ?';
+      q.feedbackOk=`Exact ! Le triangle est isocèle en ${labels[iso.principal]}.`;
+      q.feedbackNo=`Le triangle est isocèle en ${labels[iso.principal]} : les deux côtés de même longueur se rencontrent en ${labels[iso.principal]}.`;
+      q.signature=family+'-'+shapeIndex+'-'+labels.join('')+'-'+iso.principal;
+    }
+    return q;
+  }
+
+  function buildSeries(){
+    let built,signature,guard=0;
+    do{
+      const families=familyOrder(),shapeIndices=shuffle(SHAPES.map((_,i)=>i)).slice(0,TOTAL);
+      let codedSeen=0,lengthSeen=0;
+      built=families.map((family,i)=>{
+        let forced=null;
+        if(family==='codedNature'){forced=codedSeen++===0?'equilateral':'isosceles'}
+        if(family==='lengthNature'){forced=lengthSeen++===0?'isosceles':'equilateral'}
+        return buildQuestion(family,shapeIndices[i],forced);
+      });
+      signature=built.map(q=>q.signature).join('||');guard++;
+    }while(signature===lastSeriesSignature&&guard<20);
+    lastSeriesSignature=signature;return built;
+  }
+
+  function sideEndpoints(vertices,id){
+    const pairs={s01:[0,1],s12:[1,2],s02:[0,2]},p=pairs[id];return[vertices[p[0]],vertices[p[1]]];
+  }
+
+  function drawTick(a,b,count=1){
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,tx=dx/len,ty=dy/len;
+    const spacing=10;
+    for(let k=0;k<count;k++){
+      const shift=(k-(count-1)/2)*spacing,cx=mx+tx*shift,cy=my+ty*shift;
+      svg.appendChild(makeSvg('line',{x1:cx-nx*10,y1:cy-ny*10,x2:cx+nx*10,y2:cy+ny*10,class:'tick'}));
+    }
+  }
+
+  function drawLength(a,b,value,c){
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=mx-c.x,dy=my-c.y,len=Math.hypot(dx,dy)||1,nx=dx/len,ny=dy/len;
+    const t=makeSvg('text',{x:mx+nx*27,y:my+ny*27+7,'text-anchor':'middle',class:'length-label'});t.textContent=formatLength(value);svg.appendChild(t);
+  }
+
+  function draw(q){
+    svg.replaceChildren();svg.classList.toggle('locked',locked);const c=centroid(q.vertices);
+    const sidePairs=[[0,1],[1,2],[2,0]];
+    sidePairs.forEach(([a,b])=>{
+      const id=sideId(a,b),g=makeSvg('g',{'data-id':id,class:(q.mode==='side'?'selectable ':'')+(selected.has(id)?'selected':'')});
+      g.appendChild(makeSvg('line',{x1:q.vertices[a].x,y1:q.vertices[a].y,x2:q.vertices[b].x,y2:q.vertices[b].y,class:'side-visible'}));
+      if(q.mode==='side'){
+        const hit=makeSvg('line',{x1:q.vertices[a].x,y1:q.vertices[a].y,x2:q.vertices[b].x,y2:q.vertices[b].y,class:'click-target'});hit.addEventListener('click',()=>toggleSelection(id));g.appendChild(hit);
+      }
+      svg.appendChild(g);
+    });
+    Object.entries(q.codings||{}).forEach(([id,count])=>{const [a,b]=sideEndpoints(q.vertices,id);drawTick(a,b,count)});
+    if(q.lengths)Object.entries(q.lengths).forEach(([id,value])=>{const [a,b]=sideEndpoints(q.vertices,id);drawLength(a,b,value,c)});
+    q.vertices.forEach(v=>{
+      const g=makeSvg('g',{'data-id':v.id,class:(q.mode==='vertex'?'selectable ':'')+(selected.has(v.id)?'selected':'')});
+      g.appendChild(makeSvg('circle',{cx:v.x,cy:v.y,r:7,class:'point-dot'}));
+      if(q.mode==='vertex'){
+        const hit=makeSvg('circle',{cx:v.x,cy:v.y,r:30,class:'point-hit'});hit.addEventListener('click',()=>toggleSelection(v.id));g.appendChild(hit);
+      }
+      const lp=labelPosition(v,c),t=makeSvg('text',{x:lp.x,y:lp.y,'text-anchor':'middle',class:'point-label'});t.textContent=v.label;g.appendChild(t);svg.appendChild(g);
+    });
+  }
+
+  function renderOptions(q){
+    options.replaceChildren();
+    if(q.mode!=='options'){options.hidden=true;return}
+    options.hidden=false;
+    q.options.forEach(o=>{
+      const b=document.createElement('button');b.type='button';b.className='option-btn'+(selected.has(o.id)?' selected':'');b.textContent=o.label;b.dataset.id=o.id;
+      b.addEventListener('click',()=>toggleSelection(o.id));options.appendChild(b);
+    });
+  }
+
+  function toggleSelection(id){
+    if(locked)return;const q=questions[index];
+    if(selected.has(id))selected.delete(id);else{selected.clear();selected.add(id)}
+    validateBtn.disabled=selected.size===0;draw(q);renderOptions(q);
+  }
+
+  function showQuestion(){
+    locked=false;selected.clear();const q=questions[index];
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;scoreBox.textContent=`Score : ${score} / ${TOTAL}`;bar.style.width=`${(index+1)/TOTAL*100}%`;instruction.innerHTML=q.instruction;
+    feedback.className='feedback';feedback.textContent=q.mode==='options'?'Observe les informations de la figure puis choisis une réponse.':'Observe les codages puis sélectionne ta réponse sur la figure.';
+    validateBtn.hidden=false;validateBtn.disabled=true;nextBtn.hidden=true;draw(q);renderOptions(q);
+  }
+
+  function markResult(q,ok){
+    if(q.mode==='options'){
+      [...options.children].forEach(b=>{
+        const id=b.dataset.id;b.disabled=true;b.classList.remove('selected');
+        if(q.correct.has(id))b.classList.add('correct');else if(selected.has(id))b.classList.add('wrong');
+      });
+    }else{
+      q.correct.forEach(id=>{const g=svg.querySelector(`[data-id="${id}"]`);if(g)g.classList.add('answer-correct')});
+      if(!ok)selected.forEach(id=>{if(!q.correct.has(id)){const g=svg.querySelector(`[data-id="${id}"]`);if(g)g.classList.add('answer-wrong')}});
+    }
+  }
+
+  function validate(){
+    if(locked||selected.size===0)return;locked=true;const q=questions[index],ok=exactSet(selected,q.correct);if(ok)score++;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;feedback.className='feedback '+(ok?'success':'error');feedback.textContent=ok?q.feedbackOk:q.feedbackNo;markResult(q,ok);validateBtn.hidden=true;nextBtn.hidden=false;svg.classList.add('locked');
+  }
+
+  function next(){
+    index++;if(index>=TOTAL){showFinal();return}showQuestion();
+  }
+
+  function showFinal(){
+    exercise.style.display='none';final.classList.add('show');finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+    if(score===8)finalMessage.textContent='Bravo ! Tu sais lire les codages et les longueurs pour déterminer la nature d’un triangle.';
+    else if(score>=6)finalMessage.textContent='Très bien ! Relis surtout les codages avant de te fier à l’apparence de la figure.';
+    else finalMessage.textContent='Recommence avec une nouvelle série : utilise les codages et les longueurs, pas seulement l’apparence du triangle.';
+  }
+
+  function restart(){
+    questions=buildSeries();index=0;score=0;locked=false;selected.clear();final.classList.remove('show');exercise.style.display='flex';showQuestion();
+  }
+
+  validateBtn.addEventListener('click',validate);nextBtn.addEventListener('click',next);restartBtn.addEventListener('click',restart);
+  restart();
+})();
+</script>
+</body>
+</html>
