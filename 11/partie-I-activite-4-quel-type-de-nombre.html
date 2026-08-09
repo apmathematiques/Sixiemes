@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--gs:#e9f7ef;--rs:#fff0f0;--i:#17212b;--m:#5f6d79}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px}.instruction{min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.25rem,2.35vw,1.6rem);font-weight:600;line-height:1.25;text-align:center}.question-zone{flex:1;min-height:205px;padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px}
+.fraction{display:inline-grid;grid-template-rows:auto 4px auto;align-items:center;justify-items:center;min-width:126px;font-size:clamp(2.8rem,7vw,5rem);font-weight:800;line-height:1}.fraction-line{width:100%;min-width:116px;height:4px;background:currentColor;border-radius:99px}.fraction-value{min-width:110px;padding:5px 12px;text-align:center}
+.choices{width:min(820px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.choice-btn{min-height:78px;padding:12px 14px;color:var(--bd);font-size:clamp(1.05rem,2.25vw,1.35rem);font-weight:800;line-height:1.2;text-align:center;background:var(--bs);border:2px solid transparent;border-radius:15px;cursor:pointer;touch-action:manipulation;transition:.12s}.choice-btn:hover:not(:disabled){filter:brightness(1.03)}.choice-btn:active:not(:disabled){transform:scale(.98)}.choice-btn.selected{background:#d7ebfb;border-color:#69a9d5}.choice-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}.choice-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}.choice-btn:disabled{cursor:default}
+.feedback{min-height:60px;padding:9px 14px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;line-height:1.4;text-align:center;background:#f4f7fb;border-radius:14px}.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}button.action{min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation}.action:disabled{opacity:.48;cursor:default}.primary{color:#fff;background:var(--b)}.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@media(max-width:700px),(max-height:620px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.08rem}.question-zone{min-height:150px;padding:10px;gap:12px}.fraction{min-width:90px;font-size:2.7rem}.fraction-line{min-width:84px}.fraction-value{min-width:82px;padding:3px 8px}.choices{gap:7px}.choice-btn{min-height:58px;padding:7px;font-size:.91rem;border-radius:11px}.feedback{min-height:48px;padding:7px 10px;font-size:.87rem}.controls{min-height:43px}button.action{min-height:42px;height:42px}}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+<header class="top"><div class="track"><div class="bar" id="bar"></div></div><div class="pill" id="counter">Question 1 / 10</div><div class="pill" id="score">Score : 0 / 10</div></header>
+<section class="main" id="exercise">
+<p class="instruction">Quel type de nombre représente cette fraction ?</p>
+<div class="question-zone">
+<div class="fraction"><div class="fraction-value" id="num"></div><div class="fraction-line"></div><div class="fraction-value" id="den"></div></div>
+<div class="choices">
+<button class="choice-btn" data-value="integer">Nombre entier</button>
+<button class="choice-btn" data-value="decimal">Nombre décimal non entier</button>
+<button class="choice-btn" data-value="nondecimal">Nombre non décimal</button>
+</div>
+</div>
+<div class="feedback" id="feedback">Choisis une réponse puis valide.</div>
+<div class="controls"><button class="action primary" id="validate" disabled>Valider</button><button class="action secondary" id="next" hidden>Question suivante</button></div>
+</section>
+<section class="final" id="final"><div class="final-card"><div class="final-icon">🎯</div><h2>Activité terminée !</h2><p class="final-score" id="finalScore"></p><p class="final-message" id="finalMessage"></p><button class="action primary" id="restart">Recommencer avec de nouvelles fractions</button></div></section>
+</main>
+<script>
+(()=>{
+'use strict';
+const TOTAL=10,$=id=>document.getElementById(id),counter=$('counter'),scoreBox=$('score'),bar=$('bar'),num=$('num'),den=$('den'),feedback=$('feedback'),validateBtn=$('validate'),nextBtn=$('next'),exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart'),buttons=[...document.querySelectorAll('.choice-btn')];
+let questions=[],index=0,score=0,selected=null,locked=false;
+const randInt=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function gcd(a,b){while(b){[a,b]=[b,a%b]}return Math.abs(a)}
+function terminates(a,b){let d=b/gcd(a,b);while(d%2===0)d/=2;while(d%5===0)d/=5;return d===1}
+function classify(a,b){if(a%b===0)return'integer';return terminates(a,b)?'decimal':'nondecimal'}
+function decimalValue(a,b){return Number((a/b).toFixed(10)).toString().replace('.',',')}
+function makeInteger(){while(true){const b=randInt(2,10),k=randInt(1,4),a=b*k;if(a<=20)return{a,b,type:'integer'}}}
+function makeDecimal(){while(true){const a=randInt(2,20),b=randInt(2,20);if(a!==b&&classify(a,b)==='decimal')return{a,b,type:'decimal'}}}
+function makeNonDecimal(){while(true){const a=randInt(2,20),b=randInt(2,20);if(a!==b&&classify(a,b)==='nondecimal')return{a,b,type:'nondecimal'}}}
+function generate(){const plan=shuffle(['integer','integer','integer','decimal','decimal','decimal','decimal','nondecimal','nondecimal','nondecimal']),used=new Set(),out=[];for(const type of plan){for(let tries=0;tries<1000;tries++){const q=type==='integer'?makeInteger():type==='decimal'?makeDecimal():makeNonDecimal(),key=`${q.a}/${q.b}`;if(!used.has(key)){used.add(key);out.push(q);break}}}return out}
+function reset(){selected=null;locked=false;buttons.forEach(b=>{b.disabled=false;b.className='choice-btn'});validateBtn.disabled=true;validateBtn.hidden=false;nextBtn.hidden=true;feedback.className='feedback';feedback.textContent='Choisis une réponse puis valide.'}
+function render(){reset();const q=questions[index];num.textContent=q.a;den.textContent=q.b;counter.textContent=`Question ${index+1} / ${TOTAL}`;scoreBox.textContent=`Score : ${score} / ${TOTAL}`;bar.style.width=`${((index+1)/TOTAL)*100}%`}
+function explanation(q){if(q.type==='integer')return `${q.a} ÷ ${q.b} = ${q.a/q.b}. C'est donc un nombre entier.`;if(q.type==='decimal')return `${q.a} ÷ ${q.b} = ${decimalValue(q.a,q.b)}. C'est un nombre décimal non entier.`;return `${q.a} ÷ ${q.b} ne donne pas une écriture décimale finie. C'est donc un nombre non décimal.`}
+function validate(){if(locked||!selected)return;locked=true;const q=questions[index],ok=selected===q.type;buttons.forEach(b=>{b.disabled=true;if(b.dataset.value===q.type)b.classList.add('correct');if(b.dataset.value===selected&&selected!==q.type)b.classList.add('wrong')});if(ok){score++;feedback.className='feedback success';feedback.textContent=`Bravo ! ${explanation(q)}`}else{feedback.className='feedback error';feedback.textContent=explanation(q)}scoreBox.textContent=`Score : ${score} / ${TOTAL}`;validateBtn.hidden=true;nextBtn.hidden=false;nextBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante'}
+function next(){if(index<TOTAL-1){index++;render()}else showFinal()}
+function showFinal(){exercise.style.display='none';final.classList.add('show');finalScore.textContent=`Score : ${score} / ${TOTAL}`;finalMessage.textContent=score===10?'Excellent ! Tu sais reconnaître les trois types de nombres.':score>=8?'Très bien ! Tu distingues bien les nombres entiers, décimaux et non décimaux.':score>=6?'C’est bien. Rappelle-toi qu’une fraction peut représenter un entier ou un nombre décimal.':'Revois les trois cas du cours puis recommence avec de nouvelles fractions.'}
+function restart(){questions=generate();index=0;score=0;final.classList.remove('show');exercise.style.display='';render()}
+buttons.forEach(b=>b.addEventListener('click',()=>{if(locked)return;selected=b.dataset.value;buttons.forEach(x=>x.classList.toggle('selected',x===b));validateBtn.disabled=false}));validateBtn.addEventListener('click',validate);nextBtn.addEventListener('click',next);restartBtn.addEventListener('click',restart);questions=generate();render();
+})();
+</script>
+</body>
+</html>

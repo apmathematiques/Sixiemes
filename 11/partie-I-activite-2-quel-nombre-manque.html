@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;
+  gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;
+  text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:12px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.3rem,2.45vw,1.65rem);font-weight:600;
+  line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:210px;padding:22px;display:grid;place-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.expression{
+  display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
+  font-size:clamp(2.1rem,5.7vw,4rem);font-weight:750;
+  font-variant-numeric:tabular-nums;line-height:1
+}
+.times,.equals{padding:0 2px}
+.fraction{
+  display:inline-grid;grid-template-rows:auto 3px auto;
+  align-items:center;justify-items:center;min-width:86px;vertical-align:middle
+}
+.fraction-line{
+  width:100%;min-width:78px;height:3px;background:currentColor;border-radius:99px
+}
+.fraction-value{
+  min-width:70px;padding:5px 8px;text-align:center
+}
+.answer-input{
+  width:94px;height:68px;padding:4px 8px;color:var(--bd);
+  font:700 2rem Arial,Helvetica,sans-serif;text-align:center;background:#fff;
+  border:3px solid #b9d4e8;border-radius:14px;outline:none;
+  transition:border-color .15s ease,background .15s ease,color .15s ease
+}
+.answer-input:focus{
+  border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+.answer-input.correct{
+  color:#165e36;background:var(--gs);border-color:#79c798
+}
+.answer-input.wrong{
+  color:#8f2727;background:var(--rs);border-color:#df8585
+}
+.fraction .answer-input{width:96px;height:58px}
+.feedback{
+  min-height:60px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{
+  color:#165e36;background:var(--gs);border:1px solid #a9ddbd
+}
+.feedback.error{
+  color:#8f2727;background:var(--rs);border:1px solid #efbcbc
+}
+.mini-fraction{
+  display:inline-grid;grid-template-rows:auto 1.5px auto;justify-items:center;
+  align-items:center;min-width:28px;margin:0 5px;vertical-align:middle;line-height:1
+}
+.mini-line{width:100%;height:1.5px;background:currentColor}
+.mini-value{padding:1px 3px}
+.controls{
+  min-height:50px;display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-wrap:wrap
+}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:46px;font-size:1.08rem}
+  .question-zone{min-height:155px;padding:10px}
+  .expression{gap:9px;font-size:clamp(1.7rem,7vw,2.8rem)}
+  .answer-input{width:70px;height:52px;font-size:1.5rem}
+  .fraction .answer-input{width:72px;height:45px}
+  .fraction{min-width:70px}
+  .fraction-line{min-width:64px}
+  .fraction-value{min-width:62px;padding:3px 5px}
+  .feedback{min-height:50px;padding:7px 10px;font-size:.88rem}
+  .controls{min-height:43px}
+  button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Écris le nombre qui complète l'égalité.</p>
+
+    <div class="question-zone" id="questionZone" aria-label="Égalité à compléter"></div>
+
+    <div class="feedback" id="feedback" role="status">
+      Complète l'égalité puis valide ta réponse.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouveaux nombres
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL = 10;
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const questionZone = $('questionZone');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let attempts = 0;
+  let locked = false;
+
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    const copy = array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function formatScore(value){
+    return Number.isInteger(value) ? String(value) : String(value).replace('.',',');
+  }
+
+  function miniFraction(a,b){
+    return `
+      <span class="mini-fraction">
+        <span class="mini-value">${a}</span>
+        <span class="mini-line"></span>
+        <span class="mini-value">${b}</span>
+      </span>
+    `;
+  }
+
+  function fixedFraction(a,b){
+    return `
+      <span class="fraction">
+        <span class="fraction-value">${a}</span>
+        <span class="fraction-line"></span>
+        <span class="fraction-value">${b}</span>
+      </span>
+    `;
+  }
+
+  function integerInput(label='Nombre manquant'){
+    return `
+      <input
+        class="answer-input"
+        id="answer1"
+        inputmode="numeric"
+        autocomplete="off"
+        maxlength="2"
+        aria-label="${label}">
+    `;
+  }
+
+  function fractionInput(){
+    return `
+      <span class="fraction">
+        <input
+          class="answer-input"
+          id="answer1"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="2"
+          aria-label="Numérateur">
+        <span class="fraction-line"></span>
+        <input
+          class="answer-input"
+          id="answer2"
+          inputmode="numeric"
+          autocomplete="off"
+          maxlength="2"
+          aria-label="Dénominateur">
+      </span>
+    `;
+  }
+
+  function generatePair(used){
+    let a,b,key;
+    do{
+      a=randInt(2,20);
+      b=randInt(2,20);
+      key=`${a}-${b}`;
+    }while(used.has(key));
+    used.add(key);
+    return {a,b};
+  }
+
+  function generateQuestions(){
+    const used = new Set();
+
+    /*
+      Deux exemplaires de chaque forme :
+      1. b × ? = a
+      2. ? × b = a
+      3. b × a/b = ?
+      4. a/b × b = ?
+      5. ? × a/b = a
+    */
+    const types = shuffle([
+      'fractionRight','fractionRight',
+      'fractionLeft','fractionLeft',
+      'resultRight','resultRight',
+      'resultRightReversed','resultRightReversed',
+      'factorLeft','factorLeft'
+    ]);
+
+    return types.map(type => {
+      const {a,b}=generatePair(used);
+      return {type,a,b};
+    });
+  }
+
+  function renderExpression(q){
+    switch(q.type){
+
+      case 'fractionRight':
+        return `
+          <div class="expression">
+            <span>${q.b}</span>
+            <span class="times">×</span>
+            ${fractionInput()}
+            <span class="equals">=</span>
+            <span>${q.a}</span>
+          </div>
+        `;
+
+      case 'fractionLeft':
+        return `
+          <div class="expression">
+            ${fractionInput()}
+            <span class="times">×</span>
+            <span>${q.b}</span>
+            <span class="equals">=</span>
+            <span>${q.a}</span>
+          </div>
+        `;
+
+      case 'resultRight':
+        return `
+          <div class="expression">
+            <span>${q.b}</span>
+            <span class="times">×</span>
+            ${fixedFraction(q.a,q.b)}
+            <span class="equals">=</span>
+            ${integerInput()}
+          </div>
+        `;
+
+      case 'resultRightReversed':
+        return `
+          <div class="expression">
+            ${fixedFraction(q.a,q.b)}
+            <span class="times">×</span>
+            <span>${q.b}</span>
+            <span class="equals">=</span>
+            ${integerInput()}
+          </div>
+        `;
+
+      case 'factorLeft':
+        return `
+          <div class="expression">
+            ${integerInput()}
+            <span class="times">×</span>
+            ${fixedFraction(q.a,q.b)}
+            <span class="equals">=</span>
+            <span>${q.a}</span>
+          </div>
+        `;
+    }
+  }
+
+  function expectedValues(q){
+    if(q.type==='fractionRight' || q.type==='fractionLeft'){
+      return [q.a,q.b];
+    }
+    if(q.type==='factorLeft'){
+      return [q.b];
+    }
+    return [q.a];
+  }
+
+  function correctionHTML(q){
+    return `${q.b} × ${miniFraction(q.a,q.b)} = ${q.a}`;
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+
+    attempts=0;
+    locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    questionZone.innerHTML=renderExpression(q);
+
+    feedback.className='feedback';
+    feedback.textContent='Complète l’égalité puis valide ta réponse.';
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+
+    const inputs=[...questionZone.querySelectorAll('.answer-input')];
+
+    inputs.forEach(input=>{
+      input.addEventListener('input',()=>{
+        input.value=input.value.replace(/[^0-9]/g,'');
+        input.classList.remove('wrong','correct');
+        validateBtn.disabled=inputs.some(el=>!el.value);
+      });
+
+      input.addEventListener('keydown',event=>{
+        if(event.key==='Enter' && !validateBtn.disabled && !locked){
+          validateAnswer();
+        }
+      });
+    });
+
+    inputs[0]?.focus();
+  }
+
+  function readAnswers(){
+    return [...questionZone.querySelectorAll('.answer-input')]
+      .map(input=>Number(input.value));
+  }
+
+  function answersAreCorrect(q,answers){
+
+    /*
+      Si le nombre manquant est une fraction, on accepte
+      TOUTE fraction équivalente qui rend l'égalité vraie.
+
+      Exemple :
+      14 × 1/1 = 14
+      14 × 2/2 = 14
+      14 × 14/14 = 14
+
+      Pour b × n/d = a, on vérifie :
+      b × n = a × d.
+    */
+    if(q.type==='fractionRight' || q.type==='fractionLeft'){
+
+      if(answers.length!==2) return false;
+
+      const numerator=answers[0];
+      const denominator=answers[1];
+
+      if(denominator===0) return false;
+
+      return q.b*numerator === q.a*denominator;
+    }
+
+    /*
+      Pour les autres formes, le nombre attendu est un entier.
+    */
+    const expected=expectedValues(q);
+
+    return answers.length===expected.length &&
+      answers.every((value,i)=>value===expected[i]);
+  }
+
+  function lockAndShowCorrection(q,correct){
+    const inputs=[...questionZone.querySelectorAll('.answer-input')];
+    const expected=expectedValues(q);
+
+    inputs.forEach((input,i)=>{
+      input.disabled=true;
+      input.classList.remove('wrong','correct');
+      input.classList.add(Number(input.value)===expected[i] ? 'correct' : 'wrong');
+    });
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1 ? 'Voir mon bilan' : 'Question suivante';
+
+    if(!correct){
+      feedback.className='feedback error';
+      feedback.innerHTML=`La bonne égalité est : <strong>${correctionHTML(q)}</strong>.`;
+    }
+  }
+
+  function validateAnswer(){
+    if(locked || validateBtn.disabled) return;
+
+    const q=questions[index];
+    const answers=readAnswers();
+
+    attempts++;
+
+    if(answersAreCorrect(q,answers)){
+      locked=true;
+      score += attempts===1 ? 1 : 0.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+      const inputs=[...questionZone.querySelectorAll('.answer-input')];
+      inputs.forEach(input=>{
+        input.disabled=true;
+        input.classList.remove('wrong');
+        input.classList.add('correct');
+      });
+
+      feedback.className='feedback success';
+
+      if(q.type==='fractionRight' || q.type==='fractionLeft'){
+        const answers=readAnswers();
+        const studentFraction=miniFraction(answers[0],answers[1]);
+
+        feedback.innerHTML=attempts===1
+          ? `Bravo ! ${studentFraction} complète bien l'égalité.`
+          : `Oui ! ${studentFraction} complète bien l'égalité. Bonne correction au deuxième essai.`;
+      }else{
+        feedback.innerHTML=attempts===1
+          ? `Bravo ! <strong>${correctionHTML(q)}</strong>.`
+          : `Oui ! <strong>${correctionHTML(q)}</strong>. Bonne correction au deuxième essai.`;
+      }
+
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      nextBtn.textContent=index===TOTAL-1 ? 'Voir mon bilan' : 'Question suivante';
+      return;
+    }
+
+    if(attempts===1){
+      feedback.className='feedback error';
+      feedback.innerHTML=
+        'Pas encore. Regarde quel nombre est multiplié par la fraction et quel résultat doit être obtenu. <strong>Il te reste un essai.</strong>';
+
+      const inputs=[...questionZone.querySelectorAll('.answer-input')];
+      inputs.forEach(input=>{
+        input.classList.remove('correct');
+        input.classList.add('wrong');
+      });
+
+      inputs[0]?.focus();
+      inputs[0]?.select();
+      return;
+    }
+
+    locked=true;
+    lockAndShowCorrection(q,false);
+  }
+
+  function nextQuestion(){
+    if(index<TOTAL-1){
+      index++;
+      renderQuestion();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+    exercise.style.display='none';
+    final.classList.add('show');
+
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    if(score===TOTAL){
+      finalMessage.textContent=
+        'Excellent ! Tu reconnais parfaitement le nombre qui complète ces égalités.';
+    }else if(score>=8){
+      finalMessage.textContent=
+        'Très bien ! La définition d’une fraction comme quotient est bien comprise.';
+    }else if(score>=6){
+      finalMessage.textContent=
+        'C’est bien. Relis attentivement la place de chaque nombre dans l’égalité.';
+    }else{
+      finalMessage.textContent=
+        'Revois la règle : le nombre a sur b est celui qui, multiplié par b, donne a.';
+    }
+  }
+
+  function restart(){
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    attempts=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='';
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener('click',validateAnswer);
+  nextBtn.addEventListener('click',nextQuestion);
+  restartBtn.addEventListener('click',restart);
+
+  questions=generateQuestions();
+  renderQuestion();
+})();
+</script>
+
+</body>
+</html>

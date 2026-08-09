@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:12px;
+}
+
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:480px;
+  max-height:calc(100vh - 24px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- Haut ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px 10px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:116px;
+  padding:9px 14px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Activité ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:5px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+}
+
+.instruction{
+  min-height:54px;
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.25rem,2.35vw,1.6rem);
+  font-weight:600;
+  line-height:1.25;
+  text-align:center;
+}
+
+.question-zone{
+  flex:1;
+  min-height:205px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px;
+}
+
+.prompt{
+  width:100%;
+  text-align:center;
+  font-size:clamp(1.5rem,3.4vw,2.4rem);
+  font-weight:750;
+  line-height:1.25;
+}
+
+.subprompt{
+  margin-top:-6px;
+  color:var(--m);
+  font-size:clamp(1rem,2vw,1.2rem);
+  font-weight:650;
+  text-align:center;
+}
+
+.options{
+  width:min(760px,100%);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.option-btn{
+  min-height:80px;
+  padding:12px 14px;
+  display:grid;
+  place-items:center;
+  color:var(--bd);
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:800;
+  line-height:1.1;
+  text-align:center;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:15px;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease,background .12s ease,border-color .12s ease;
+}
+
+.option-btn:hover:not(:disabled){filter:brightness(1.03)}
+.option-btn:active:not(:disabled){transform:scale(.98)}
+.option-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.option-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.option-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.option-btn:disabled{cursor:default}
+
+/* ---------- Fraction ---------- */
+
+.fraction{
+  display:inline-grid;
+  grid-template-rows:auto 2px auto;
+  align-items:center;
+  justify-items:center;
+  min-width:54px;
+  vertical-align:middle;
+  line-height:1;
+}
+
+.fraction-line{
+  width:100%;
+  min-width:48px;
+  height:2px;
+  background:currentColor;
+  border-radius:99px;
+}
+
+.fraction-value{
+  min-width:44px;
+  padding:3px 6px;
+  text-align:center;
+}
+
+/* ---------- Type exacte / approchée ---------- */
+
+.binary-options{
+  width:min(620px,100%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.binary-btn{
+  min-height:72px;
+  padding:10px 16px;
+  color:var(--bd);
+  font-size:clamp(1.15rem,2.5vw,1.5rem);
+  font-weight:800;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:15px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+.binary-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.binary-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.binary-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.binary-btn:disabled{cursor:default}
+
+/* ---------- Association ---------- */
+
+.association{
+  width:min(760px,100%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.assoc-card{
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  background:#fff;
+  border:2px solid #d9e7f1;
+  border-radius:16px;
+}
+
+.assoc-value{
+  min-height:58px;
+  display:grid;
+  place-items:center;
+  font-size:clamp(1.6rem,3.8vw,2.5rem);
+  font-weight:800;
+}
+
+.assoc-buttons{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.assoc-btn{
+  min-height:45px;
+  padding:6px 8px;
+  color:var(--bd);
+  font-weight:800;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:11px;
+  cursor:pointer;
+}
+
+.assoc-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.assoc-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.assoc-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.assoc-btn:disabled{cursor:default}
+
+/* ---------- Feedback ---------- */
+
+.feedback{
+  min-height:58px;
+  padding:9px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.4;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd;
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc;
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+button.action{
+  min-height:46px;
+  padding:0 20px;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both;
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1);
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+
+.final h2{
+  margin:0 0 8px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.9rem);
+}
+
+.final-score{
+  margin:8px 0;
+  font-size:1.25rem;
+  font-weight:800;
+}
+
+.final-message{
+  margin:8px 0 20px;
+  color:var(--m);
+  font-size:1.05rem;
+  line-height:1.45;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+
+@media(max-width:700px),(max-height:620px){
+
+  body{padding:6px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 12px);
+    border-radius:16px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:10px 14px 6px;
+    gap:8px;
+  }
+
+  .track{grid-column:1/-1}
+
+  .pill{
+    min-width:0;
+    padding:7px 10px;
+  }
+
+  .main{
+    padding:2px 10px 10px;
+    gap:7px;
+  }
+
+  .instruction{
+    min-height:44px;
+    font-size:1.07rem;
+  }
+
+  .question-zone{
+    min-height:150px;
+    padding:10px;
+    gap:10px;
+  }
+
+  .prompt{font-size:1.55rem}
+  .subprompt{font-size:.9rem}
+
+  .options{
+    gap:7px;
+  }
+
+  .option-btn{
+    min-height:58px;
+    padding:7px;
+    font-size:1.15rem;
+    border-radius:11px;
+  }
+
+  .binary-options{gap:8px}
+
+  .binary-btn{
+    min-height:54px;
+    padding:7px;
+    font-size:1rem;
+  }
+
+  .association{gap:8px}
+
+  .assoc-card{
+    padding:8px;
+    gap:7px;
+  }
+
+  .assoc-value{
+    min-height:43px;
+    font-size:1.45rem;
+  }
+
+  .assoc-buttons{
+    grid-template-columns:1fr;
+    gap:5px;
+  }
+
+  .assoc-btn{
+    min-height:34px;
+    font-size:.82rem;
+  }
+
+  .feedback{
+    min-height:48px;
+    padding:7px 10px;
+    font-size:.87rem;
+  }
+
+  .controls{min-height:43px}
+  button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+
+<body>
+
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction" id="instruction"></p>
+
+    <div class="question-zone" id="questionZone"></div>
+
+    <div class="feedback" id="feedback" role="status"></div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>
+        Valider
+      </button>
+
+      <button class="action secondary" type="button" id="next" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouveaux nombres
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+
+  'use strict';
+
+  const TOTAL = 10;
+
+  const $ = id => document.getElementById(id);
+
+  const counter = $('counter');
+  const scoreBox = $('score');
+  const bar = $('bar');
+  const instruction = $('instruction');
+  const questionZone = $('questionZone');
+  const feedback = $('feedback');
+  const validateBtn = $('validate');
+  const nextBtn = $('next');
+  const exercise = $('exercise');
+  const final = $('final');
+  const finalScore = $('finalScore');
+  const finalMessage = $('finalMessage');
+  const restartBtn = $('restart');
+
+  let questions = [];
+  let index = 0;
+  let score = 0;
+  let locked = false;
+
+  let selectedOption = null;
+  let selectedBinary = null;
+  let assocSelections = [null,null];
+
+
+  /* -------------------------
+     Outils
+  ------------------------- */
+
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function choice(array){
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function gcd(a,b){
+    while(b!==0){
+      [a,b]=[b,a%b];
+    }
+    return Math.abs(a);
+  }
+
+  function reduced(a,b){
+    const g=gcd(a,b);
+    return {n:a/g,d:b/g};
+  }
+
+  function isIntegerQuotient(a,b){
+    return a%b===0;
+  }
+
+  function isTerminating(a,b){
+    let {d}=reduced(a,b);
+
+    while(d%2===0) d/=2;
+    while(d%5===0) d/=5;
+
+    return d===1;
+  }
+
+  function exactDecimal(a,b){
+
+    const r=reduced(a,b);
+    let d=r.d;
+
+    let p2=0;
+    let p5=0;
+
+    while(d%2===0){
+      p2++;
+      d/=2;
+    }
+
+    while(d%5===0){
+      p5++;
+      d/=5;
+    }
+
+    const k=Math.max(p2,p5);
+    const scale=10**k;
+    const value=r.n*(scale/r.d);
+
+    if(k===0){
+      return String(value);
+    }
+
+    const integerPart=Math.floor(value/scale);
+    const fractionPart=String(value%scale).padStart(k,'0').replace(/0+$/,'');
+
+    return fractionPart
+      ? `${integerPart},${fractionPart}`
+      : String(integerPart);
+  }
+
+  function roundedHundredth(a,b){
+    return (a/b).toFixed(2).replace('.',',');
+  }
+
+  function nearbyDecimal(a,b){
+    const x=a/b;
+    const delta=choice([0.1,0.2,0.01,0.02]);
+    const sign=Math.random()<.5 ? -1 : 1;
+    let y=x+sign*delta;
+
+    if(y<0) y=x+delta;
+
+    const decimals=delta<0.1 ? 2 : 1;
+
+    return y.toFixed(decimals).replace('.',',');
+  }
+
+  function fractionHTML(a,b){
+    return `
+      <span class="fraction">
+        <span class="fraction-value">${a}</span>
+        <span class="fraction-line"></span>
+        <span class="fraction-value">${b}</span>
+      </span>
+    `;
+  }
+
+  function valueHTML(value){
+    if(value.kind==='fraction'){
+      return fractionHTML(value.a,value.b);
+    }
+    return value.text;
+  }
+
+  function quotientHTML(a,b){
+    return `<strong>${a} ÷ ${b}</strong>`;
+  }
+
+
+  /* -------------------------
+     Génération des nombres
+  ------------------------- */
+
+  function generateNonTerminatingPair(){
+    for(let tries=0;tries<500;tries++){
+      const a=randInt(2,20);
+      const b=randInt(2,20);
+
+      if(a===b) continue;
+      if(!isTerminating(a,b)){
+        return {a,b};
+      }
+    }
+
+    return {a:2,b:3};
+  }
+
+  function generateTerminatingPair(){
+    for(let tries=0;tries<500;tries++){
+      const a=randInt(2,20);
+      const b=randInt(2,20);
+
+      if(a===b) continue;
+      if(isTerminating(a,b)){
+        return {a,b};
+      }
+    }
+
+    return {a:3,b:4};
+  }
+
+  function generateIntegerPair(){
+    for(let tries=0;tries<500;tries++){
+      const b=randInt(2,10);
+      const k=randInt(1,4);
+      const a=b*k;
+
+      if(a<=20 && a!==b){
+        return {a,b};
+      }
+    }
+
+    return {a:12,b:4};
+  }
+
+
+  /* -------------------------
+     Type 1 :
+     choisir la valeur exacte
+  ------------------------- */
+
+  function makeChooseExact(){
+
+    const family=choice(['nonterminating','terminating','integer']);
+
+    let a,b,correct,distractors;
+
+    if(family==='nonterminating'){
+
+      ({a,b}=generateNonTerminatingPair());
+
+      correct={
+        kind:'fraction',
+        a,
+        b,
+        correct:true
+      };
+
+      distractors=[
+        {
+          kind:'text',
+          text:roundedHundredth(a,b),
+          correct:false
+        },
+        {
+          kind:'fraction',
+          a:b,
+          b:a,
+          correct:false
+        }
+      ];
+
+    }else if(family==='integer'){
+
+      ({a,b}=generateIntegerPair());
+
+      const exact=exactDecimal(a,b);
+
+      correct={
+        kind:'text',
+        text:exact,
+        correct:true
+      };
+
+      distractors=[
+        {
+          kind:'fraction',
+          a:b,
+          b:a,
+          correct:false
+        },
+        {
+          kind:'text',
+          text:nearbyDecimal(a,b),
+          correct:false
+        }
+      ];
+
+    }else{
+
+      ({a,b}=generateTerminatingPair());
+
+      const exact=exactDecimal(a,b);
+
+      correct={
+        kind:'text',
+        text:exact,
+        correct:true
+      };
+
+      distractors=[
+        {
+          kind:'fraction',
+          a:b,
+          b:a,
+          correct:false
+        },
+        {
+          kind:'text',
+          text:nearbyDecimal(a,b),
+          correct:false
+        }
+      ];
+    }
+
+    return {
+      type:'chooseExact',
+      a,
+      b,
+      options:shuffle([correct,...distractors])
+    };
+  }
+
+
+  /* -------------------------
+     Type 2 :
+     exacte ou approchée
+  ------------------------- */
+
+  function makeExactOrApprox(){
+
+    const mode=choice(['exactTerminating','exactFraction','approx']);
+
+    let a,b,value,answer;
+
+    if(mode==='approx'){
+
+      ({a,b}=generateNonTerminatingPair());
+
+      value={
+        kind:'text',
+        text:roundedHundredth(a,b)
+      };
+
+      answer='approx';
+
+    }else if(mode==='exactFraction'){
+
+      ({a,b}=generateNonTerminatingPair());
+
+      value={
+        kind:'fraction',
+        a,
+        b
+      };
+
+      answer='exact';
+
+    }else{
+
+      const useInteger=Math.random()<.35;
+
+      if(useInteger){
+        ({a,b}=generateIntegerPair());
+      }else{
+        ({a,b}=generateTerminatingPair());
+      }
+
+      value={
+        kind:'text',
+        text:exactDecimal(a,b)
+      };
+
+      answer='exact';
+    }
+
+    return {
+      type:'exactOrApprox',
+      a,
+      b,
+      value,
+      answer
+    };
+  }
+
+
+  /* -------------------------
+     Type 3 :
+     associer exacte / approchée
+  ------------------------- */
+
+  function makeAssociate(){
+
+    const {a,b}=generateNonTerminatingPair();
+
+    const exact={
+      kind:'fraction',
+      a,
+      b,
+      role:'exact'
+    };
+
+    const approx={
+      kind:'text',
+      text:roundedHundredth(a,b),
+      role:'approx'
+    };
+
+    return {
+      type:'associate',
+      a,
+      b,
+      values:shuffle([exact,approx])
+    };
+  }
+
+
+  /* -------------------------
+     Série de 10 questions
+  ------------------------- */
+
+  function generateQuestions(){
+
+    const types=shuffle([
+      'chooseExact','chooseExact','chooseExact','chooseExact',
+      'exactOrApprox','exactOrApprox','exactOrApprox',
+      'associate','associate','associate'
+    ]);
+
+    return types.map(type=>{
+      if(type==='chooseExact') return makeChooseExact();
+      if(type==='exactOrApprox') return makeExactOrApprox();
+      return makeAssociate();
+    });
+  }
+
+
+  /* -------------------------
+     Affichage
+  ------------------------- */
+
+  function resetState(){
+
+    locked=false;
+    selectedOption=null;
+    selectedBinary=null;
+    assocSelections=[null,null];
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+
+    feedback.className='feedback';
+  }
+
+  function renderChooseExact(q){
+
+    instruction.textContent=
+      'Choisis une valeur exacte du quotient.';
+
+    questionZone.innerHTML=`
+      <div class="prompt">${q.a} ÷ ${q.b}</div>
+      <div class="subprompt">Une seule proposition est correcte.</div>
+      <div class="options" id="options"></div>
+    `;
+
+    const options=$('options');
+
+    q.options.forEach((option,i)=>{
+
+      const btn=document.createElement('button');
+
+      btn.type='button';
+      btn.className='option-btn';
+      btn.dataset.index=String(i);
+      btn.innerHTML=valueHTML(option);
+
+      btn.addEventListener('click',()=>{
+
+        if(locked) return;
+
+        selectedOption=i;
+
+        [...options.children].forEach((b,j)=>{
+          b.classList.toggle('selected',j===i);
+        });
+
+        validateBtn.disabled=false;
+      });
+
+      options.appendChild(btn);
+    });
+
+    feedback.textContent=
+      'Choisis une proposition puis valide ta réponse.';
+  }
+
+  function renderExactOrApprox(q){
+
+    instruction.textContent=
+      'Indique si la valeur proposée est exacte ou approchée.';
+
+    questionZone.innerHTML=`
+      <div class="prompt">
+        Pour ${q.a} ÷ ${q.b}, on propose :
+        <span style="margin-left:12px">${valueHTML(q.value)}</span>
+      </div>
+
+      <div class="binary-options" id="binaryOptions">
+        <button class="binary-btn" type="button" data-value="exact">
+          Valeur exacte
+        </button>
+
+        <button class="binary-btn" type="button" data-value="approx">
+          Valeur approchée
+        </button>
+      </div>
+    `;
+
+    const buttons=[...questionZone.querySelectorAll('.binary-btn')];
+
+    buttons.forEach(btn=>{
+
+      btn.addEventListener('click',()=>{
+
+        if(locked) return;
+
+        selectedBinary=btn.dataset.value;
+
+        buttons.forEach(b=>{
+          b.classList.toggle('selected',b===btn);
+        });
+
+        validateBtn.disabled=false;
+      });
+    });
+
+    feedback.textContent=
+      'Choisis « valeur exacte » ou « valeur approchée ».';
+  }
+
+  function renderAssociate(q){
+
+    instruction.textContent=
+      'Associe chaque écriture à « exacte » ou « approchée ».';
+
+    questionZone.innerHTML=`
+      <div class="prompt">${q.a} ÷ ${q.b}</div>
+
+      <div class="association">
+        ${q.values.map((value,i)=>`
+          <div class="assoc-card" data-card="${i}">
+
+            <div class="assoc-value">
+              ${valueHTML(value)}
+            </div>
+
+            <div class="assoc-buttons">
+              <button
+                class="assoc-btn"
+                type="button"
+                data-card="${i}"
+                data-value="exact">
+                Exacte
+              </button>
+
+              <button
+                class="assoc-btn"
+                type="button"
+                data-card="${i}"
+                data-value="approx">
+                Approchée
+              </button>
+            </div>
+
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const buttons=[...questionZone.querySelectorAll('.assoc-btn')];
+
+    buttons.forEach(btn=>{
+
+      btn.addEventListener('click',()=>{
+
+        if(locked) return;
+
+        const card=Number(btn.dataset.card);
+        const value=btn.dataset.value;
+
+        assocSelections[card]=value;
+
+        buttons
+          .filter(b=>Number(b.dataset.card)===card)
+          .forEach(b=>{
+            b.classList.toggle('selected',b===btn);
+          });
+
+        validateBtn.disabled=
+          assocSelections.some(v=>v===null);
+      });
+    });
+
+    feedback.textContent=
+      'Attribue un rôle à chacune des deux écritures puis valide.';
+  }
+
+  function renderQuestion(){
+
+    resetState();
+
+    const q=questions[index];
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    if(q.type==='chooseExact'){
+      renderChooseExact(q);
+    }else if(q.type==='exactOrApprox'){
+      renderExactOrApprox(q);
+    }else{
+      renderAssociate(q);
+    }
+  }
+
+
+  /* -------------------------
+     Corrections
+  ------------------------- */
+
+  function finishQuestion(){
+
+    locked=true;
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+
+    nextBtn.textContent=
+      index===TOTAL-1
+        ? 'Voir mon résultat'
+        : 'Question suivante';
+  }
+
+  function validateChooseExact(q){
+
+    const buttons=[...questionZone.querySelectorAll('.option-btn')];
+
+    const chosen=q.options[selectedOption];
+    const correctIndex=q.options.findIndex(option=>option.correct);
+
+    buttons.forEach((btn,i)=>{
+      btn.disabled=true;
+
+      if(i===correctIndex){
+        btn.classList.add('correct');
+      }
+
+      if(i===selectedOption && i!==correctIndex){
+        btn.classList.add('wrong');
+      }
+    });
+
+    if(chosen.correct){
+
+      score++;
+
+      feedback.className='feedback success';
+
+      if(isTerminating(q.a,q.b)){
+        feedback.innerHTML=
+          `Bravo ! <strong>${valueHTML(chosen)}</strong> est exactement égal à ${q.a} ÷ ${q.b}.`;
+      }else{
+        feedback.innerHTML=
+          `Bravo ! ${fractionHTML(q.a,q.b)} est la valeur exacte de ${q.a} ÷ ${q.b}.`;
+      }
+
+    }else{
+
+      feedback.className='feedback error';
+
+      const good=q.options[correctIndex];
+
+      feedback.innerHTML=
+        `La valeur exacte proposée était <strong>${valueHTML(good)}</strong>.`;
+    }
+
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    finishQuestion();
+  }
+
+  function validateExactOrApprox(q){
+
+    const buttons=[...questionZone.querySelectorAll('.binary-btn')];
+
+    buttons.forEach(btn=>{
+
+      btn.disabled=true;
+
+      if(btn.dataset.value===q.answer){
+        btn.classList.add('correct');
+      }
+
+      if(btn.dataset.value===selectedBinary && selectedBinary!==q.answer){
+        btn.classList.add('wrong');
+      }
+    });
+
+    const correct=selectedBinary===q.answer;
+
+    if(correct){
+
+      score++;
+
+      feedback.className='feedback success';
+
+      if(q.answer==='exact'){
+        feedback.innerHTML=
+          `Bravo ! Cette écriture donne exactement le quotient ${q.a} ÷ ${q.b}.`;
+      }else{
+        feedback.innerHTML=
+          `Bravo ! Cette écriture est une valeur approchée au centième du quotient ${q.a} ÷ ${q.b}.`;
+      }
+
+    }else{
+
+      feedback.className='feedback error';
+
+      if(q.answer==='exact'){
+        feedback.innerHTML=
+          `Cette valeur est exacte : elle est exactement égale à ${q.a} ÷ ${q.b}.`;
+      }else{
+        feedback.innerHTML=
+          `Cette valeur est approchée : le quotient exact est ${fractionHTML(q.a,q.b)}.`;
+      }
+    }
+
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    finishQuestion();
+  }
+
+  function validateAssociate(q){
+
+    const buttons=[...questionZone.querySelectorAll('.assoc-btn')];
+
+    let correct=true;
+
+    q.values.forEach((value,i)=>{
+
+      const expected=value.role;
+
+      if(assocSelections[i]!==expected){
+        correct=false;
+      }
+
+      buttons
+        .filter(btn=>Number(btn.dataset.card)===i)
+        .forEach(btn=>{
+
+          btn.disabled=true;
+
+          if(btn.dataset.value===expected){
+            btn.classList.add('correct');
+          }
+
+          if(
+            btn.dataset.value===assocSelections[i] &&
+            assocSelections[i]!==expected
+          ){
+            btn.classList.add('wrong');
+          }
+        });
+    });
+
+    if(correct){
+
+      score++;
+
+      feedback.className='feedback success';
+
+      feedback.innerHTML=
+        `Bravo ! ${fractionHTML(q.a,q.b)} est exact et ${roundedHundredth(q.a,q.b)} est une valeur approchée au centième.`;
+
+    }else{
+
+      feedback.className='feedback error';
+
+      feedback.innerHTML=
+        `La fraction ${fractionHTML(q.a,q.b)} donne la valeur exacte ; ${roundedHundredth(q.a,q.b)} est une valeur approchée au centième.`;
+    }
+
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    finishQuestion();
+  }
+
+  function validate(){
+
+    if(locked || validateBtn.disabled) return;
+
+    const q=questions[index];
+
+    if(q.type==='chooseExact'){
+      validateChooseExact(q);
+    }else if(q.type==='exactOrApprox'){
+      validateExactOrApprox(q);
+    }else{
+      validateAssociate(q);
+    }
+  }
+
+
+  /* -------------------------
+     Navigation
+  ------------------------- */
+
+  function nextQuestion(){
+
+    if(index<TOTAL-1){
+
+      index++;
+      renderQuestion();
+
+    }else{
+
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+
+    exercise.style.display='none';
+    final.classList.add('show');
+
+    finalScore.textContent=
+      `Score : ${score} / ${TOTAL}`;
+
+    if(score===TOTAL){
+
+      finalMessage.textContent=
+        'Excellent ! Tu distingues parfaitement valeur exacte et valeur approchée.';
+
+    }else if(score>=8){
+
+      finalMessage.textContent=
+        'Très bien ! Tu maîtrises bien la différence entre une valeur exacte et une valeur approchée.';
+
+    }else if(score>=6){
+
+      finalMessage.textContent=
+        'C’est bien. Rappelle-toi qu’un nombre décimal peut lui aussi être une valeur exacte.';
+
+    }else{
+
+      finalMessage.textContent=
+        'Revois la différence : une valeur exacte est égale au quotient, tandis qu’une valeur approchée n’en donne qu’une approximation.';
+    }
+  }
+
+  function restart(){
+
+    questions=generateQuestions();
+
+    index=0;
+    score=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='';
+
+    renderQuestion();
+  }
+
+
+  /* -------------------------
+     Événements
+  ------------------------- */
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',nextQuestion);
+  restartBtn.addEventListener('click',restart);
+
+
+  /* -------------------------
+     Démarrage
+  ------------------------- */
+
+  questions=generateQuestions();
+  renderQuestion();
+
+})();
+</script>
+
+</body>
+</html>
