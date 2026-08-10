@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+
+<link rel="stylesheet" href="../geolib/v1.3/geolib.css">
+<link rel="stylesheet" href="../geolib/v1.5/protractor.css">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,1040px);
+  aspect-ratio:16/9;
+  min-height:520px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:14px 22px 8px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:120px;
+  padding:8px 13px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:2px 14px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:7px
+}
+
+.instruction{
+  min-height:48px;
+  margin:0;
+  padding:2px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.08rem,2vw,1.42rem);
+  font-weight:600;
+  line-height:1.28;
+  text-align:center
+}
+
+.figure{
+  flex:1;
+  min-height:310px;
+  overflow:hidden;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:310px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  touch-action:none
+}
+
+.demo-ray{
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.demo-angle-arc{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.vertex-label{
+  fill:var(--line);
+  font:700 25px Arial,Helvetica,sans-serif;
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round
+}
+
+.feedback{
+  min-height:50px;
+  padding:7px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.32;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap
+}
+
+button.action{
+  min-height:46px;
+  padding:0 18px;
+  font-size:.98rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.hint{
+  min-height:46px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-size:.9rem;
+  text-align:center
+}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+/* Validation visuelle du placement de l'élève */
+.geolib-protractor.correct-placement .protractor-body{
+  fill:rgba(34,197,94,.18);
+  stroke:#20864b
+}
+
+.geolib-protractor.correct-placement .protractor-outer-arc,
+.geolib-protractor.correct-placement .protractor-baseline,
+.geolib-protractor.correct-placement .protractor-center-ring,
+.geolib-protractor.correct-placement .protractor-center-cross{
+  stroke:#20864b
+}
+
+.geolib-protractor.wrong-placement{
+  opacity:.52
+}
+
+.geolib-protractor.wrong-placement .protractor-body{
+  fill:rgba(239,68,68,.13);
+  stroke:#c63d3d
+}
+
+.geolib-protractor.wrong-placement .protractor-outer-arc,
+.geolib-protractor.wrong-placement .protractor-baseline,
+.geolib-protractor.wrong-placement .protractor-center-ring,
+.geolib-protractor.wrong-placement .protractor-center-cross{
+  stroke:#c63d3d
+}
+
+/* Rapporteur vert de correction */
+.geolib-protractor.correction-protractor{
+  pointer-events:none;
+  opacity:.92
+}
+
+.geolib-protractor.correction-protractor .protractor-body{
+  fill:rgba(34,197,94,.13);
+  stroke:#20864b
+}
+
+.geolib-protractor.correction-protractor .protractor-outer-arc,
+.geolib-protractor.correction-protractor .protractor-baseline,
+.geolib-protractor.correction-protractor .protractor-center-ring,
+.geolib-protractor.correction-protractor .protractor-center-cross,
+.geolib-protractor.correction-protractor .protractor-tick{
+  stroke:#20864b
+}
+
+.geolib-protractor.correction-protractor .protractor-number{
+  fill:#166534
+}
+
+.geolib-protractor.correction-protractor .protractor-rotate-arm,
+.geolib-protractor.correction-protractor .protractor-rotate-handle,
+.geolib-protractor.correction-protractor .protractor-rotate-hit{
+  display:none
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:760px),(max-height:680px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:7px 9px 4px;
+    gap:6px
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.86rem}
+
+  .main{
+    padding:0 7px 7px;
+    gap:4px
+  }
+
+  .instruction{
+    min-height:40px;
+    padding:1px 4px;
+    font-size:1rem
+  }
+
+  .figure,
+  #scene{
+    min-height:275px
+  }
+
+  .feedback{
+    min-height:43px;
+    padding:5px 8px;
+    font-size:.83rem
+  }
+
+  .controls{
+    min-height:44px;
+    gap:6px
+  }
+
+  button.action{
+    min-height:48px;
+    padding:0 13px;
+    font-size:.9rem
+  }
+
+  .hint{
+    min-height:35px;
+    font-size:.77rem
+  }
+}
+
+@media(pointer:coarse){
+  button.action{
+    min-height:52px
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Place correctement le rapporteur pour pouvoir mesurer l’angle.
+    </p>
+
+    <div class="figure">
+      <div id="scene" aria-label="Angle et rapporteur manipulable"></div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Déplace et tourne le rapporteur, puis valide ton placement.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" type="button" id="resetTool">
+        Replacer le rapporteur
+      </button>
+      <button class="action primary" type="button" id="validate" disabled>
+        Valider
+      </button>
+      <button class="action secondary" type="button" id="next" hidden>
+        Question suivante
+      </button>
+    </div>
+
+    <div class="hint">
+      Sur tablette : fais glisser le rapporteur avec un doigt et utilise la poignée ronde pour le tourner.
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">📐</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouveaux angles
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script src="../geolib/v1.3/geolib.js"></script>
+<script src="../geolib/v1.5/protractor.js"></script>
+
+<script>
+(() => {
+  "use strict";
+
+  const TOTAL=6;
+  const NS="http://www.w3.org/2000/svg";
+
+  const MEASURES=[32,38,44,51,57,63,69,76,83,97,104,111,118,126,134,142,149];
+
+  const BASE_ANGLES=[
+    -150,-128,-105,-82,-58,-34,-12,
+    10,28,48,68,92,116,140,162
+  ];
+
+  const VERTICES=[
+    {x:430,y:235},
+    {x:470,y:245},
+    {x:405,y:260},
+    {x:495,y:225},
+    {x:450,y:275},
+    {x:520,y:265},
+    {x:385,y:220}
+  ];
+
+  const STARTS=[
+    {x:185,y:335,angle:18},
+    {x:700,y:330,angle:154},
+    {x:210,y:155,angle:332},
+    {x:700,y:160,angle:205},
+    {x:165,y:245,angle:68},
+    {x:735,y:245,angle:248}
+  ];
+
+  const $=id=>document.getElementById(id);
+  const sceneContainer=$("scene");
+  const feedback=$("feedback");
+  const validateBtn=$("validate");
+  const nextBtn=$("next");
+  const resetToolBtn=$("resetTool");
+  const counter=$("counter");
+  const scoreBox=$("score");
+  const bar=$("bar");
+  const exercise=$("exercise");
+  const final=$("final");
+  const finalScore=$("finalScore");
+  const finalMessage=$("finalMessage");
+  const restartBtn=$("restart");
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let locked=false;
+  let touched=false;
+  let scene=null;
+  let protractor=null;
+  let correctionProtractor=null;
+  let previousSignature="";
+
+  function shuffle(array){
+    const a=array.slice();
+
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+
+    return a;
+  }
+
+  function choice(array){
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  function norm(a){
+    let r=a%360;
+    if(r<0)r+=360;
+    return r;
+  }
+
+  function angularDistance(a,b){
+    let d=Math.abs(norm(a)-norm(b));
+    if(d>180)d=360-d;
+    return d;
+  }
+
+  function point(origin,angleDeg,length){
+    const a=angleDeg*Math.PI/180;
+
+    return {
+      x:origin.x+Math.cos(a)*length,
+      y:origin.y+Math.sin(a)*length
+    };
+  }
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+
+    for(const [k,v] of Object.entries(attrs)){
+      el.setAttribute(k,String(v));
+    }
+
+    return el;
+  }
+
+  /*
+   * Le rapporteur dessine son demi-disque "au-dessus" de sa ligne de base.
+   * On conserve donc uniquement les orientations où le deuxième côté de
+   * l'angle se trouve réellement dans le demi-disque.
+   */
+  function rayIsInsideProtractor(protractorAngle,rayAngle){
+    let local=norm(rayAngle-protractorAngle);
+
+    if(Math.abs(local)<.00001)local=360;
+
+    return local>=180 && local<=360;
+  }
+
+  function correctOrientations(q){
+    const candidates=[
+      {angle:norm(q.a1),other:q.a2},
+      {angle:norm(q.a1+180),other:q.a2},
+      {angle:norm(q.a2),other:q.a1},
+      {angle:norm(q.a2+180),other:q.a1}
+    ];
+
+    const result=[];
+
+    for(const c of candidates){
+      if(rayIsInsideProtractor(c.angle,c.other)){
+        if(!result.some(a=>angularDistance(a,c.angle)<.01)){
+          result.push(c.angle);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  function makeQuestion(i){
+    const measure=choice(MEASURES);
+    const base=choice(BASE_ANGLES);
+    const direction=Math.random()<.5 ? 1 : -1;
+
+    const q={
+      measure,
+      a1:norm(base),
+      a2:norm(base+direction*measure),
+      vertex:choice(VERTICES),
+      start:{...choice(STARTS)},
+      radius:choice([145,150,155])
+    };
+
+    q.correctAngles=correctOrientations(q);
+
+    // Sécurité : la position initiale ne doit pas être déjà correcte.
+    const tooClose=q.correctAngles.some(a=>angularDistance(a,q.start.angle)<12);
+    const tooCentered=Math.hypot(
+      q.start.x-q.vertex.x,
+      q.start.y-q.vertex.y
+    )<100;
+
+    if(tooClose)q.start.angle=norm(q.start.angle+37);
+    if(tooCentered)q.start={...choice(STARTS)};
+
+    return q;
+  }
+
+  function buildQuestions(){
+    for(let attempt=0;attempt<200;attempt++){
+      const result=[];
+
+      while(result.length<TOTAL){
+        const q=makeQuestion(result.length);
+
+        const duplicate=result.some(old=>
+          old.measure===q.measure &&
+          angularDistance(old.a1,q.a1)<8
+        );
+
+        if(!duplicate)result.push(q);
+      }
+
+      const signature=result
+        .map(q=>`${q.measure}:${Math.round(q.a1)}:${q.vertex.x}:${q.vertex.y}`)
+        .join("|");
+
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+
+    return Array.from({length:TOTAL},(_,i)=>makeQuestion(i));
+  }
+
+  function setFeedback(text,type=""){
+    feedback.className="feedback"+(type?" "+type:"");
+    feedback.textContent=text;
+  }
+
+  function drawAngle(q){
+    const rayLength=270;
+    const p1=point(q.vertex,q.a1,rayLength);
+    const p2=point(q.vertex,q.a2,rayLength);
+
+    scene.layers.lines.appendChild(svg("line",{
+      x1:q.vertex.x,
+      y1:q.vertex.y,
+      x2:p1.x,
+      y2:p1.y,
+      class:"demo-ray"
+    }));
+
+    scene.layers.lines.appendChild(svg("line",{
+      x1:q.vertex.x,
+      y1:q.vertex.y,
+      x2:p2.x,
+      y2:p2.y,
+      class:"demo-ray"
+    }));
+
+    const arcR=45;
+    let start=q.a1;
+    let end=q.a2;
+    let delta=norm(end-start);
+
+    if(delta>180){
+      const tmp=start;
+      start=end;
+      end=tmp;
+      delta=norm(end-start);
+    }
+
+    const ap1=point(q.vertex,start,arcR);
+    const ap2=point(q.vertex,end,arcR);
+
+    scene.layers.lines.appendChild(svg("path",{
+      d:`M ${ap1.x} ${ap1.y} A ${arcR} ${arcR} 0 0 1 ${ap2.x} ${ap2.y}`,
+      class:"demo-angle-arc"
+    }));
+
+    const bisector=norm(start+delta/2+180);
+    const labelPos=point(q.vertex,bisector,31);
+
+    const label=svg("text",{
+      x:labelPos.x,
+      y:labelPos.y+8,
+      class:"vertex-label",
+      "text-anchor":"middle"
+    });
+
+    label.textContent="O";
+    scene.layers.points.appendChild(label);
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+
+    locked=false;
+    touched=false;
+    correctionProtractor=null;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    scene=new GeoLib.Scene(sceneContainer,{
+      width:900,
+      height:420,
+      keyboard:false
+    });
+
+    drawAngle(q);
+
+    protractor=scene.add(new GeoLib.Protractor({
+      x:q.start.x,
+      y:q.start.y,
+      angle:q.start.angle,
+      radius:q.radius,
+
+      allowMove:true,
+      allowRotate:true,
+      locked:false,
+
+      showTicks:true,
+      showNumbers:true,
+      showInnerScale:true,
+      showOuterScale:true,
+      showCenter:true,
+      showBaseline:true,
+
+      snapCenter:false,
+      snapBaseline:false,
+
+      onChange:(state,reason)=>{
+        if(locked)return;
+
+        if(reason==="move" || reason==="rotate"){
+          touched=true;
+          validateBtn.disabled=false;
+        }
+      }
+    }));
+
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    resetToolBtn.hidden=false;
+    resetToolBtn.disabled=false;
+
+    setFeedback("Déplace et tourne le rapporteur, puis valide ton placement.");
+  }
+
+  function placementResult(){
+    const q=questions[index];
+
+    const centerDistance=Math.hypot(
+      protractor.x-q.vertex.x,
+      protractor.y-q.vertex.y
+    );
+
+    let bestAngleError=Infinity;
+    let nearestAngle=q.correctAngles[0];
+
+    for(const correctAngle of q.correctAngles){
+      const error=angularDistance(protractor.angle,correctAngle);
+
+      if(error<bestAngleError){
+        bestAngleError=error;
+        nearestAngle=correctAngle;
+      }
+    }
+
+    const centerOk=centerDistance<=17;
+    const angleOk=bestAngleError<=4;
+
+    return {
+      success:centerOk && angleOk,
+      centerOk,
+      angleOk,
+      centerDistance,
+      angleError:bestAngleError,
+      nearestAngle
+    };
+  }
+
+  function showCorrection(correctAngle){
+    const q=questions[index];
+
+    correctionProtractor=scene.add(new GeoLib.Protractor({
+      x:q.vertex.x,
+      y:q.vertex.y,
+      angle:correctAngle,
+      radius:q.radius,
+
+      allowMove:false,
+      allowRotate:false,
+      locked:true,
+
+      showTicks:true,
+      showNumbers:true,
+      showInnerScale:true,
+      showOuterScale:true,
+      showCenter:true,
+      showBaseline:true
+    }));
+
+    correctionProtractor.group.classList.add("correction-protractor");
+  }
+
+  function validate(){
+    if(locked || !touched)return;
+
+    const result=placementResult();
+
+    locked=true;
+    protractor.setLocked(true);
+
+    validateBtn.hidden=true;
+    resetToolBtn.disabled=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1
+      ? "Voir le résultat"
+      : "Question suivante";
+
+    if(result.success){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+      protractor.group.classList.add("correct-placement");
+
+      setFeedback(
+        "Bravo ! Le centre est sur le sommet et la ligne de base suit bien un côté de l’angle.",
+        "success"
+      );
+      return;
+    }
+
+    protractor.group.classList.add("wrong-placement");
+    showCorrection(result.nearestAngle);
+
+    if(!result.centerOk && !result.angleOk){
+      setFeedback(
+        "Le centre et l’orientation étaient à corriger. Le rapporteur vert montre un placement possible.",
+        "error"
+      );
+    }else if(!result.centerOk){
+      setFeedback(
+        "L’orientation convenait, mais le centre du rapporteur devait être exactement sur le sommet O. La correction est en vert.",
+        "error"
+      );
+    }else{
+      setFeedback(
+        "Le centre était bien placé, mais la ligne de base devait suivre l’un des côtés de l’angle. La correction est en vert.",
+        "error"
+      );
+    }
+  }
+
+  function resetTool(){
+    if(locked)return;
+
+    protractor.reset();
+    touched=false;
+    validateBtn.disabled=true;
+
+    setFeedback("Rapporteur replacé. Déplace-le et tourne-le avant de valider.");
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add("show");
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score>=6){
+      finalMessage.textContent=
+        "Très bien ! Tu sais placer le centre du rapporteur sur le sommet et aligner sa ligne de base sur un côté.";
+    }else if(score>=4){
+      finalMessage.textContent=
+        "Bien joué. Vérifie encore systématiquement le centre puis la ligne de base avant de lire une mesure.";
+    }else{
+      finalMessage.textContent=
+        "À retravailler : pour mesurer un angle, commence toujours par placer le centre sur le sommet puis aligne la ligne de base sur un côté.";
+    }
+  }
+
+  function restart(){
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    locked=false;
+    touched=false;
+
+    final.classList.remove("show");
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener("click",validate);
+  resetToolBtn.addEventListener("click",resetTool);
+  nextBtn.addEventListener("click",next);
+  restartBtn.addEventListener("click",restart);
+
+  if(!window.GeoLib || !GeoLib.Protractor){
+    setFeedback(
+      "GeoLib 1.5 est introuvable. Vérifie les fichiers geolib/v1.5/protractor.js et protractor.css.",
+      "error"
+    );
+    validateBtn.disabled=true;
+    resetToolBtn.disabled=true;
+    return;
+  }
+
+  restart();
+})();
+</script>
+
+</body>
+</html>

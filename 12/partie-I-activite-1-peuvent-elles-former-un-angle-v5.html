@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{
+  width:100%;height:100%;margin:0;
+  background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+button{font:inherit}
+
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:480px;
+  max-height:calc(100vh - 24px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+.pill{
+  min-width:116px;
+  padding:9px 14px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;min-height:0;
+  padding:4px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:9px
+}
+.instruction{
+  min-height:58px;
+  margin:0;
+  padding:4px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.28rem,2.5vw,1.72rem);
+  font-weight:650;
+  line-height:1.25;
+  text-align:center
+}
+
+.question-zone{
+  flex:1;
+  min-height:215px;
+  padding:14px 18px;
+  display:grid;
+  grid-template-columns:minmax(250px,.82fr) minmax(0,1.35fr);
+  gap:18px;
+  align-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px;
+  overflow:hidden
+}
+
+.notations{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px
+}
+.notations-title{
+  color:var(--m);
+  font-size:1rem;
+  font-weight:700;
+  text-align:center
+}
+.ray-pair{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap
+}
+.ray-card{
+  min-width:118px;
+  padding:14px 18px;
+  color:var(--bd);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(2rem,4.4vw,3.15rem);
+  font-weight:700;
+  line-height:1;
+  text-align:center;
+  background:#fff;
+  border:2px solid #c9dfef;
+  border-radius:15px;
+  box-shadow:0 6px 16px rgba(17,63,103,.08)
+}
+.and{
+  color:var(--m);
+  font-size:1.15rem;
+  font-weight:800
+}
+
+.figure-wrap{
+  min-width:0;
+  height:100%;
+  min-height:200px;
+  display:grid;
+  place-items:center
+}
+svg{
+  width:100%;
+  height:100%;
+  min-height:200px;
+  overflow:visible
+}
+.ray-line{
+  fill:none;
+  stroke:var(--line);
+  stroke-width:4.2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+.point-dot{
+  fill:#fff;
+  stroke:var(--line);
+  stroke-width:3;
+  vector-effect:non-scaling-stroke
+}
+.point-label{
+  font:700 28px Arial,Helvetica,sans-serif;
+  fill:var(--line);
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round;
+  pointer-events:none
+}
+.decoy-dot{
+  fill:#fff;
+  stroke:#8091a3;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke
+}
+.decoy-label{
+  font:700 25px Arial,Helvetica,sans-serif;
+  fill:#607284;
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round;
+  pointer-events:none
+}
+
+.answer-row{
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap
+}
+.answer-btn{
+  min-width:150px;
+  height:50px;
+  padding:0 24px;
+  color:var(--bd);
+  font-size:1.15rem;
+  font-weight:800;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease,background .12s ease,border-color .12s ease
+}
+.answer-btn:hover:not(:disabled){filter:brightness(1.03)}
+.answer-btn:active:not(:disabled){transform:scale(.98)}
+.answer-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.answer-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+
+.feedback{
+  min-height:58px;
+  padding:9px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.4;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+
+.controls{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap
+}
+button.action{
+  min-height:46px;
+  padding:0 20px;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:6px 9px}
+  .main{padding:2px 10px 10px;gap:6px}
+  .instruction{min-height:48px;padding:2px 6px;font-size:1.12rem}
+  .question-zone{min-height:175px;padding:8px 10px;gap:8px;grid-template-columns:minmax(180px,.85fr) minmax(0,1.2fr)}
+  .ray-card{min-width:90px;padding:10px 12px;font-size:2rem}
+  .notations{gap:7px}.notations-title{font-size:.86rem}
+  .figure-wrap,svg{min-height:155px}
+  .point-label{font-size:30px}.decoy-label{font-size:27px}
+  .answer-row{min-height:48px;gap:8px}
+  .answer-btn{min-width:120px;height:43px;padding:0 17px;font-size:1rem}
+  .feedback{min-height:48px;padding:7px 10px;font-size:.88rem}
+  .controls{min-height:43px}
+  button.action{min-height:42px;height:42px}
+}
+
+@media(max-width:560px){
+  .question-zone{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .notations{gap:5px}.notations-title{display:none}
+  .ray-card{min-width:82px;padding:8px 10px;font-size:1.75rem}
+  .figure-wrap,svg{min-height:125px}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Ces deux demi-droites peuvent-elles être les côtés d'un même angle&nbsp;?</p>
+
+    <div class="question-zone">
+      <div class="notations">
+        <div class="notations-title">Observe bien les crochets et l'ordre des lettres.</div>
+        <div class="ray-pair">
+          <div class="ray-card" id="ray1"></div>
+          <div class="and">et</div>
+          <div class="ray-card" id="ray2"></div>
+        </div>
+      </div>
+
+      <div class="figure-wrap">
+        <svg id="scene" viewBox="0 0 520 300" role="img" aria-label="Représentation des deux demi-droites"></svg>
+      </div>
+    </div>
+
+    <div class="answer-row" id="answers">
+      <button class="answer-btn" type="button" data-answer="yes">Oui</button>
+      <button class="answer-btn" type="button" data-answer="no">Non</button>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">Choisis une réponse puis valide.</div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">Recommencer avec de nouvelles demi-droites</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const NS='http://www.w3.org/2000/svg';
+  const LETTERS=['A','B','C','D','E','F','G','H','J','K','L','M','N','P','R','S','T','U','V'];
+
+  const $=id=>document.getElementById(id);
+  const scene=$('scene');
+  const ray1=$('ray1');
+  const ray2=$('ray2');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const nextBtn=$('next');
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+  const answerBtns=[...document.querySelectorAll('.answer-btn')];
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let selected=null;
+  let locked=false;
+  let previousSignature='';
+
+  function shuffle(array){
+    const a=array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function sample(array,n){return shuffle(array).slice(0,n)}
+  function choice(array){return array[Math.floor(Math.random()*array.length)]}
+  function rayText(ray){return ray.reverseNotation ? `(${ray.b}${ray.a}]` : `[${ray.a}${ray.b})`}
+  function current(){return questions[index]}
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+    for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));
+    return el;
+  }
+
+  function pointAlong(origin,through,scale){
+    return {
+      x:origin.x+(through.x-origin.x)*scale,
+      y:origin.y+(through.y-origin.y)*scale
+    };
+  }
+
+  function labelOffset(origin,center){
+    const dx=origin.x-center.x;
+    const dy=origin.y-center.y;
+    const len=Math.hypot(dx,dy)||1;
+    return {x:origin.x+(dx/len)*25,y:origin.y+(dy/len)*25+8};
+  }
+
+  function drawPoint(p,label,decoy=false){
+    scene.appendChild(svg('circle',{
+      cx:p.x,cy:p.y,r:6,
+      class:decoy?'decoy-dot':'point-dot'
+    }));
+    const center={x:260,y:150};
+    const pos=labelOffset(p,center);
+    const t=svg('text',{
+      x:pos.x,y:pos.y,
+      class:decoy?'decoy-label':'point-label',
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function drawRay(origin,through){
+    const end=pointAlong(origin,through,1.72);
+    scene.appendChild(svg('line',{
+      x1:origin.x,y1:origin.y,
+      x2:end.x,y2:end.y,
+      class:'ray-line'
+    }));
+  }
+
+  const TRUE_LAYOUTS=[
+    {o:[210,155],p1:[320,75],p2:[340,225],d1:[100,70],d2:[115,240]},
+    {o:[300,155],p1:[175,75],p2:[155,225],d1:[420,70],d2:[430,238]},
+    {o:[245,210],p1:[130,120],p2:[365,105],d1:[80,245],d2:[445,235]},
+    {o:[260,90],p1:[145,205],p2:[385,210],d1:[90,75],d2:[440,78]},
+    {o:[165,150],p1:[290,85],p2:[310,210],d1:[420,80],d2:[430,228]}
+  ];
+
+  const FALSE_LAYOUTS=[
+    {o1:[125,190],p1:[245,95],o2:[375,195],p2:[265,95],d1:[70,70],d2:[450,70]},
+    {o1:[145,95],p1:[290,155],o2:[385,220],p2:[285,155],d1:[75,235],d2:[450,75]},
+    {o1:[110,155],p1:[245,155],o2:[395,155],p2:[260,155],d1:[120,65],d2:[400,240]},
+    {o1:[175,220],p1:[280,115],o2:[355,220],p2:[270,120],d1:[90,90],d2:[440,90]},
+    {o1:[145,205],p1:[260,95],o2:[390,110],p2:[270,190],d1:[80,75],d2:[440,235]}
+  ];
+
+  function makeTrueQuestion(layoutIndex){
+    const [a,b,c,d,e]=sample(LETTERS,5);
+    const rays=shuffle([
+      {a,b,reverseNotation:Math.random()<.5},
+      {a,b:c,reverseNotation:Math.random()<.5}
+    ]);
+    return {
+      yes:true,
+      origin1:a,
+      origin2:a,
+      ray1:rays[0],
+      ray2:rays[1],
+      letters:{origin:a,p1:b,p2:c,d1:d,d2:e},
+      layout:TRUE_LAYOUTS[layoutIndex%TRUE_LAYOUTS.length],
+      kind:'true'
+    };
+  }
+
+  function makeFalseQuestion(family,layoutIndex){
+    const [a,b,c,d,e]=sample(LETTERS,5);
+    let r1,r2;
+
+    switch(family){
+      case 'chain':
+        r1={a,b};
+        r2={a:b,b:c};
+        break;
+      case 'sameEnd':
+        r1={a,b};
+        r2={a:c,b};
+        break;
+      case 'reverseOne':
+        r1={a:b,b:a};
+        r2={a,b:c};
+        break;
+      case 'towardSame':
+        r1={a:b,b:a};
+        r2={a:c,b:a};
+        break;
+      default:
+        r1={a,b};
+        r2={a:c,b:a};
+    }
+
+    r1.reverseNotation=Math.random()<.5;
+    r2.reverseNotation=Math.random()<.5;
+    const rays=shuffle([r1,r2]);
+    return {
+      yes:false,
+      origin1:rays[0].a,
+      origin2:rays[1].a,
+      ray1:rays[0],
+      ray2:rays[1],
+      letters:{a,b,c,d,e},
+      layout:FALSE_LAYOUTS[layoutIndex%FALSE_LAYOUTS.length],
+      kind:'false'
+    };
+  }
+
+  function generateQuestions(){
+    for(let tries=0;tries<100;tries++){
+      const families=shuffle(['chain','sameEnd','reverseOne','towardSame','mixed']);
+      const yesLayouts=shuffle([0,1,2,3,4]);
+      const noLayouts=shuffle([0,1,2,3,4]);
+      const result=[];
+
+      for(let i=0;i<5;i++)result.push(makeTrueQuestion(yesLayouts[i]));
+      for(let i=0;i<5;i++)result.push(makeFalseQuestion(families[i],noLayouts[i]));
+
+      const shuffled=shuffle(result);
+      const signature=shuffled.map(q=>rayText(q.ray1)+'|'+rayText(q.ray2)).join(';');
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return shuffled;
+      }
+    }
+    return [];
+  }
+
+  function drawTrue(q){
+    const L=q.layout;
+    const o={x:L.o[0],y:L.o[1]};
+    const p1={x:L.p1[0],y:L.p1[1]};
+    const p2={x:L.p2[0],y:L.p2[1]};
+    const d1={x:L.d1[0],y:L.d1[1]};
+    const d2={x:L.d2[0],y:L.d2[1]};
+
+    const map=new Map([
+      [q.letters.origin,o],
+      [q.letters.p1,p1],
+      [q.letters.p2,p2],
+      [q.letters.d1,d1],
+      [q.letters.d2,d2]
+    ]);
+
+    const pRay1Origin=map.get(q.ray1.a);
+    const pRay1Through=map.get(q.ray1.b);
+    const pRay2Origin=map.get(q.ray2.a);
+    const pRay2Through=map.get(q.ray2.b);
+
+    drawRay(pRay1Origin,pRay1Through);
+    drawRay(pRay2Origin,pRay2Through);
+
+    drawPoint(o,q.letters.origin);
+    drawPoint(p1,q.letters.p1);
+    drawPoint(p2,q.letters.p2);
+    drawPoint(d1,q.letters.d1,true);
+    drawPoint(d2,q.letters.d2,true);
+  }
+
+  function drawFalse(q){
+    const L=q.layout;
+    const o1={x:L.o1[0],y:L.o1[1]};
+    const p1={x:L.p1[0],y:L.p1[1]};
+    const o2={x:L.o2[0],y:L.o2[1]};
+    const p2={x:L.p2[0],y:L.p2[1]};
+    const d1={x:L.d1[0],y:L.d1[1]};
+    const d2={x:L.d2[0],y:L.d2[1]};
+
+    const uniqueLabels=[...new Set([q.ray1.a,q.ray1.b,q.ray2.a,q.ray2.b])];
+    const coordPool=[o1,p1,o2,p2];
+    const labelMap=new Map();
+
+    // On garantit que l'origine de chaque demi-droite est placée sur son propre point.
+    labelMap.set(q.ray1.a,o1);
+    labelMap.set(q.ray2.a,o2);
+
+    const remainingLabels=uniqueLabels.filter(l=>!labelMap.has(l));
+    const remainingCoords=[p1,p2];
+    remainingLabels.forEach((l,i)=>labelMap.set(l,remainingCoords[i%remainingCoords.length]));
+
+    // Si une lettre est commune comme point de passage, on rapproche les deux tracés
+    // sans modifier les origines, afin de garder la figure lisible.
+    const through1=labelMap.get(q.ray1.b) || p1;
+    const through2=labelMap.get(q.ray2.b) || p2;
+
+    drawRay(o1,through1);
+    drawRay(o2,through2);
+
+    for(const [label,p] of labelMap.entries())drawPoint(p,label);
+
+    const extras=LETTERS.filter(l=>!labelMap.has(l));
+    const decoys=sample(extras,2);
+    drawPoint(d1,decoys[0],true);
+    drawPoint(d2,decoys[1],true);
+  }
+
+  function drawQuestion(q){
+    scene.innerHTML='';
+    ray1.textContent=rayText(q.ray1);
+    ray2.textContent=rayText(q.ray2);
+    if(q.kind==='true')drawTrue(q);else drawFalse(q);
+  }
+
+  function resetButtons(){
+    answerBtns.forEach(btn=>{
+      btn.classList.remove('selected','correct','wrong');
+      btn.disabled=false;
+    });
+    selected=null;
+    validateBtn.disabled=true;
+  }
+
+  function setFeedback(text,type=''){
+    feedback.className='feedback'+(type?' '+type:'');
+    feedback.textContent=text;
+  }
+
+  function selectAnswer(value){
+    if(locked)return;
+    selected=value;
+    answerBtns.forEach(btn=>btn.classList.toggle('selected',btn.dataset.answer===value));
+    validateBtn.disabled=false;
+  }
+
+  function correctionText(q){
+    const r1=rayText(q.ray1);
+    const r2=rayText(q.ray2);
+    if(q.yes){
+      return `${r1} et ${r2} ont toutes les deux pour origine ${q.origin1}. Elles peuvent donc être les côtés d'un même angle.`;
+    }
+    return `${r1} a pour origine ${q.origin1}, tandis que ${r2} a pour origine ${q.origin2}. Leurs origines sont différentes.`;
+  }
+
+  function finishQuestion(){
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  }
+
+  function validate(){
+    if(locked||selected===null)return;
+    const q=current();
+    const expected=q.yes?'yes':'no';
+    const ok=selected===expected;
+
+    if(ok){
+      locked=true;
+      score+=1;
+      scoreBox.textContent=`Score : ${score.toLocaleString('fr-FR')} / ${TOTAL}`;
+
+      answerBtns.forEach(btn=>{
+        btn.disabled=true;
+        if(btn.dataset.answer===expected)btn.classList.add('correct');
+      });
+
+      setFeedback(`Bravo ! ${correctionText(q)}`,'success');
+      finishQuestion();
+      return;
+    }
+
+    locked=true;
+    answerBtns.forEach(btn=>{
+      btn.disabled=true;
+      btn.classList.remove('selected');
+      if(btn.dataset.answer===expected)btn.classList.add('correct');
+      else if(btn.dataset.answer===selected)btn.classList.add('wrong');
+    });
+    setFeedback(correctionText(q),'error');
+    finishQuestion();
+  }
+
+  function renderQuestion(){
+    const q=current();
+    locked=false;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    resetButtons();
+    setFeedback('Choisis une réponse puis valide.');
+    drawQuestion(q);
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${score.toLocaleString('fr-FR')} / ${TOTAL}`;
+
+    if(score>=9)finalMessage.textContent='Très bien ! Tu repères correctement l’origine d’une demi-droite.';
+    else if(score>=7)finalMessage.textContent='Bon travail. Pense toujours à repérer la lettre placée du côté du crochet.';
+    else finalMessage.textContent='À revoir : dans [AB) comme dans (BA], la lettre placée du côté du crochet est l’origine de la demi-droite.';
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+    index++;
+    renderQuestion();
+  }
+
+  function start(){
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    scoreBox.textContent=`Score : 0 / ${TOTAL}`;
+    exercise.hidden=false;
+    final.classList.remove('show');
+    renderQuestion();
+  }
+
+  answerBtns.forEach(btn=>btn.addEventListener('click',()=>selectAnswer(btn.dataset.answer)));
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',start);
+
+  start();
+})();
+</script>
+</body>
+</html>

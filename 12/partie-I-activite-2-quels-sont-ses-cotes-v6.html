@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:12px
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:500px;
+  max-height:calc(100vh - 24px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px 10px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:116px;
+  padding:9px 14px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:3px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+
+.instruction{
+  min-height:58px;
+  margin:0;
+  padding:3px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.35em;
+  flex-wrap:wrap;
+  font-size:clamp(1.22rem,2.35vw,1.62rem);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center
+}
+
+.angle-name{
+  position:relative;
+  display:inline-flex;
+  align-items:flex-end;
+  justify-content:center;
+  min-width:3.25em;
+  padding:.28em .12em 0;
+  color:var(--bd);
+  font-weight:800;
+  letter-spacing:.06em
+}
+
+.angle-name::before{
+  content:"⌢";
+  position:absolute;
+  top:-.42em;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:1.05em;
+  line-height:1;
+  color:var(--bd);
+}
+
+.figure{
+  flex:1;
+  min-height:205px;
+  padding:5px 10px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px;
+  overflow:hidden
+}
+
+svg{
+  width:100%;
+  height:100%;
+  min-height:195px;
+  overflow:visible
+}
+
+.ray-line{
+  fill:none;
+  stroke:var(--line);
+  stroke-width:4.2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.extra-ray{
+  stroke:#718294;
+  stroke-width:3.5
+}
+
+.point-mark{
+  stroke:var(--line);
+  stroke-width:3.2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.point-label{
+  font:700 27px Arial,Helvetica,sans-serif;
+  fill:var(--line);
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round;
+  pointer-events:none
+}
+
+.extra-label{
+  fill:#607284
+}
+
+.options{
+  min-height:108px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(120px,1fr));
+  gap:8px 10px;
+  align-items:center
+}
+
+.option-btn{
+  min-height:48px;
+  padding:7px 14px;
+  color:var(--bd);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(1.28rem,2.3vw,1.7rem);
+  font-weight:750;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    background .12s ease,
+    border-color .12s ease
+}
+
+.option-btn:hover:not(:disabled){filter:brightness(1.03)}
+.option-btn:active:not(:disabled){transform:scale(.98)}
+.option-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.option-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.option-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.option-btn:disabled{cursor:default}
+
+.feedback{
+  min-height:54px;
+  padding:8px 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px
+}
+
+button.action{
+  min-height:46px;
+  padding:0 20px;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 10px 10px;gap:5px}
+  .instruction{min-height:48px;font-size:1.05rem;padding:2px 5px}
+  .figure{min-height:150px;padding:2px 5px}
+  svg{min-height:145px}
+  .point-label{font-size:29px}
+  .options{min-height:90px;gap:5px 7px}
+  .option-btn{min-height:41px;padding:4px 9px;font-size:1.12rem}
+  .feedback{min-height:45px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px}
+}
+
+@media(max-width:560px){
+  .options{grid-template-columns:repeat(2,minmax(110px,1fr))}
+  .instruction{font-size:.98rem}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Sélectionne les deux demi-droites qui sont les côtés de l’angle
+      <span class="angle-name" id="angleName">AMB</span>.
+    </p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 900 330" role="img" aria-label="Angle avec plusieurs points"></svg>
+    </div>
+
+    <div class="options" id="options" aria-label="Choix des deux côtés"></div>
+
+    <div class="feedback" id="feedback" role="status">
+      Sélectionne exactement deux réponses puis valide.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const NS='http://www.w3.org/2000/svg';
+  const LETTERS=['A','B','C','D','E','F','G','H','J','K','L','M','N','P','R','S','T','U','V'];
+
+  const LAYOUTS=[
+    {o:[420,185],a1:205,a2:330,extra:78},
+    {o:[470,170],a1:145,a2:25,extra:265},
+    {o:[390,190],a1:220,a2:300,extra:22},
+    {o:[500,205],a1:160,a2:245,extra:350},
+    {o:[350,170],a1:205,a2:315,extra:105},
+    {o:[515,160],a1:135,a2:225,extra:10},
+    {o:[410,210],a1:190,a2:285,extra:55},
+    {o:[455,145],a1:120,a2:235,extra:335},
+    {o:[370,205],a1:210,a2:340,extra:95},
+    {o:[500,185],a1:150,a2:260,extra:15}
+  ];
+
+  const $=id=>document.getElementById(id);
+  const scene=$('scene');
+  const angleName=$('angleName');
+  const options=$('options');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const nextBtn=$('next');
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let selected=new Set();
+  let locked=false;
+  let previousSignature='';
+
+  function shuffle(array){
+    const a=array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function sample(array,n){
+    return shuffle(array).slice(0,n);
+  }
+
+  function choice(array){
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+    for(const [k,v] of Object.entries(attrs)){
+      el.setAttribute(k,String(v));
+    }
+    return el;
+  }
+
+  function pt(origin,angleDeg,distance){
+    const a=angleDeg*Math.PI/180;
+    return {
+      x:origin.x+Math.cos(a)*distance,
+      y:origin.y+Math.sin(a)*distance
+    };
+  }
+
+  function rayText(origin,through,reverse=false){
+    return reverse
+      ? `(${through}${origin}]`
+      : `[${origin}${through})`;
+  }
+
+  function segmentText(a,b){
+    return `[${a}${b}]`;
+  }
+
+  function rayOption(id,origin,through,correct=false){
+    return {
+      id,
+      text:rayText(origin,through,Math.random()<.5),
+      correct
+    };
+  }
+
+  function makeQuestion(layoutIndex,withExtraRay){
+    const labels=sample(LETTERS,6);
+    const [O,A,C,B,D,E]=labels;
+    const layout=LAYOUTS[layoutIndex%LAYOUTS.length];
+
+    const nameSide1=choice([A,C]);
+    const nameSide2=choice([B,D]);
+    const angleLetters=Math.random()<.5
+      ? [nameSide1,O,nameSide2]
+      : [nameSide2,O,nameSide1];
+
+    const correct1=rayOption('c1',O,choice([A,C]),true);
+    const correct2=rayOption('c2',O,choice([B,D]),true);
+
+    const inverse1=rayOption('w1',choice([A,C]),O,false);
+    const inverse2=rayOption('w2',choice([B,D]),O,false);
+    const segment={
+      id:'w3',
+      text:segmentText(O,choice([A,B,C,D])),
+      correct:false
+    };
+    const wrongDirection=rayOption('w4',O,E,false);
+
+    const candidatePool=[
+      correct1,
+      correct2,
+      inverse1,
+      inverse2,
+      segment,
+      wrongDirection
+    ];
+
+    return {
+      labels:{O,A,C,B,D,E},
+      layout,
+      withExtraRay,
+      angleLetters,
+      options:shuffle(candidatePool)
+    };
+  }
+
+  function generateQuestions(){
+    for(let tries=0;tries<100;tries++){
+      const layouts=shuffle([0,1,2,3,4,5,6,7,8,9]);
+      const extraFlags=shuffle([true,true,true,true,false,false,false,false,false,false]);
+      const result=layouts.map((layoutIndex,i)=>makeQuestion(layoutIndex,extraFlags[i]));
+      const signature=result
+        .map(q=>q.angleLetters.join('')+'|'+q.options.map(o=>o.text).join(','))
+        .join(';');
+
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+    return [];
+  }
+
+  function drawPointOnRay(p,label,angleDeg,extra=false){
+    const a=angleDeg*Math.PI/180;
+    const ux=Math.cos(a);
+    const uy=Math.sin(a);
+    const nx=-uy;
+    const ny=ux;
+
+    scene.appendChild(svg('line',{
+      x1:p.x-nx*8,
+      y1:p.y-ny*8,
+      x2:p.x+nx*8,
+      y2:p.y+ny*8,
+      class:'point-mark'+(extra?' extra-ray':'')
+    }));
+
+    let tx=p.x-18;
+    let ty=p.y-10;
+
+    const n1={x:-uy,y:ux};
+    const n2={x:uy,y:-ux};
+
+    function score(n){
+      return (n.x<0 ? 2 : 0) + (n.y<0 ? 1 : 0);
+    }
+
+    const n=score(n1)>=score(n2) ? n1 : n2;
+
+    tx = p.x + n.x*22 - ux*6;
+    ty = p.y + n.y*22 - uy*6 + 8;
+
+    const t=svg('text',{
+      x:tx,
+      y:ty,
+      class:'point-label'+(extra?' extra-label':''),
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function drawIsolatedPoint(p,label,extra=false){
+    scene.appendChild(svg('line',{
+      x1:p.x-6,
+      y1:p.y-6,
+      x2:p.x+6,
+      y2:p.y+6,
+      class:'point-mark'+(extra?' extra-ray':'')
+    }));
+    scene.appendChild(svg('line',{
+      x1:p.x-6,
+      y1:p.y+6,
+      x2:p.x+6,
+      y2:p.y-6,
+      class:'point-mark'+(extra?' extra-ray':'')
+    }));
+
+    const t=svg('text',{
+      x:p.x+18,
+      y:p.y-14,
+      class:'point-label'+(extra?' extra-label':''),
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function drawVertexLabel(O,label,a1,a2){
+    const r1=a1*Math.PI/180;
+    const r2=a2*Math.PI/180;
+    const d1={x:Math.cos(r1),y:Math.sin(r1)};
+    const d2={x:Math.cos(r2),y:Math.sin(r2)};
+
+    let bx=-(d1.x+d2.x);
+    let by=-(d1.y+d2.y);
+    let len=Math.hypot(bx,by);
+
+    if(len<.2){
+      bx=-d1.y;
+      by=d1.x;
+      len=Math.hypot(bx,by);
+    }
+
+    bx/=len;
+    by/=len;
+
+    const t=svg('text',{
+      x:O.x+bx*26,
+      y:O.y+by*26+8,
+      class:'point-label',
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function drawRay(origin,angleDeg,extra=false){
+    const end=pt(origin,angleDeg,275);
+    scene.appendChild(svg('line',{
+      x1:origin.x,
+      y1:origin.y,
+      x2:end.x,
+      y2:end.y,
+      class:'ray-line'+(extra?' extra-ray':'')
+    }));
+  }
+
+  function distancePointToRay(p,o,angleDeg){
+    const a=angleDeg*Math.PI/180;
+    const ux=Math.cos(a),uy=Math.sin(a);
+    const vx=p.x-o.x,vy=p.y-o.y;
+    const t=vx*ux+vy*uy;
+    if(t<0)return Math.hypot(vx,vy);
+    const proj={x:o.x+t*ux,y:o.y+t*uy};
+    return Math.hypot(p.x-proj.x,p.y-proj.y);
+  }
+
+  function chooseDecoyPoint(O,q){
+    const candidates=[
+      {x:120,y:82},{x:780,y:82},
+      {x:120,y:248},{x:780,y:248},
+      {x:450,y:78},{x:450,y:252}
+    ];
+
+    return candidates
+      .map(p=>({
+        ...p,
+        d:Math.min(
+          distancePointToRay(p,O,q.layout.a1),
+          distancePointToRay(p,O,q.layout.a2),
+          Math.hypot(p.x-O.x,p.y-O.y)
+        )
+      }))
+      .sort((a,b)=>b.d-a.d)[0];
+  }
+
+  function renderFigure(q){
+    scene.innerHTML='';
+
+    const O={x:q.layout.o[0],y:q.layout.o[1]};
+
+    const side1Near=pt(O,q.layout.a1,105);
+    const side1Far=pt(O,q.layout.a1,185);
+    const side2Near=pt(O,q.layout.a2,105);
+    const side2Far=pt(O,q.layout.a2,185);
+    const extraPoint=pt(O,q.layout.extra,155);
+
+    drawRay(O,q.layout.a1);
+    drawRay(O,q.layout.a2);
+
+    if(q.withExtraRay){
+      drawRay(O,q.layout.extra,true);
+    }
+
+    drawVertexLabel(O,q.labels.O,q.layout.a1,q.layout.a2);
+    drawPointOnRay(side1Near,q.labels.A,q.layout.a1,false);
+    drawPointOnRay(side1Far,q.labels.C,q.layout.a1,false);
+    drawPointOnRay(side2Near,q.labels.B,q.layout.a2,false);
+    drawPointOnRay(side2Far,q.labels.D,q.layout.a2,false);
+
+    if(q.withExtraRay){
+      drawPointOnRay(extraPoint,q.labels.E,q.layout.extra,true);
+    }else{
+      const decoy=chooseDecoyPoint(O,q);
+      drawIsolatedPoint(decoy,q.labels.E,true);
+    }
+  }
+
+  function renderOptions(q){
+    options.innerHTML='';
+    selected=new Set();
+
+    q.options.forEach(opt=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='option-btn';
+      btn.dataset.id=opt.id;
+      btn.textContent=opt.text;
+
+      btn.addEventListener('click',()=>{
+        if(locked)return;
+
+        if(selected.has(opt.id)){
+          selected.delete(opt.id);
+          btn.classList.remove('selected');
+        }else{
+          if(selected.size>=2)return;
+          selected.add(opt.id);
+          btn.classList.add('selected');
+        }
+
+        validateBtn.disabled=selected.size!==2;
+      });
+
+      options.appendChild(btn);
+    });
+  }
+
+  function current(){
+    return questions[index];
+  }
+
+  function setFeedback(text,type=''){
+    feedback.className='feedback'+(type?' '+type:'');
+    feedback.textContent=text;
+  }
+
+  function correctTexts(q){
+    return q.options
+      .filter(o=>o.correct)
+      .map(o=>o.text);
+  }
+
+  function renderQuestion(){
+    const q=current();
+
+    locked=false;
+    selected=new Set();
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    angleName.textContent=q.angleLetters.join('');
+
+    renderFigure(q);
+    renderOptions(q);
+
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+
+    setFeedback('Sélectionne exactement deux réponses puis valide.');
+  }
+
+  function validate(){
+    if(locked || selected.size!==2)return;
+
+    const q=current();
+    const correctIds=new Set(q.options.filter(o=>o.correct).map(o=>o.id));
+    const success=
+      selected.size===correctIds.size &&
+      [...selected].every(id=>correctIds.has(id));
+
+    locked=true;
+
+    [...options.querySelectorAll('.option-btn')].forEach(btn=>{
+      btn.disabled=true;
+      const opt=q.options.find(o=>o.id===btn.dataset.id);
+
+      if(opt.correct){
+        btn.classList.remove('selected');
+        btn.classList.add('correct');
+      }else if(selected.has(opt.id)){
+        btn.classList.remove('selected');
+        btn.classList.add('wrong');
+      }else{
+        btn.classList.remove('selected');
+      }
+    });
+
+    const [r1,r2]=correctTexts(q);
+    const O=q.labels.O;
+
+    if(success){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+      setFeedback(
+        `Bravo ! Les deux côtés sont ${r1} et ${r2} : leur origine est ${O}.`,
+        'success'
+      );
+    }else{
+      setFeedback(
+        `Les côtés sont ${r1} et ${r2}. Pour chaque côté, le crochet est du côté de l’origine ${O}.`,
+        'error'
+      );
+    }
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score>=9){
+      finalMessage.textContent='Très bien ! Tu identifies correctement les côtés d’un angle et leur origine.';
+    }else if(score>=7){
+      finalMessage.textContent='Bien joué. Vérifie encore le côté du crochet et la direction de chaque demi-droite.';
+    }else{
+      finalMessage.textContent='À retravailler : un côté d’angle est une demi-droite dont l’origine est le sommet de l’angle.';
+    }
+  }
+
+  function restart(){
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  restart();
+})();
+</script>
+
+</body>
+</html>
