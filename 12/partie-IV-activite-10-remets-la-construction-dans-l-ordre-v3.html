@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,1040px);
+  aspect-ratio:16/9;
+  min-height:520px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:14px 22px 8px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:25%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:120px;
+  padding:8px 13px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:2px 14px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:7px
+}
+
+.instruction{
+  min-height:46px;
+  margin:0;
+  padding:1px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:.3em;
+  font-size:clamp(1.05rem,2vw,1.38rem);
+  font-weight:600;
+  line-height:1.25;
+  text-align:center
+}
+
+.measure{
+  color:var(--bd);
+  font-weight:800
+}
+
+.sort-zone{
+  flex:1;
+  min-height:310px;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--line);
+  border-radius:18px;
+  overflow:hidden
+}
+
+.cards{
+  width:min(100%,820px);
+  display:grid;
+  gap:8px
+}
+
+.card{
+  min-height:48px;
+  padding:8px 14px;
+  display:grid;
+  grid-template-columns:34px 1fr 32px;
+  align-items:center;
+  gap:10px;
+  color:var(--i);
+  background:#fff;
+  border:2px solid #d6e4ef;
+  border-radius:13px;
+  box-shadow:0 3px 9px rgba(17,63,103,.06);
+  cursor:grab;
+  touch-action:none;
+  -webkit-touch-callout:none;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease
+}
+
+.card:active{cursor:grabbing}
+
+.card.dragging{
+  position:relative;
+  z-index:10;
+  transform:scale(1.015);
+  border-color:#6aa7d5;
+  box-shadow:0 10px 24px rgba(17,63,103,.18);
+  background:#f8fcff
+}
+
+.card.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798
+}
+
+.card.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585
+}
+
+.order-badge{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  color:var(--bd);
+  font-weight:800;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.card.correct .order-badge{
+  color:#165e36;
+  background:#d9f1e2
+}
+
+.card-text{
+  font-size:clamp(.95rem,1.55vw,1.08rem);
+  font-weight:650;
+  line-height:1.28
+}
+
+.drag-icon{
+  color:#8aa2b6;
+  font-size:1.35rem;
+  font-weight:900;
+  text-align:center;
+  letter-spacing:-.18em
+}
+
+.feedback{
+  min-height:48px;
+  padding:7px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px
+}
+
+button.action{
+  min-height:48px;
+  min-width:120px;
+  padding:0 16px;
+  font-size:.95rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:760px),(max-height:680px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:7px 9px 4px;
+    gap:6px
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.86rem}
+
+  .main{
+    padding:0 7px 7px;
+    gap:4px
+  }
+
+  .instruction{
+    min-height:39px;
+    font-size:.96rem
+  }
+
+  .sort-zone{
+    min-height:275px;
+    padding:6px
+  }
+
+  .cards{
+    gap:5px
+  }
+
+  .card{
+    min-height:43px;
+    padding:6px 9px;
+    grid-template-columns:30px 1fr 28px;
+    gap:7px
+  }
+
+  .order-badge{
+    width:27px;
+    height:27px;
+    font-size:.86rem
+  }
+
+  .card-text{
+    font-size:.87rem
+  }
+
+  .feedback{
+    min-height:42px;
+    padding:5px 8px;
+    font-size:.82rem
+  }
+
+  .controls{
+    min-height:44px
+  }
+
+  button.action{
+    min-height:50px;
+    min-width:108px;
+    padding:0 12px;
+    font-size:.88rem
+  }
+}
+
+@media(pointer:coarse){
+  .card{
+    min-height:50px
+  }
+
+  button.action{
+    min-height:52px
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Construction 1 / 4</div>
+    <div class="pill" id="score">Score : 0 / 4</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Remets dans l’ordre les étapes pour construire un angle de
+      <span class="measure" id="measure">58°</span>.
+    </p>
+
+    <div class="sort-zone">
+      <div class="cards" id="cards" aria-label="Étapes à remettre dans l'ordre"></div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Fais glisser les cartes pour les remettre dans l’ordre, puis valide.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate">
+        Valider
+      </button>
+      <button class="action secondary" type="button" id="next" hidden>
+        Construction suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">📐</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles mesures
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const TOTAL=4;
+
+  const ACUTE=[35,42,48,53,58,64,71,76,82];
+  const OBTUSE=[102,109,116,123,127,134,142,151];
+
+  const VERTICES=["O","A","M","T"];
+  const POINTS=["B","C","D","E","F","G","H","K","L","N","P","R","S"];
+
+  const $=id=>document.getElementById(id);
+
+  const measureBox=$("measure");
+  const cardsBox=$("cards");
+  const feedback=$("feedback");
+  const validateBtn=$("validate");
+  const nextBtn=$("next");
+  const counter=$("counter");
+  const scoreBox=$("score");
+  const bar=$("bar");
+  const exercise=$("exercise");
+  const final=$("final");
+  const finalScore=$("finalScore");
+  const finalMessage=$("finalMessage");
+  const restartBtn=$("restart");
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let locked=false;
+  let previousSignature="";
+  let activeDrag=null;
+
+  function shuffle(array){
+    const a=array.slice();
+
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+
+    return a;
+  }
+
+  function sample(array,n){
+    return shuffle(array).slice(0,n);
+  }
+
+  function buildSteps(q){
+    return [
+      {
+        id:1,
+        text:`Tracer une première demi-droite d’origine ${q.vertex}.`
+      },
+      {
+        id:2,
+        text:`Placer le centre du rapporteur sur le sommet ${q.vertex}.`
+      },
+      {
+        id:3,
+        text:`Aligner le 0° du rapporteur avec la première demi-droite.`
+      },
+      {
+        id:4,
+        text:`Repérer la graduation ${q.measure}°.`
+      },
+      {
+        id:5,
+        text:`Placer le point ${q.point} sur cette graduation.`
+      },
+      {
+        id:6,
+        text:`Tracer la deuxième demi-droite d’origine ${q.vertex} passant par ${q.point}.`
+      }
+    ];
+  }
+
+  function makeQuestion(measure,vertex,point){
+    const q={measure,vertex,point};
+    q.steps=buildSteps(q);
+
+    let mixed=shuffle(q.steps);
+
+    // On évite qu'une question apparaisse déjà dans le bon ordre.
+    while(mixed.every((step,i)=>step.id===i+1)){
+      mixed=shuffle(q.steps);
+    }
+
+    q.mixed=mixed;
+    return q;
+  }
+
+  function buildQuestions(){
+    for(let attempt=0;attempt<100;attempt++){
+      const measures=shuffle([
+        ...sample(ACUTE,2),
+        ...sample(OBTUSE,2)
+      ]);
+
+      const vertices=shuffle(VERTICES);
+      const points=sample(POINTS,4);
+
+      const result=measures.map((m,i)=>
+        makeQuestion(m,vertices[i],points[i])
+      );
+
+      const signature=result
+        .map(q=>`${q.measure}:${q.vertex}:${q.point}`)
+        .join("|");
+
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+
+    return [];
+  }
+
+  function setFeedback(text,type=""){
+    feedback.className="feedback"+(type?" "+type:"");
+    feedback.textContent=text;
+  }
+
+  function createCard(step){
+    const card=document.createElement("div");
+
+    card.className="card";
+    card.dataset.id=String(step.id);
+    card.tabIndex=0;
+
+    const badge=document.createElement("div");
+    badge.className="order-badge";
+    badge.textContent="";
+
+    const text=document.createElement("div");
+    text.className="card-text";
+    text.textContent=step.text;
+
+    const icon=document.createElement("div");
+    icon.className="drag-icon";
+    icon.setAttribute("aria-hidden","true");
+    icon.textContent="⋮⋮";
+
+    card.append(badge,text,icon);
+
+    bindPointerSort(card);
+
+    return card;
+  }
+
+  function bindPointerSort(card){
+    card.addEventListener("pointerdown",e=>{
+      if(locked)return;
+
+      // À la souris : uniquement le bouton gauche.
+      if(e.pointerType==="mouse" && e.button!==0)return;
+
+      e.preventDefault();
+
+      activeDrag={
+        card,
+        pointerId:e.pointerId
+      };
+
+      card.classList.add("dragging");
+
+      try{
+        card.setPointerCapture(e.pointerId);
+      }catch(err){}
+
+      const move=ev=>{
+        if(
+          !activeDrag ||
+          activeDrag.card!==card ||
+          activeDrag.pointerId!==ev.pointerId ||
+          locked
+        )return;
+
+        ev.preventDefault();
+
+        const siblings=[...cardsBox.children].filter(el=>el!==card);
+
+        let inserted=false;
+
+        for(const sibling of siblings){
+          const rect=sibling.getBoundingClientRect();
+          const middle=rect.top+rect.height/2;
+
+          if(ev.clientY<middle){
+            cardsBox.insertBefore(card,sibling);
+            inserted=true;
+            break;
+          }
+        }
+
+        if(!inserted){
+          cardsBox.appendChild(card);
+        }
+      };
+
+      const end=ev=>{
+        if(
+          !activeDrag ||
+          activeDrag.card!==card ||
+          activeDrag.pointerId!==ev.pointerId
+        )return;
+
+        card.classList.remove("dragging");
+
+        try{
+          if(card.hasPointerCapture(ev.pointerId)){
+            card.releasePointerCapture(ev.pointerId);
+          }
+        }catch(err){}
+
+        activeDrag=null;
+
+        window.removeEventListener("pointermove",move);
+        window.removeEventListener("pointerup",end);
+        window.removeEventListener("pointercancel",end);
+      };
+
+      /*
+       * Écoute sur window : robuste à la souris ET au tactile,
+       * même si le pointeur sort momentanément de la carte.
+       */
+      window.addEventListener("pointermove",move,{passive:false});
+      window.addEventListener("pointerup",end,{passive:false});
+      window.addEventListener("pointercancel",end,{passive:false});
+    });
+  }
+
+  function refreshBadges(showCorrect=false){
+    [...cardsBox.children].forEach((card,i)=>{
+      const badge=card.querySelector(".order-badge");
+      badge.textContent=showCorrect ? String(i+1) : "↕";
+    });
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+
+    locked=false;
+    activeDrag=null;
+
+    counter.textContent=`Construction ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    measureBox.textContent=`${q.measure}°`;
+
+    cardsBox.innerHTML="";
+
+    q.mixed.forEach(step=>{
+      cardsBox.appendChild(createCard(step));
+    });
+
+    refreshBadges(false);
+
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    nextBtn.textContent=index===TOTAL-1
+      ? "Voir le résultat"
+      : "Construction suivante";
+
+    setFeedback("Fais glisser les cartes pour les remettre dans l’ordre, puis valide.");
+  }
+
+  function currentOrder(){
+    return [...cardsBox.children].map(card=>Number(card.dataset.id));
+  }
+
+  function isCorrectOrder(){
+    return currentOrder().every((id,i)=>id===i+1);
+  }
+
+  function showCorrectOrder(){
+    const q=questions[index];
+
+    cardsBox.innerHTML="";
+
+    q.steps.forEach(step=>{
+      const card=createCard(step);
+      card.classList.add("correct");
+      cardsBox.appendChild(card);
+    });
+
+    refreshBadges(true);
+  }
+
+  function validate(){
+    if(locked)return;
+
+    locked=true;
+    const success=isCorrectOrder();
+
+    if(success){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+
+      [...cardsBox.children].forEach(card=>{
+        card.classList.add("correct");
+      });
+
+      refreshBadges(true);
+
+      setFeedback(
+        "Bravo ! La construction suit bien toutes les étapes dans le bon ordre.",
+        "success"
+      );
+    }else{
+      [...cardsBox.children].forEach(card=>{
+        card.classList.add("wrong");
+      });
+
+      setTimeout(showCorrectOrder,260);
+
+      setFeedback(
+        "Ce n’était pas le bon ordre. La correction est affichée : observe bien la place du centre, du 0° puis de la graduation.",
+        "error"
+      );
+    }
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add("show");
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score===4){
+      finalMessage.textContent=
+        "Très bien ! Tu connais l’ordre des étapes pour construire un angle avec un rapporteur.";
+    }else if(score>=3){
+      finalMessage.textContent=
+        "Bien joué. Retient surtout : tracer un premier côté, placer le centre, aligner le 0°, repérer la mesure, placer un point puis tracer le second côté.";
+    }else{
+      finalMessage.textContent=
+        "À retravailler : le centre du rapporteur se place sur le sommet et le 0° s’aligne avec le premier côté avant de repérer la mesure.";
+    }
+  }
+
+  function restart(){
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    locked=false;
+
+    final.classList.remove("show");
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener("click",validate);
+  nextBtn.addEventListener("click",next);
+  restartBtn.addEventListener("click",restart);
+
+  restart();
+})();
+</script>
+
+</body>
+</html>

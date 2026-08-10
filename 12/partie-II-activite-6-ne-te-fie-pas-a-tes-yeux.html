@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --purple:#7352b8;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:12px
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:500px;
+  max-height:calc(100vh - 24px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px 10px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:8.333%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:126px;
+  padding:9px 14px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:4px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+
+.instruction{
+  min-height:56px;
+  margin:0;
+  padding:3px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.22rem,2.25vw,1.55rem);
+  font-weight:600;
+  line-height:1.3;
+  text-align:center
+}
+
+.figure{
+  flex:1;
+  min-height:215px;
+  padding:5px 10px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px;
+  overflow:hidden
+}
+
+svg{
+  width:100%;
+  height:100%;
+  min-height:205px;
+  overflow:visible
+}
+
+.angle-side{
+  fill:none;
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.angle-arc{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.right-mark{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke
+}
+
+.measure-label{
+  font:800 32px Arial,Helvetica,sans-serif;
+  fill:var(--bd);
+  text-anchor:middle;
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round
+}
+
+.full-fill{
+  fill:rgba(115,82,184,.17);
+  stroke:var(--purple);
+  stroke-width:4;
+  vector-effect:non-scaling-stroke
+}
+
+.answers{
+  min-height:112px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(130px,1fr));
+  gap:8px 10px
+}
+
+.answer-btn{
+  min-height:48px;
+  padding:7px 14px;
+  color:var(--bd);
+  font-size:clamp(1.03rem,2vw,1.22rem);
+  font-weight:750;
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease,
+    background .12s ease,
+    border-color .12s ease
+}
+
+.answer-btn:hover:not(:disabled){filter:brightness(1.03)}
+.answer-btn:active:not(:disabled){transform:scale(.98)}
+.answer-btn.selected{background:#d7ebfb;border-color:#69a9d5}
+.answer-btn.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer-btn.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.answer-btn:disabled{cursor:default}
+
+.feedback{
+  min-height:54px;
+  padding:8px 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px
+}
+
+button.action{
+  min-height:46px;
+  padding:0 20px;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:700px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 10px 10px;gap:5px}
+  .instruction{min-height:44px;font-size:1.03rem}
+  .figure{min-height:150px;padding:2px 5px}
+  svg{min-height:145px}
+  .answers{min-height:90px;gap:5px 7px}
+  .answer-btn{min-height:40px;padding:4px 8px;font-size:.98rem}
+  .feedback{min-height:45px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:40px}
+  button.action{min-height:39px;height:39px}
+}
+
+@media(max-width:520px){
+  .answers{grid-template-columns:repeat(2,minmax(110px,1fr))}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 12</div>
+    <div class="pill" id="score">Score : 0 / 12</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Quelle est la nature de l’angle repéré ?
+    </p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 900 330" role="img" aria-label="Angle à identifier"></svg>
+    </div>
+
+    <div class="answers" id="answers" aria-label="Choix de la nature de l'angle"></div>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe les informations de la figure puis choisis une réponse.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=12;
+  const NS='http://www.w3.org/2000/svg';
+
+  const NATURES=[
+    {id:'nul',label:'Nul'},
+    {id:'aigu',label:'Aigu'},
+    {id:'droit',label:'Droit'},
+    {id:'obtus',label:'Obtus'},
+    {id:'plat',label:'Plat'},
+    {id:'plein',label:'Plein'}
+  ];
+
+  const ACUTE_CLEAR=[24,31,38,46,53,61,68,74];
+  const ACUTE_NEAR=[86,87,88,89];
+  const OBTUSE_CLEAR=[108,116,124,133,141,149,157,166];
+  const OBTUSE_NEAR=[91,92,93,94];
+
+  const $=id=>document.getElementById(id);
+  const scene=$('scene');
+  const answers=$('answers');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const nextBtn=$('next');
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let selected=null;
+  let locked=false;
+  let previousSignature='';
+
+  function shuffle(array){
+    const a=array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function choice(array){
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+    for(const [k,v] of Object.entries(attrs)){
+      el.setAttribute(k,String(v));
+    }
+    return el;
+  }
+
+  function point(origin,angleDeg,distance){
+    const a=angleDeg*Math.PI/180;
+    return {
+      x:origin.x+Math.cos(a)*distance,
+      y:origin.y+Math.sin(a)*distance
+    };
+  }
+
+  function normAngle(deg){
+    let a=deg%360;
+    if(a<0)a+=360;
+    return a;
+  }
+
+  function buildSeries(){
+    const base=[
+      {nature:'nul',kind:'nul',value:0},
+      {nature:'nul',kind:'nulMeasure',value:0},
+
+      {nature:'aigu',kind:'shape',value:choice(ACUTE_CLEAR)},
+      {nature:'aigu',kind:'measure',value:choice(ACUTE_NEAR)},
+
+      {nature:'droit',kind:'right',value:90},
+      {nature:'droit',kind:'right',value:90},
+
+      {nature:'obtus',kind:'shape',value:choice(OBTUSE_CLEAR)},
+      {nature:'obtus',kind:'measure',value:choice(OBTUSE_NEAR)},
+
+      {nature:'plat',kind:'flat',value:180},
+      {nature:'plat',kind:'flatMeasure',value:180},
+
+      {nature:'plein',kind:'full',value:360},
+      {nature:'plein',kind:'fullMeasure',value:360}
+    ];
+
+    for(let attempt=0;attempt<400;attempt++){
+      const series=shuffle(base.map(q=>({
+        ...q,
+        rotation:choice([0,18,37,63,91,124,157,203,238,276,311,338]),
+        len1:choice([150,175,205,235]),
+        len2:choice([145,185,215,245])
+      })));
+
+      const noSameNatureAdjacent=series.every((q,i)=>i===0||q.nature!==series[i-1].nature);
+      const signature=series.map(q=>`${q.nature}:${q.kind}:${q.value}:${q.rotation}`).join('|');
+
+      if(noSameNatureAdjacent && signature!==previousSignature){
+        previousSignature=signature;
+        return series;
+      }
+    }
+
+    return shuffle(base);
+  }
+
+  function drawSide(O,angleDeg,length){
+    const p=point(O,angleDeg,length);
+    scene.appendChild(svg('line',{
+      x1:O.x,
+      y1:O.y,
+      x2:p.x,
+      y2:p.y,
+      class:'angle-side'
+    }));
+  }
+
+  function arcPath(cx,cy,r,startDeg,endDeg){
+    const start=point({x:cx,y:cy},startDeg,r);
+    const end=point({x:cx,y:cy},endDeg,r);
+    const delta=((endDeg-startDeg)%360+360)%360;
+    const large=delta>180?1:0;
+
+    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${large} 1 ${end.x} ${end.y}`;
+  }
+
+  function drawArc(O,startDeg,endDeg,r=48){
+    scene.appendChild(svg('path',{
+      d:arcPath(O.x,O.y,r,startDeg,endDeg),
+      class:'angle-arc'
+    }));
+  }
+
+  function drawMeasure(O,startDeg,endDeg,value,r=85){
+    const delta=((endDeg-startDeg)%360+360)%360;
+    const mid=startDeg+delta/2;
+    const p=point(O,mid,r);
+    const t=svg('text',{
+      x:p.x,
+      y:p.y+10,
+      class:'measure-label'
+    });
+    t.textContent=`${value}°`;
+    scene.appendChild(t);
+  }
+
+  function drawRightMark(O,a1,a2){
+    const r=30;
+    const p1=point(O,a1,r);
+    const p3=point(O,a2,r);
+    const p2={
+      x:p1.x+(p3.x-O.x),
+      y:p1.y+(p3.y-O.y)
+    };
+
+    scene.appendChild(svg('path',{
+      d:`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y}`,
+      class:'right-mark'
+    }));
+  }
+
+  function drawFull(O,rotation,withMeasure){
+    const radius=79;
+
+    scene.appendChild(svg('circle',{
+      cx:O.x,
+      cy:O.y,
+      r:radius,
+      class:'full-fill'
+    }));
+
+    drawSide(O,rotation,170);
+
+    if(withMeasure){
+      const t=svg('text',{
+        x:O.x,
+        y:O.y+11,
+        class:'measure-label'
+      });
+      t.textContent='360°';
+      scene.appendChild(t);
+    }
+  }
+
+  function renderFigure(q){
+    scene.innerHTML='';
+
+    const O={x:450,y:165};
+    const rot=q.rotation;
+
+    if(q.nature==='plein'){
+      drawFull(O,rot,q.kind==='fullMeasure');
+      return;
+    }
+
+    if(q.nature==='nul'){
+      drawSide(O,rot,q.len1);
+
+      if(q.kind==='nulMeasure'){
+        const p=point(O,rot+70,72);
+        const t=svg('text',{
+          x:p.x,
+          y:p.y+8,
+          class:'measure-label'
+        });
+        t.textContent='0°';
+        scene.appendChild(t);
+      }else{
+        /* Deux côtés confondus : on renforce seulement le petit arc de repérage. */
+        const p1=point(O,rot-2,46);
+        const p2=point(O,rot+2,46);
+        scene.appendChild(svg('path',{
+          d:`M ${p1.x} ${p1.y} Q ${O.x+10} ${O.y-10} ${p2.x} ${p2.y}`,
+          class:'angle-arc'
+        }));
+      }
+      return;
+    }
+
+    if(q.nature==='plat'){
+      drawSide(O,rot,q.len1);
+      drawSide(O,rot+180,q.len2);
+      drawArc(O,rot,rot+180,48);
+
+      if(q.kind==='flatMeasure'){
+        drawMeasure(O,rot,rot+180,180,82);
+      }
+      return;
+    }
+
+    const a1=rot;
+    const a2=rot+q.value;
+
+    drawSide(O,a1,q.len1);
+    drawSide(O,a2,q.len2);
+
+    if(q.nature==='droit'){
+      drawRightMark(O,a1,a2);
+      return;
+    }
+
+    drawArc(O,a1,a2,48);
+
+    if(q.kind==='measure'){
+      drawMeasure(O,a1,a2,q.value,q.value>120?105:88);
+    }
+  }
+
+  function explanation(q){
+    if(q.nature==='nul'){
+      return q.kind==='nulMeasure'
+        ? `0° correspond à un angle nul.`
+        : `Les deux côtés sont confondus : l’angle est nul.`;
+    }
+
+    if(q.nature==='aigu'){
+      if(q.kind==='measure'){
+        return `${q.value}° est inférieur à 90° : l’angle est aigu, même s’il paraît presque droit.`;
+      }
+      return `L’angle est plus petit qu’un angle droit : c’est un angle aigu. La longueur et l’orientation des côtés ne changent rien.`;
+    }
+
+    if(q.nature==='droit'){
+      return `Le petit carré code un angle droit, quelle que soit l’orientation de la figure.`;
+    }
+
+    if(q.nature==='obtus'){
+      if(q.kind==='measure'){
+        return `${q.value}° est supérieur à 90° : l’angle est obtus, même s’il paraît presque droit.`;
+      }
+      return `L’angle est plus grand qu’un angle droit et plus petit qu’un angle plat : c’est un angle obtus.`;
+    }
+
+    if(q.nature==='plat'){
+      return q.kind==='flatMeasure'
+        ? `180° correspond exactement à un angle plat.`
+        : `Les deux côtés sont dans des directions opposées : c’est un angle plat.`;
+    }
+
+    return q.kind==='fullMeasure'
+      ? `360° correspond exactement à un angle plein.`
+      : `La région entière autour du sommet est représentée : c’est un angle plein.`;
+  }
+
+  function current(){
+    return questions[index];
+  }
+
+  function setFeedback(text,type=''){
+    feedback.className='feedback'+(type?' '+type:'');
+    feedback.textContent=text;
+  }
+
+  function renderAnswers(){
+    answers.innerHTML='';
+
+    shuffle(NATURES).forEach(nature=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='answer-btn';
+      btn.dataset.answer=nature.id;
+      btn.textContent=nature.label;
+
+      btn.addEventListener('click',()=>{
+        if(locked)return;
+
+        selected=nature.id;
+
+        [...answers.querySelectorAll('.answer-btn')].forEach(b=>{
+          b.classList.toggle('selected',b===btn);
+        });
+
+        validateBtn.disabled=false;
+      });
+
+      answers.appendChild(btn);
+    });
+  }
+
+  function renderQuestion(){
+    const q=current();
+
+    locked=false;
+    selected=null;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    renderFigure(q);
+    renderAnswers();
+
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+
+    setFeedback('Observe les informations de la figure puis choisis une réponse.');
+  }
+
+  function validate(){
+    if(locked || selected===null)return;
+
+    const q=current();
+    const success=selected===q.nature;
+
+    locked=true;
+
+    [...answers.querySelectorAll('.answer-btn')].forEach(btn=>{
+      btn.disabled=true;
+      btn.classList.remove('selected');
+
+      if(btn.dataset.answer===q.nature){
+        btn.classList.add('correct');
+      }else if(btn.dataset.answer===selected){
+        btn.classList.add('wrong');
+      }
+    });
+
+    if(success){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+      setFeedback(`Bravo ! ${explanation(q)}`,'success');
+    }else{
+      setFeedback(explanation(q),'error');
+    }
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score>=11){
+      finalMessage.textContent='Très bien ! Tu sais utiliser le codage et les mesures sans te laisser tromper par l’orientation de la figure.';
+    }else if(score>=9){
+      finalMessage.textContent='Bien joué. Pense à t’appuyer d’abord sur le codage et les mesures, pas sur l’apparence.';
+    }else{
+      finalMessage.textContent='À retravailler : l’orientation et la longueur des côtés ne changent pas la nature d’un angle.';
+    }
+  }
+
+  function restart(){
+    questions=buildSeries();
+    index=0;
+    score=0;
+    selected=null;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  restart();
+})();
+</script>
+
+</body>
+</html>

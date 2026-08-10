@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+
+<link rel="stylesheet" href="../geolib/v1.3/geolib.css">
+<link rel="stylesheet" href="../geolib/v1.5/protractor.css">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1040px);
+  aspect-ratio:16/9;
+  min-height:520px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:14px 22px 8px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:120px;
+  padding:8px 13px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:2px 14px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px
+}
+
+.instruction{
+  min-height:44px;
+  margin:0;
+  padding:1px 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.03rem,1.9vw,1.34rem);
+  font-weight:600;
+  line-height:1.25;
+  text-align:center
+}
+
+.figure{
+  flex:1;
+  min-height:300px;
+  overflow:hidden;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:300px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  touch-action:none
+}
+
+.angle-side{
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.angle-arc{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:4;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.vertex-label{
+  fill:var(--line);
+  font:700 25px Arial,Helvetica,sans-serif;
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round
+}
+
+.response-row{
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap
+}
+
+.answer-box{
+  min-height:54px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:var(--bs);
+  border:2px solid #b9d7ef;
+  border-radius:14px
+}
+
+.answer-label{
+  color:var(--bd);
+  font-weight:750
+}
+
+.answer-input{
+  width:92px;
+  height:42px;
+  padding:4px 8px;
+  color:var(--bd);
+  font-size:1.4rem;
+  font-weight:800;
+  text-align:center;
+  background:#fff;
+  border:2px solid #8ab9dc;
+  border-radius:10px;
+  outline:none
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+
+.degree{
+  color:var(--bd);
+  font-size:1.35rem;
+  font-weight:800
+}
+
+.feedback{
+  min-height:47px;
+  padding:7px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px
+}
+
+button.action{
+  min-height:48px;
+  min-width:112px;
+  padding:0 14px;
+  font-size:.95rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+.geolib-protractor.correct-placement .protractor-body{
+  fill:rgba(34,197,94,.18);
+  stroke:#20864b
+}
+
+.geolib-protractor.correct-placement .protractor-outer-arc,
+.geolib-protractor.correct-placement .protractor-baseline,
+.geolib-protractor.correct-placement .protractor-center-ring,
+.geolib-protractor.correct-placement .protractor-center-cross{
+  stroke:#20864b
+}
+
+.geolib-protractor.wrong-placement{
+  opacity:.45
+}
+
+.geolib-protractor.wrong-placement .protractor-body{
+  fill:rgba(239,68,68,.12);
+  stroke:#c63d3d
+}
+
+.geolib-protractor.wrong-placement .protractor-outer-arc,
+.geolib-protractor.wrong-placement .protractor-baseline,
+.geolib-protractor.wrong-placement .protractor-center-ring,
+.geolib-protractor.wrong-placement .protractor-center-cross{
+  stroke:#c63d3d
+}
+
+.geolib-protractor.correction-protractor{
+  pointer-events:none;
+  opacity:.95
+}
+
+.geolib-protractor.correction-protractor .protractor-body{
+  fill:rgba(34,197,94,.13);
+  stroke:#20864b
+}
+
+.geolib-protractor.correction-protractor .protractor-outer-arc,
+.geolib-protractor.correction-protractor .protractor-baseline,
+.geolib-protractor.correction-protractor .protractor-center-ring,
+.geolib-protractor.correction-protractor .protractor-center-cross,
+.geolib-protractor.correction-protractor .protractor-tick{
+  stroke:#20864b
+}
+
+.geolib-protractor.correction-protractor .protractor-number{
+  fill:#166534
+}
+
+.geolib-protractor.correction-protractor .protractor-rotate-arm,
+.geolib-protractor.correction-protractor .protractor-rotate-handle,
+.geolib-protractor.correction-protractor .protractor-rotate-hit{
+  display:none
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:760px),(max-height:680px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:7px 9px 4px;
+    gap:6px
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.86rem}
+
+  .main{
+    padding:0 7px 7px;
+    gap:4px
+  }
+
+  .instruction{
+    min-height:38px;
+    font-size:.96rem
+  }
+
+  .figure,
+  #scene{
+    min-height:255px
+  }
+
+  .response-row{
+    min-height:56px;
+    gap:6px
+  }
+
+  .answer-box{
+    min-height:50px;
+    padding:0 9px
+  }
+
+  .answer-input{
+    width:78px;
+    height:40px;
+    font-size:1.25rem
+  }
+
+  button.action{
+    min-height:50px;
+    min-width:100px;
+    padding:0 10px;
+    font-size:.86rem
+  }
+
+  .feedback{
+    min-height:42px;
+    padding:5px 8px;
+    font-size:.81rem
+  }
+}
+
+@media(pointer:coarse){
+  button.action{min-height:52px}
+  .answer-input{min-height:44px}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Mesure cet angle avec le rapporteur, puis indique sa mesure.
+    </p>
+
+    <div class="figure">
+      <div id="scene" aria-label="Angle et rapporteur manipulable"></div>
+    </div>
+
+    <div class="response-row">
+      <div class="answer-box">
+        <span class="answer-label">Mesure :</span>
+        <input
+          class="answer-input"
+          id="answer"
+          type="text"
+          maxlength="3"
+          inputmode="numeric"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Mesure de l'angle en degrés">
+        <span class="degree">°</span>
+      </div>
+
+      <div class="controls">
+        <button class="action secondary" type="button" id="resetTool">
+          Replacer
+        </button>
+        <button class="action primary" type="button" id="validate" disabled>
+          Valider
+        </button>
+        <button class="action secondary" type="button" id="next" hidden>
+          Question suivante
+        </button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Place d’abord correctement le rapporteur, puis lis la mesure. Un écart d’1° est accepté.
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">📐</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouveaux angles
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script src="../geolib/v1.3/geolib.js"></script>
+<script src="../geolib/v1.5/protractor.js"></script>
+
+<script>
+(() => {
+  "use strict";
+
+  const TOTAL=6;
+  const MEASURE_TOLERANCE=1;
+  const NS="http://www.w3.org/2000/svg";
+
+  const ACUTE=[24,31,37,43,48,54,59,64,68,73,77,82];
+  const OBTUSE=[98,104,109,116,122,128,133,139,146,152,158];
+
+  const BASE_ANGLES=[
+    -150,-126,-102,-78,-56,-32,-10,
+    12,34,58,82,108,134,158
+  ];
+
+  const VERTICES=[
+    {x:420,y:225},
+    {x:470,y:235},
+    {x:390,y:255},
+    {x:505,y:245},
+    {x:450,y:270},
+    {x:520,y:220}
+  ];
+
+  const STARTS=[
+    {x:175,y:350,angle:20},
+    {x:710,y:345,angle:155},
+    {x:200,y:145,angle:330},
+    {x:705,y:150,angle:210},
+    {x:160,y:245,angle:70},
+    {x:735,y:240,angle:250}
+  ];
+
+  const $=id=>document.getElementById(id);
+
+  const sceneContainer=$("scene");
+  const answer=$("answer");
+  const feedback=$("feedback");
+  const validateBtn=$("validate");
+  const nextBtn=$("next");
+  const resetToolBtn=$("resetTool");
+  const counter=$("counter");
+  const scoreBox=$("score");
+  const bar=$("bar");
+  const exercise=$("exercise");
+  const final=$("final");
+  const finalScore=$("finalScore");
+  const finalMessage=$("finalMessage");
+  const restartBtn=$("restart");
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let locked=false;
+  let manipulated=false;
+  let scene=null;
+  let protractor=null;
+  let correctionProtractor=null;
+  let previousSignature="";
+
+  function shuffle(array){
+    const a=array.slice();
+
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+
+    return a;
+  }
+
+  function sample(array,n){
+    return shuffle(array).slice(0,n);
+  }
+
+  function choice(array){
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  function norm(a){
+    let r=a%360;
+    if(r<0)r+=360;
+    return r;
+  }
+
+  function angularDistance(a,b){
+    let d=Math.abs(norm(a)-norm(b));
+    if(d>180)d=360-d;
+    return d;
+  }
+
+  function point(origin,angleDeg,length){
+    const a=angleDeg*Math.PI/180;
+
+    return {
+      x:origin.x+Math.cos(a)*length,
+      y:origin.y+Math.sin(a)*length
+    };
+  }
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+
+    for(const [k,v] of Object.entries(attrs)){
+      el.setAttribute(k,String(v));
+    }
+
+    return el;
+  }
+
+  function rayIsInsideProtractor(protractorAngle,rayAngle){
+    let local=norm(rayAngle-protractorAngle);
+
+    if(Math.abs(local)<.00001)local=360;
+
+    return local>=180 && local<=360;
+  }
+
+  /*
+   * Chaque angle peut être mesuré en prenant l'un ou l'autre côté comme côté
+   * de départ. On conserve toutes les orientations réellement valides.
+   */
+  function validPlacements(q){
+    const candidates=[
+      {
+        angle:norm(q.a1),
+        baselineRay:q.a1,
+        otherRay:q.a2,
+        scale:"inner"
+      },
+      {
+        angle:norm(q.a1+180),
+        baselineRay:q.a1,
+        otherRay:q.a2,
+        scale:"outer"
+      },
+      {
+        angle:norm(q.a2),
+        baselineRay:q.a2,
+        otherRay:q.a1,
+        scale:"inner"
+      },
+      {
+        angle:norm(q.a2+180),
+        baselineRay:q.a2,
+        otherRay:q.a1,
+        scale:"outer"
+      }
+    ];
+
+    const result=[];
+
+    for(const c of candidates){
+      if(!rayIsInsideProtractor(c.angle,c.otherRay))continue;
+
+      if(!result.some(x=>angularDistance(x.angle,c.angle)<.01)){
+        result.push(c);
+      }
+    }
+
+    return result;
+  }
+
+  function makeQuestion(measure,nature){
+    const base=choice(BASE_ANGLES);
+    const direction=Math.random()<.5 ? 1 : -1;
+
+    const q={
+      measure,
+      nature,
+      a1:norm(base),
+      a2:norm(base+direction*measure),
+      vertex:choice(VERTICES),
+      start:{...choice(STARTS)},
+      radius:choice([145,150,155])
+    };
+
+    q.placements=validPlacements(q);
+
+    const startTooClose=q.placements.some(
+      p=>angularDistance(q.start.angle,p.angle)<12
+    );
+
+    const startTooCentered=Math.hypot(
+      q.start.x-q.vertex.x,
+      q.start.y-q.vertex.y
+    )<105;
+
+    if(startTooClose)q.start.angle=norm(q.start.angle+41);
+    if(startTooCentered)q.start={...choice(STARTS)};
+
+    return q;
+  }
+
+  function buildQuestions(){
+    for(let attempt=0;attempt<250;attempt++){
+      const acute=sample(ACUTE,3);
+      const obtuse=sample(OBTUSE,3);
+
+      const result=shuffle([
+        makeQuestion(acute[0],"aigu"),
+        makeQuestion(acute[1],"aigu"),
+        makeQuestion(acute[2],"aigu"),
+        makeQuestion(obtuse[0],"obtus"),
+        makeQuestion(obtuse[1],"obtus"),
+        makeQuestion(obtuse[2],"obtus")
+      ]);
+
+      const signature=result
+        .map(q=>`${q.measure}:${Math.round(q.a1)}:${q.vertex.x}:${q.vertex.y}`)
+        .join("|");
+
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+
+    return [];
+  }
+
+  function normalizeAnswer(value){
+    return value.replace(/[^\d]/g,"").slice(0,3);
+  }
+
+  function acceptedRangeText(value){
+    return `${value-MEASURE_TOLERANCE}° à ${value+MEASURE_TOLERANCE}°`;
+  }
+
+  function setFeedback(text,type=""){
+    feedback.className="feedback"+(type?" "+type:"");
+    feedback.textContent=text;
+  }
+
+  function drawAngle(q){
+    const rayLength=270;
+
+    const p1=point(q.vertex,q.a1,rayLength);
+    const p2=point(q.vertex,q.a2,rayLength);
+
+    scene.layers.lines.appendChild(svg("line",{
+      x1:q.vertex.x,
+      y1:q.vertex.y,
+      x2:p1.x,
+      y2:p1.y,
+      class:"angle-side"
+    }));
+
+    scene.layers.lines.appendChild(svg("line",{
+      x1:q.vertex.x,
+      y1:q.vertex.y,
+      x2:p2.x,
+      y2:p2.y,
+      class:"angle-side"
+    }));
+
+    let start=q.a1;
+    let end=q.a2;
+    let delta=norm(end-start);
+
+    if(delta>180){
+      const tmp=start;
+      start=end;
+      end=tmp;
+      delta=norm(end-start);
+    }
+
+    const arcR=44;
+    const ap1=point(q.vertex,start,arcR);
+    const ap2=point(q.vertex,end,arcR);
+
+    scene.layers.lines.appendChild(svg("path",{
+      d:`M ${ap1.x} ${ap1.y} A ${arcR} ${arcR} 0 0 1 ${ap2.x} ${ap2.y}`,
+      class:"angle-arc"
+    }));
+
+    const outside=norm(start+delta/2+180);
+    const labelPos=point(q.vertex,outside,29);
+
+    const label=svg("text",{
+      x:labelPos.x,
+      y:labelPos.y+8,
+      class:"vertex-label",
+      "text-anchor":"middle"
+    });
+
+    label.textContent="O";
+    scene.layers.points.appendChild(label);
+  }
+
+  function renderQuestion(){
+    const q=questions[index];
+
+    locked=false;
+    manipulated=false;
+    correctionProtractor=null;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    answer.value="";
+    answer.disabled=false;
+
+    scene=new GeoLib.Scene(sceneContainer,{
+      width:900,
+      height:420,
+      keyboard:false
+    });
+
+    drawAngle(q);
+
+    protractor=scene.add(new GeoLib.Protractor({
+      x:q.start.x,
+      y:q.start.y,
+      angle:q.start.angle,
+      radius:q.radius,
+
+      allowMove:true,
+      allowRotate:true,
+      locked:false,
+
+      showTicks:true,
+      showNumbers:true,
+      showInnerScale:true,
+      showOuterScale:true,
+      showCenter:true,
+      showBaseline:true,
+
+      snapCenter:false,
+      snapBaseline:false,
+
+      onChange:(state,reason)=>{
+        if(locked)return;
+
+        if(reason==="move" || reason==="rotate"){
+          manipulated=true;
+          refreshValidateState();
+        }
+      }
+    }));
+
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+    resetToolBtn.hidden=false;
+    resetToolBtn.disabled=false;
+
+    refreshValidateState();
+    setFeedback("Place d’abord correctement le rapporteur, puis lis la mesure.");
+  }
+
+  function refreshValidateState(){
+    const hasAnswer=answer.value.trim().length>0;
+    validateBtn.disabled=locked || !manipulated || !hasAnswer;
+  }
+
+  function placementResult(){
+    const q=questions[index];
+
+    const centerDistance=Math.hypot(
+      protractor.x-q.vertex.x,
+      protractor.y-q.vertex.y
+    );
+
+    let nearest=q.placements[0];
+    let angleError=Infinity;
+
+    for(const placement of q.placements){
+      const error=angularDistance(protractor.angle,placement.angle);
+
+      if(error<angleError){
+        angleError=error;
+        nearest=placement;
+      }
+    }
+
+    const centerOk=centerDistance<=17;
+    const angleOk=angleError<=4;
+
+    return {
+      success:centerOk && angleOk,
+      centerOk,
+      angleOk,
+      centerDistance,
+      angleError,
+      nearest
+    };
+  }
+
+  function showCorrection(placement){
+    const q=questions[index];
+
+    correctionProtractor=scene.add(new GeoLib.Protractor({
+      x:q.vertex.x,
+      y:q.vertex.y,
+      angle:placement.angle,
+      radius:q.radius,
+
+      allowMove:false,
+      allowRotate:false,
+      locked:true,
+
+      showTicks:true,
+      showNumbers:true,
+      showInnerScale:true,
+      showOuterScale:true,
+      showCenter:true,
+      showBaseline:true
+    }));
+
+    correctionProtractor.group.classList.add("correction-protractor");
+
+    correctionProtractor.setHighlight([
+      {degree:0,scale:placement.scale},
+      {degree:q.measure,scale:placement.scale}
+    ]);
+  }
+
+  function natureSentence(q){
+    if(q.nature==="aigu"){
+      return `${q.measure}° est inférieur à 90° : le résultat est cohérent avec un angle aigu.`;
+    }
+
+    return `${q.measure}° est supérieur à 90° et inférieur à 180° : le résultat est cohérent avec un angle obtus.`;
+  }
+
+  function validate(){
+    if(locked)return;
+
+    const raw=normalizeAnswer(answer.value);
+    if(raw==="")return;
+
+    const q=questions[index];
+    const given=Number(raw);
+    const placement=placementResult();
+
+    const measureOk=Math.abs(given-q.measure)<=MEASURE_TOLERANCE;
+    const wrongScale=Math.abs(given-(180-q.measure))<=MEASURE_TOLERANCE;
+
+    locked=true;
+
+    answer.disabled=true;
+    protractor.setLocked(true);
+
+    validateBtn.hidden=true;
+    resetToolBtn.disabled=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1
+      ? "Voir le résultat"
+      : "Question suivante";
+
+    if(placement.success){
+      protractor.group.classList.add("correct-placement");
+      protractor.setHighlight([
+        {degree:0,scale:placement.nearest.scale},
+        {degree:q.measure,scale:placement.nearest.scale}
+      ]);
+    }else{
+      protractor.group.classList.add("wrong-placement");
+      showCorrection(placement.nearest);
+    }
+
+    if(placement.success && measureOk){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+
+      setFeedback(
+        `Bravo ! Placement et lecture sont corrects : ${given}° convient (on acceptait de ${acceptedRangeText(q.measure)}). ${natureSentence(q)}`,
+        "success"
+      );
+      return;
+    }
+
+    if(!placement.success && measureOk){
+      if(!placement.centerOk && !placement.angleOk){
+        setFeedback(
+          `La mesure donnée est acceptable (${given}°). On acceptait de ${acceptedRangeText(q.measure)}, mais le centre et la ligne de base étaient mal placés. Le rapporteur vert montre un placement possible.`,
+          "error"
+        );
+      }else if(!placement.centerOk){
+        setFeedback(
+          `La mesure donnée est acceptable (${given}°). On acceptait de ${acceptedRangeText(q.measure)}, mais le centre du rapporteur devait être exactement sur le sommet O.`,
+          "error"
+        );
+      }else{
+        setFeedback(
+          `La mesure donnée est acceptable (${given}°). On acceptait de ${acceptedRangeText(q.measure)}, mais la ligne de base devait suivre l’un des côtés de l’angle.`,
+          "error"
+        );
+      }
+      return;
+    }
+
+    if(placement.success && !measureOk){
+      if(wrongScale){
+        setFeedback(
+          `Le rapporteur était bien placé, mais tu as lu l’autre graduation : ${given}° au lieu d’environ ${q.measure}° (on acceptait de ${acceptedRangeText(q.measure)}).`,
+          "error"
+        );
+      }else{
+        setFeedback(
+          `Le rapporteur était bien placé. Il fallait lire environ ${q.measure}° (on acceptait de ${acceptedRangeText(q.measure)}). ${natureSentence(q)}`,
+          "error"
+        );
+      }
+      return;
+    }
+
+    if(wrongScale){
+      setFeedback(
+        `Le placement était à corriger et tu as lu l’autre graduation : ${given}° au lieu d’environ ${q.measure}° (on acceptait de ${acceptedRangeText(q.measure)}). Le rapporteur vert montre le bon placement et la bonne échelle.`,
+        "error"
+      );
+    }else{
+      setFeedback(
+        `Le placement était à corriger et la mesure attendue était environ ${q.measure}° (on acceptait de ${acceptedRangeText(q.measure)}). Le rapporteur vert montre un placement correct.`,
+        "error"
+      );
+    }
+  }
+
+  function resetTool(){
+    if(locked)return;
+
+    protractor.reset();
+    manipulated=false;
+    refreshValidateState();
+
+    setFeedback("Rapporteur replacé. Place-le correctement avant de valider.");
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add("show");
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score===6){
+      finalMessage.textContent=
+        "Très bien ! Tu sais placer le rapporteur, choisir la bonne graduation et mesurer un angle.";
+    }else if(score>=4){
+      finalMessage.textContent=
+        "Bien joué. Continue à vérifier successivement le centre, la ligne de base puis le bon 0° avant de lire.";
+    }else{
+      finalMessage.textContent=
+        "À retravailler : place d’abord le centre sur le sommet, aligne la ligne de base sur un côté, puis lis l’échelle qui commence à 0° sur ce côté.";
+    }
+  }
+
+  function restart(){
+    questions=buildQuestions();
+    index=0;
+    score=0;
+    locked=false;
+    manipulated=false;
+
+    final.classList.remove("show");
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  answer.addEventListener("input",()=>{
+    answer.value=normalizeAnswer(answer.value);
+    refreshValidateState();
+  });
+
+  answer.addEventListener("keydown",e=>{
+    if(e.key==="Enter" && !validateBtn.disabled){
+      e.preventDefault();
+      validate();
+    }
+  });
+
+  validateBtn.addEventListener("click",validate);
+  resetToolBtn.addEventListener("click",resetTool);
+  nextBtn.addEventListener("click",next);
+  restartBtn.addEventListener("click",restart);
+
+  if(!window.GeoLib || !GeoLib.Protractor){
+    setFeedback(
+      "GeoLib 1.5 est introuvable. Vérifie les fichiers geolib/v1.5/protractor.js et protractor.css.",
+      "error"
+    );
+    validateBtn.disabled=true;
+    resetToolBtn.disabled=true;
+    answer.disabled=true;
+    return;
+  }
+
+  restart();
+})();
+</script>
+
+</body>
+</html>

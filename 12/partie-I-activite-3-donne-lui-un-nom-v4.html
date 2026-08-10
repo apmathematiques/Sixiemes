@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:12px
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,980px);
+  aspect-ratio:16/9;
+  min-height:500px;
+  max-height:calc(100vh - 24px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:16px 24px 10px
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease
+}
+
+.pill{
+  min-width:116px;
+  padding:9px 14px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px
+}
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:3px 18px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+
+.instruction{
+  min-height:54px;
+  margin:0;
+  padding:3px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.22rem,2.35vw,1.62rem);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center
+}
+
+.figure{
+  flex:1;
+  min-height:220px;
+  padding:5px 10px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;
+  border-radius:18px;
+  overflow:hidden
+}
+
+svg{
+  width:100%;
+  height:100%;
+  min-height:210px;
+  overflow:visible
+}
+
+.ray-line{
+  fill:none;
+  stroke:var(--line);
+  stroke-width:4.2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.point-mark{
+  stroke:var(--line);
+  stroke-width:3.2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+
+.point-label{
+  font:700 27px Arial,Helvetica,sans-serif;
+  fill:var(--line);
+  paint-order:stroke;
+  stroke:#fff;
+  stroke-width:7px;
+  stroke-linejoin:round;
+  pointer-events:none
+}
+
+.decoy-mark{stroke:#718294}
+.decoy-label{fill:#607284}
+
+.answer-zone{
+  min-height:92px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap
+}
+
+.answer-label{
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:700
+}
+
+.angle-input-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding-top:20px
+}
+
+.angle-input-wrap::before{
+  content:"⌢";
+  position:absolute;
+  top:-15px;
+  left:50%;
+  transform:translateX(-50%) scaleX(1.35);
+  color:var(--bd);
+  font-size:2.7rem;
+  font-weight:800;
+  line-height:1;
+  z-index:2;
+  pointer-events:none;
+}
+
+.answer-input{
+  width:160px;
+  height:58px;
+  padding:0 14px;
+  color:var(--bd);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:2rem;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-align:center;
+  text-transform:uppercase;
+  background:#fff;
+  border:3px solid #b9d4e8;
+  border-radius:14px;
+  outline:none
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+
+.answer-input.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798
+}
+
+.answer-input.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585
+}
+
+.feedback{
+  min-height:54px;
+  padding:8px 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid #a9ddbd
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid #efbcbc
+}
+
+.controls{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px
+}
+
+button.action{
+  min-height:46px;
+  padding:0 20px;
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  border:0;
+  border-radius:13px;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+button:focus-visible,input:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{
+  flex:1;
+  padding:22px;
+  display:none;
+  place-items:center;
+  text-align:center
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 280ms ease both
+}
+
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  background:#fff;
+  border:1px solid #dce9f3;
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important
+  }
+}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 10px 10px;gap:5px}
+  .instruction{min-height:46px;font-size:1.05rem;padding:2px 5px}
+  .figure{min-height:155px;padding:2px 5px}
+  svg{min-height:150px}
+  .point-label{font-size:29px}
+  .answer-zone{min-height:72px}
+  .answer-input{width:138px;height:50px;font-size:1.65rem}
+  .feedback{min-height:45px;padding:6px 9px;font-size:.86rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Écris un nom possible de l’angle représenté.
+    </p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 900 330" role="img" aria-label="Angle avec plusieurs points"></svg>
+    </div>
+
+    <div class="answer-zone">
+      <span class="answer-label">Nom de l’angle :</span>
+      <div class="angle-input-wrap">
+        <input
+          class="answer-input"
+          id="answer"
+          type="text"
+          maxlength="3"
+          autocomplete="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          inputmode="text"
+          aria-label="Nom de l'angle en trois lettres">
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Écris trois lettres. Le sommet doit être au milieu.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>Valider</button>
+      <button class="action secondary" type="button" id="next" hidden>Question suivante</button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const NS='http://www.w3.org/2000/svg';
+  const LETTERS=['A','B','C','D','E','F','G','H','J','K','L','M','N','P','R','S','T','U','V'];
+
+  const LAYOUTS=[
+    {a1:20,a2:145},
+    {a1:210,a2:330},
+    {a1:35,a2:120},
+    {a1:225,a2:315},
+    {a1:10,a2:80},
+    {a1:100,a2:170},
+    {a1:190,a2:270},
+    {a1:280,a2:350},
+    {a1:200,a2:280},
+    {a1:70,a2:160}
+  ];
+
+  const $=id=>document.getElementById(id);
+  const scene=$('scene');
+  const answer=$('answer');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const nextBtn=$('next');
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let locked=false;
+  let previousSignature='';
+
+  function shuffle(array){
+    const a=array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function sample(array,n){
+    return shuffle(array).slice(0,n);
+  }
+
+  function svg(tag,attrs={}){
+    const el=document.createElementNS(NS,tag);
+    for(const [k,v] of Object.entries(attrs)){
+      el.setAttribute(k,String(v));
+    }
+    return el;
+  }
+
+  function pt(origin,angleDeg,distance){
+    const a=angleDeg*Math.PI/180;
+    return {
+      x:origin.x+Math.cos(a)*distance,
+      y:origin.y+Math.sin(a)*distance
+    };
+  }
+
+  function normalizeInput(value){
+    return value
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^A-Z]/g,'')
+      .slice(0,3);
+  }
+
+  function makeQuestion(layoutIndex,hasDecoy){
+    const labels=sample(LETTERS,6);
+    const [O,A,C,B,D,E]=labels;
+
+    return {
+      labels:{O,A,C,B,D,E},
+      side1:[A,C],
+      side2:[B,D],
+      layout:LAYOUTS[layoutIndex],
+      hasDecoy
+    };
+  }
+
+  function generateQuestions(){
+    for(let tries=0;tries<100;tries++){
+      const layouts=shuffle([0,1,2,3,4,5,6,7,8,9]);
+      const decoys=shuffle([true,true,true,true,true,false,false,false,false,false]);
+
+      const result=layouts.map((layoutIndex,i)=>makeQuestion(layoutIndex,decoys[i]));
+      const signature=result.map(q=>
+        q.labels.O+q.side1.join('')+q.side2.join('')+(q.hasDecoy?q.labels.E:'')
+      ).join('|');
+
+      if(signature!==previousSignature){
+        previousSignature=signature;
+        return result;
+      }
+    }
+    return [];
+  }
+
+  function drawRay(origin,angleDeg){
+    const end=pt(origin,angleDeg,220);
+    scene.appendChild(svg('line',{
+      x1:origin.x,
+      y1:origin.y,
+      x2:end.x,
+      y2:end.y,
+      class:'ray-line'
+    }));
+  }
+
+  function drawPointOnRay(p,label,angleDeg,decoy=false){
+    const a=angleDeg*Math.PI/180;
+    const ux=Math.cos(a);
+    const uy=Math.sin(a);
+    const nx=-uy;
+    const ny=ux;
+
+    scene.appendChild(svg('line',{
+      x1:p.x-nx*8,
+      y1:p.y-ny*8,
+      x2:p.x+nx*8,
+      y2:p.y+ny*8,
+      class:'point-mark'+(decoy?' decoy-mark':'')
+    }));
+
+    let tx=p.x-22;
+    let ty=p.y-13;
+
+    const n1={x:-uy,y:ux};
+    const n2={x:uy,y:-ux};
+
+    function scoreSide(n){
+      return (n.x<0 ? 2 : 0) + (n.y<0 ? 1 : 0);
+    }
+
+    const n=scoreSide(n1)>=scoreSide(n2) ? n1 : n2;
+
+    tx=p.x+n.x*24-ux*5;
+    ty=p.y+n.y*24-uy*5+8;
+
+    const t=svg('text',{
+      x:tx,
+      y:ty,
+      class:'point-label'+(decoy?' decoy-label':''),
+      'text-anchor':'middle'
+    });
+
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function drawIsolatedPoint(p,label,decoy=false){
+    scene.appendChild(svg('line',{
+      x1:p.x-6,
+      y1:p.y-6,
+      x2:p.x+6,
+      y2:p.y+6,
+      class:'point-mark'+(decoy?' decoy-mark':'')
+    }));
+    scene.appendChild(svg('line',{
+      x1:p.x-6,
+      y1:p.y+6,
+      x2:p.x+6,
+      y2:p.y-6,
+      class:'point-mark'+(decoy?' decoy-mark':'')
+    }));
+
+    const t=svg('text',{
+      x:p.x+18,
+      y:p.y-14,
+      class:'point-label'+(decoy?' decoy-label':''),
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function chooseOrigin(a1,a2){
+    const L=220;
+    const margin={left:70,right:830,top:55,bottom:275};
+
+    const dirs=[a1,a2].map(deg=>{
+      const a=deg*Math.PI/180;
+      return {x:Math.cos(a),y:Math.sin(a)};
+    });
+
+    const xs=[0,...dirs.map(d=>d.x*L)];
+    const ys=[0,...dirs.map(d=>d.y*L)];
+
+    const oxMin=margin.left-Math.min(...xs);
+    const oxMax=margin.right-Math.max(...xs);
+    const oyMin=margin.top-Math.min(...ys);
+    const oyMax=margin.bottom-Math.max(...ys);
+
+    return {
+      x:(oxMin+oxMax)/2,
+      y:(oyMin+oyMax)/2
+    };
+  }
+
+  function distancePointToRay(p,o,angleDeg){
+    const a=angleDeg*Math.PI/180;
+    const ux=Math.cos(a),uy=Math.sin(a);
+    const vx=p.x-o.x,vy=p.y-o.y;
+    const t=vx*ux+vy*uy;
+    if(t<0)return Math.hypot(vx,vy);
+    const proj={x:o.x+t*ux,y:o.y+t*uy};
+    return Math.hypot(p.x-proj.x,p.y-proj.y);
+  }
+
+  function chooseDecoyPoint(O,q){
+    const candidates=[
+      {x:115,y:80},{x:785,y:80},
+      {x:115,y:250},{x:785,y:250},
+      {x:450,y:75},{x:450,y:255}
+    ];
+
+    return candidates
+      .map(p=>({
+        ...p,
+        d:Math.min(
+          distancePointToRay(p,O,q.layout.a1),
+          distancePointToRay(p,O,q.layout.a2),
+          Math.hypot(p.x-O.x,p.y-O.y)
+        )
+      }))
+      .sort((a,b)=>b.d-a.d)[0];
+  }
+
+  function drawVertexLabel(O,label,q){
+    const a1=q.layout.a1*Math.PI/180;
+    const a2=q.layout.a2*Math.PI/180;
+
+    const d1={x:Math.cos(a1),y:Math.sin(a1)};
+    const d2={x:Math.cos(a2),y:Math.sin(a2)};
+
+    let bx=-(d1.x+d2.x);
+    let by=-(d1.y+d2.y);
+    let len=Math.hypot(bx,by);
+
+    if(len<.2){
+      bx=-d1.y;
+      by=d1.x;
+      len=Math.hypot(bx,by);
+    }
+
+    bx/=len;
+    by/=len;
+
+    const t=svg('text',{
+      x:O.x+bx*25,
+      y:O.y+by*25+8,
+      class:'point-label',
+      'text-anchor':'middle'
+    });
+    t.textContent=label;
+    scene.appendChild(t);
+  }
+
+  function renderFigure(q){
+    scene.innerHTML='';
+
+    const O=chooseOrigin(q.layout.a1,q.layout.a2);
+
+    const side1Near=pt(O,q.layout.a1,82);
+    const side1Far=pt(O,q.layout.a1,145);
+    const side2Near=pt(O,q.layout.a2,82);
+    const side2Far=pt(O,q.layout.a2,145);
+
+    drawRay(O,q.layout.a1);
+    drawRay(O,q.layout.a2);
+
+    /* Le sommet est déjà localisé par l'intersection des deux demi-droites :
+       on ne lui ajoute pas de petit trait. */
+    drawVertexLabel(O,q.labels.O,q);
+
+    drawPointOnRay(side1Near,q.labels.A,q.layout.a1,false);
+    drawPointOnRay(side1Far,q.labels.C,q.layout.a1,false);
+    drawPointOnRay(side2Near,q.labels.B,q.layout.a2,false);
+    drawPointOnRay(side2Far,q.labels.D,q.layout.a2,false);
+
+    if(q.hasDecoy){
+      const decoy=chooseDecoyPoint(O,q);
+      drawIsolatedPoint(decoy,q.labels.E,true);
+    }
+  }
+
+  function current(){
+    return questions[index];
+  }
+
+  function setFeedback(text,type=''){
+    feedback.className='feedback'+(type?' '+type:'');
+    feedback.textContent=text;
+  }
+
+  function isValidName(q,name){
+    if(name.length!==3)return false;
+
+    const [x,middle,z]=name;
+    if(middle!==q.labels.O)return false;
+
+    const xOn1=q.side1.includes(x);
+    const xOn2=q.side2.includes(x);
+    const zOn1=q.side1.includes(z);
+    const zOn2=q.side2.includes(z);
+
+    return (xOn1 && zOn2) || (xOn2 && zOn1);
+  }
+
+  function examples(q){
+    const a=q.side1[0];
+    const c=q.side1[1];
+    const b=q.side2[0];
+    const d=q.side2[1];
+    const o=q.labels.O;
+
+    return [
+      `${a}${o}${b}`,
+      `${c}${o}${d}`,
+      `${b}${o}${a}`,
+      `${d}${o}${c}`
+    ];
+  }
+
+  function renderQuestion(){
+    const q=current();
+
+    locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    renderFigure(q);
+
+    answer.value='';
+    answer.disabled=false;
+    answer.className='answer-input';
+
+    validateBtn.disabled=true;
+    validateBtn.hidden=false;
+    nextBtn.hidden=true;
+
+    setFeedback('Écris trois lettres. Le sommet doit être au milieu.');
+
+    setTimeout(()=>answer.focus(),0);
+  }
+
+  function validate(){
+    if(locked)return;
+
+    const q=current();
+    const name=normalizeInput(answer.value);
+    answer.value=name;
+
+    if(name.length!==3)return;
+
+    locked=true;
+    answer.disabled=true;
+
+    const success=isValidName(q,name);
+    const ex=examples(q);
+
+    if(success){
+      score++;
+      scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+      answer.classList.add('correct');
+
+      setFeedback(
+        `Bravo ! ${name} est bien un nom possible de cet angle.`,
+        'success'
+      );
+    }else{
+      answer.classList.add('wrong');
+
+      setFeedback(
+        `Par exemple : ${ex[0]}, ${ex[1]}, ${ex[2]} ou ${ex[3]}. Le sommet ${q.labels.O} doit être au milieu et les deux autres lettres sur des côtés différents.`,
+        'error'
+      );
+    }
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  }
+
+  function next(){
+    if(index===TOTAL-1){
+      showFinal();
+      return;
+    }
+
+    index++;
+    renderQuestion();
+  }
+
+  function showFinal(){
+    exercise.hidden=true;
+    final.classList.add('show');
+    finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+    if(score>=9){
+      finalMessage.textContent='Très bien ! Tu sais nommer un angle en choisissant correctement le sommet et un point sur chaque côté.';
+    }else if(score>=7){
+      finalMessage.textContent='Bien joué. Pense toujours à placer le sommet au milieu du nom de l’angle.';
+    }else{
+      finalMessage.textContent='À retravailler : le sommet est la lettre du milieu et les deux autres lettres doivent appartenir à deux côtés différents.';
+    }
+  }
+
+  function restart(){
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.hidden=false;
+
+    renderQuestion();
+  }
+
+  answer.addEventListener('input',()=>{
+    if(locked)return;
+    const clean=normalizeInput(answer.value);
+    if(answer.value!==clean)answer.value=clean;
+    validateBtn.disabled=clean.length!==3;
+  });
+
+  answer.addEventListener('keydown',e=>{
+    if(e.key==='Enter' && !validateBtn.disabled && !locked){
+      validate();
+    }
+  });
+
+  validateBtn.addEventListener('click',validate);
+  nextBtn.addEventListener('click',next);
+  restartBtn.addEventListener('click',restart);
+
+  restart();
+})();
+</script>
+
+</body>
+</html>
