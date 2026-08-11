@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;
+  gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;
+  text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:12px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.25rem,2.35vw,1.6rem);font-weight:600;
+  line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:220px;padding:20px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:28px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.encadrement{
+  display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;
+  font-size:clamp(2.1rem,5.5vw,3.8rem);font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums
+}
+.fraction{
+  display:inline-grid;grid-template-rows:auto 4px auto;
+  align-items:center;justify-items:center;min-width:116px;vertical-align:middle
+}
+.fraction-line{
+  width:100%;min-width:105px;height:4px;background:currentColor;border-radius:99px
+}
+.fraction-value{
+  min-width:98px;padding:5px 10px;text-align:center
+}
+.bound-input{
+  width:92px;height:62px;padding:4px 8px;color:var(--bd);
+  font:700 1.9rem Arial,Helvetica,sans-serif;text-align:center;
+  background:#fff;border:3px solid #b9d4e8;border-radius:13px;outline:none;
+  transition:border-color .15s ease,background .15s ease,color .15s ease
+}
+.bound-input:focus{
+  border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+.bound-input.correct{
+  color:#165e36;background:var(--gs);border-color:#79c798
+}
+.bound-input.wrong{
+  color:#8f2727;background:var(--rs);border-color:#df8585
+}
+.feedback{
+  min-height:66px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{
+  color:#165e36;background:var(--gs);border:1px solid #a9ddbd
+}
+.feedback.error{
+  color:#8f2727;background:var(--rs);border:1px solid #efbcbc
+}
+.controls{
+  min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap
+}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:44px;font-size:1.08rem}
+  .question-zone{min-height:150px;padding:10px;gap:16px}
+  .encadrement{gap:10px;font-size:2rem}
+  .fraction{min-width:78px}
+  .fraction-line{min-width:72px}
+  .fraction-value{min-width:70px;padding:3px 6px}
+  .bound-input{width:66px;height:47px;font-size:1.45rem}
+  .feedback{min-height:52px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:43px}
+  button.action{min-height:42px;height:42px}
+}
+</style>
+</head>
+
+<body>
+
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Encadre la fraction entre deux entiers consécutifs.
+    </p>
+
+    <div class="question-zone">
+      <div class="encadrement" id="encadrement"></div>
+    </div>
+
+    <div class="feedback" id="feedback" role="status">
+      Écris les deux entiers puis valide ta réponse.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>
+        Valider
+      </button>
+      <button class="action secondary" type="button" id="next" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles fractions
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const $=id=>document.getElementById(id);
+
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const encadrement=$('encadrement');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const nextBtn=$('next');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let attempts=0;
+  let locked=false;
+
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function formatScore(value){
+    return Number.isInteger(value)
+      ? String(value)
+      : String(value).replace('.',',');
+  }
+
+  function fractionHTML(n,d){
+    return `
+      <span class="fraction">
+        <span class="fraction-value">${n}</span>
+        <span class="fraction-line"></span>
+        <span class="fraction-value">${d}</span>
+      </span>
+    `;
+  }
+
+  function signature(q){
+    return `${q.n}/${q.d}`;
+  }
+
+  function makeQuestion(type){
+
+    const lower=randInt(1,12);
+    const d=randInt(2,12);
+
+    let remainder;
+
+    if(type==='small'){
+      remainder=1;
+    }else if(type==='large'){
+      remainder=d-1;
+    }else{
+      remainder=randInt(1,d-1);
+    }
+
+    const n=lower*d+remainder;
+
+    return {
+      n,
+      d,
+      lower,
+      upper:lower+1
+    };
+  }
+
+  function generateQuestions(){
+
+    const result=[];
+    const used=new Set();
+
+    /*
+      10 questions :
+      - 3 avec un petit reste
+      - 3 avec un reste proche du dénominateur
+      - 4 cas variés
+    */
+    const types=shuffle([
+      'small','small','small',
+      'large','large','large',
+      'normal','normal','normal','normal'
+    ]);
+
+    for(const type of types){
+
+      for(let tries=0;tries<500;tries++){
+
+        const q=makeQuestion(type);
+
+        if(!used.has(signature(q))){
+          used.add(signature(q));
+          result.push(q);
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  function renderQuestion(){
+
+    const q=questions[index];
+
+    attempts=0;
+    locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    encadrement.innerHTML=`
+      <input class="bound-input" id="lowerInput"
+        inputmode="numeric" autocomplete="off" maxlength="2"
+        aria-label="Borne entière inférieure">
+
+      <span>&lt;</span>
+
+      ${fractionHTML(q.n,q.d)}
+
+      <span>&lt;</span>
+
+      <input class="bound-input" id="upperInput"
+        inputmode="numeric" autocomplete="off" maxlength="2"
+        aria-label="Borne entière supérieure">
+    `;
+
+    feedback.className='feedback';
+    feedback.textContent='Écris les deux entiers puis valide ta réponse.';
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    nextBtn.hidden=true;
+
+    const lowerInput=$('lowerInput');
+    const upperInput=$('upperInput');
+
+    function updateButton(){
+      lowerInput.value=lowerInput.value.replace(/[^0-9]/g,'');
+      upperInput.value=upperInput.value.replace(/[^0-9]/g,'');
+
+      lowerInput.classList.remove('correct','wrong');
+      upperInput.classList.remove('correct','wrong');
+
+      validateBtn.disabled=!(lowerInput.value && upperInput.value);
+    }
+
+    lowerInput.addEventListener('input',updateButton);
+    upperInput.addEventListener('input',updateButton);
+
+    lowerInput.addEventListener('keydown',event=>{
+      if(event.key==='Enter'){
+        upperInput.focus();
+        upperInput.select();
+      }
+    });
+
+    upperInput.addEventListener('keydown',event=>{
+      if(event.key==='Enter' && !validateBtn.disabled && !locked){
+        validateAnswer();
+      }
+    });
+
+    lowerInput.focus();
+  }
+
+  function hint(q){
+    return `Cherche deux multiples consécutifs de ${q.d} qui encadrent ${q.n}.`;
+  }
+
+  function correction(q){
+    return `${q.d} × ${q.lower} = ${q.d*q.lower} et ${q.d} × ${q.upper} = ${q.d*q.upper}, donc ${q.lower} < ${q.n}/${q.d} < ${q.upper}.`;
+  }
+
+  function validateAnswer(){
+
+    if(locked || validateBtn.disabled) return;
+
+    const q=questions[index];
+    const lowerInput=$('lowerInput');
+    const upperInput=$('upperInput');
+
+    const lower=Number(lowerInput.value);
+    const upper=Number(upperInput.value);
+
+    attempts++;
+
+    const lowerOK=lower===q.lower;
+    const upperOK=upper===q.upper;
+
+    if(lowerOK && upperOK){
+
+      locked=true;
+
+      score += attempts===1 ? 1 : 0.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+      lowerInput.disabled=true;
+      upperInput.disabled=true;
+
+      lowerInput.classList.add('correct');
+      upperInput.classList.add('correct');
+
+      feedback.className='feedback success';
+      feedback.textContent=
+        attempts===1
+          ? `Bravo ! ${correction(q)}`
+          : `Oui ! ${correction(q)}`;
+
+      validateBtn.hidden=true;
+      nextBtn.hidden=false;
+      nextBtn.textContent=
+        index===TOTAL-1 ? 'Voir mon résultat' : 'Question suivante';
+
+      return;
+    }
+
+    lowerInput.classList.toggle('wrong',!lowerOK);
+    upperInput.classList.toggle('wrong',!upperOK);
+
+    lowerInput.classList.toggle('correct',lowerOK);
+    upperInput.classList.toggle('correct',upperOK);
+
+    if(attempts===1){
+
+      feedback.className='feedback error';
+      feedback.textContent=`${hint(q)} Il te reste un essai.`;
+
+      if(!lowerOK){
+        lowerInput.focus();
+        lowerInput.select();
+      }else{
+        upperInput.focus();
+        upperInput.select();
+      }
+
+      return;
+    }
+
+    locked=true;
+
+    lowerInput.disabled=true;
+    upperInput.disabled=true;
+
+    if(!lowerOK){
+      lowerInput.value=q.lower;
+      lowerInput.classList.remove('wrong');
+      lowerInput.classList.add('correct');
+    }
+
+    if(!upperOK){
+      upperInput.value=q.upper;
+      upperInput.classList.remove('wrong');
+      upperInput.classList.add('correct');
+    }
+
+    feedback.className='feedback error';
+    feedback.textContent=`La réponse était ${q.lower} et ${q.upper}. ${correction(q)}`;
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    nextBtn.textContent=
+      index===TOTAL-1 ? 'Voir mon résultat' : 'Question suivante';
+  }
+
+  function nextQuestion(){
+
+    if(index<TOTAL-1){
+      index++;
+      renderQuestion();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+
+    exercise.style.display='none';
+    final.classList.add('show');
+
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    if(score>=9.5){
+
+      finalMessage.textContent='Excellent !';
+
+    }else if(score>=8){
+
+      finalMessage.textContent='Très bien !';
+
+    }else if(score>=6){
+
+      finalMessage.textContent='C’est bien. Encore un peu d’entraînement.';
+
+    }else{
+
+      finalMessage.textContent='Reprends tranquillement l’encadrement à l’unité.';
+    }
+  }
+
+  function restart(){
+
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    attempts=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='';
+
+    renderQuestion();
+  }
+
+  validateBtn.addEventListener('click',validateAnswer);
+  nextBtn.addEventListener('click',nextQuestion);
+  restartBtn.addEventListener('click',restart);
+
+  questions=generateQuestions();
+  renderQuestion();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#20864b;--gs:#e9f7ef;--r:#c63d3d;--rs:#fff0f0;--i:#17212b;--m:#5f6d79}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.instruction{min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.25rem,2.35vw,1.6rem);font-weight:600;line-height:1.25;text-align:center}
+.question-zone{flex:1;min-height:205px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px}
+.comparison{display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;font-size:clamp(2.35rem,6vw,4.2rem);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.fraction{display:inline-grid;grid-template-rows:auto 4px auto;align-items:center;justify-items:center;min-width:116px;vertical-align:middle}
+.fraction-line{width:100%;min-width:105px;height:4px;background:currentColor;border-radius:99px}
+.fraction-value{min-width:98px;padding:5px 10px;text-align:center}
+.answer-buttons{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+.sign-button{width:96px;height:68px;color:var(--bd);background:var(--bs);border:3px solid #b9d4e8;border-radius:15px;font:800 2rem Arial,Helvetica,sans-serif;cursor:pointer;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease,border-color .15s ease,background .15s ease,color .15s ease}
+.sign-button:hover:not(:disabled){filter:brightness(1.02);border-color:var(--b)}
+.sign-button:active:not(:disabled){transform:scale(.97)}
+.sign-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.sign-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.sign-button:disabled{cursor:default}
+.feedback{min-height:60px;padding:9px 14px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;line-height:1.35;text-align:center;background:#f4f7fb;border-radius:14px}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px;touch-action:manipulation;transition:transform 120ms ease,filter 120ms ease}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@media(max-width:700px),(max-height:620px){
+body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+.main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.08rem}.question-zone{min-height:150px;padding:10px;gap:16px}
+.comparison{gap:14px;font-size:2.15rem}.fraction{min-width:78px}.fraction-line{min-width:72px}.fraction-value{min-width:70px;padding:3px 6px}
+.answer-buttons{gap:10px}.sign-button{width:72px;height:50px;font-size:1.55rem}.feedback{min-height:49px;padding:7px 10px;font-size:.86rem}
+.controls{min-height:43px}button.action{min-height:42px;height:42px}}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+<header class="top">
+<div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+<div class="pill" id="counter">Question 1 / 10</div>
+<div class="pill" id="score">Score : 0 / 10</div>
+</header>
+
+<section class="main" id="exercise">
+<p class="instruction">Choisis le bon signe pour comparer les deux fractions.</p>
+<div class="question-zone">
+<div class="comparison" id="comparison"></div>
+<div class="answer-buttons" aria-label="Choix du signe de comparaison">
+<button class="sign-button" type="button" data-sign="<" aria-label="Inférieur à">&lt;</button>
+<button class="sign-button" type="button" data-sign="=" aria-label="Égal à">=</button>
+<button class="sign-button" type="button" data-sign=">" aria-label="Supérieur à">&gt;</button>
+</div>
+</div>
+<div class="feedback" id="feedback" role="status">Compare les numérateurs puis choisis le bon signe.</div>
+<div class="controls"><button class="action secondary" type="button" id="next" hidden>Question suivante</button></div>
+</section>
+
+<section class="final" id="final">
+<div class="final-card">
+<div class="final-icon" aria-hidden="true">🎯</div>
+<h2>Activité terminée !</h2>
+<p class="final-score" id="finalScore"></p>
+<p class="final-message" id="finalMessage"></p>
+<button class="action primary" type="button" id="restart">Recommencer avec de nouvelles fractions</button>
+</div>
+</section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+const counter=$('counter'),scoreBox=$('score'),bar=$('bar'),comparison=$('comparison'),
+feedback=$('feedback'),nextBtn=$('next'),exercise=$('exercise'),final=$('final'),
+finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
+const signButtons=[...document.querySelectorAll('.sign-button')];
+
+let questions=[],index=0,score=0,locked=false;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function shuffle(a){const c=a.slice();for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
+function fractionHTML(n,d){return `<span class="fraction"><span class="fraction-value">${n}</span><span class="fraction-line"></span><span class="fraction-value">${d}</span></span>`}
+function expectedSign(a,b){return a<b?'<':a>b?'>':'='}
+function signature(q){return `${q.a}/${q.d}|${q.b}/${q.d}`}
+
+function makeQuestion(mode){
+const d=randInt(6,99);
+let a,b;
+if(mode==='equal'){a=randInt(1,d+25);b=a}
+else if(mode==='close'){
+a=randInt(2,d+25);
+const gap=randInt(1,2),direction=Math.random()<.5?-1:1;
+b=a+direction*gap;
+if(b<1)b=a+gap;
+}else{
+a=randInt(1,d+25);b=randInt(1,d+25);
+while(a===b||Math.abs(a-b)<=2)b=randInt(1,d+25);
+}
+if(Math.random()<.5)[a,b]=[b,a];
+return {a,b,d,answer:expectedSign(a,b)};
+}
+
+function generateQuestions(){
+const result=[],used=new Set();
+const modes=shuffle(['equal','equal','close','close','close','close','normal','normal','normal','normal']);
+for(const mode of modes){
+for(let tries=0;tries<500;tries++){
+const q=makeQuestion(mode);
+if(!used.has(signature(q))){used.add(signature(q));result.push(q);break}
+}}
+return result;
+}
+
+function renderQuestion(){
+const q=questions[index];
+locked=false;
+counter.textContent=`Question ${index+1} / ${TOTAL}`;
+scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+bar.style.width=`${((index+1)/TOTAL)*100}%`;
+comparison.innerHTML=`${fractionHTML(q.a,q.d)}<span aria-hidden="true">?</span>${fractionHTML(q.b,q.d)}`;
+feedback.className='feedback';
+feedback.textContent='Compare les numérateurs puis choisis le bon signe.';
+nextBtn.hidden=true;
+signButtons.forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong')});
+}
+
+function correctionText(q){
+if(q.a<q.b)return `${q.a} < ${q.b}, donc ${q.a}/${q.d} < ${q.b}/${q.d}.`;
+if(q.a>q.b)return `${q.a} > ${q.b}, donc ${q.a}/${q.d} > ${q.b}/${q.d}.`;
+return `${q.a} = ${q.b}, donc ${q.a}/${q.d} = ${q.b}/${q.d}.`;
+}
+
+function chooseSign(sign,button){
+if(locked)return;
+locked=true;
+const q=questions[index];
+signButtons.forEach(b=>b.disabled=true);
+const correctButton=signButtons.find(b=>b.dataset.sign===q.answer);
+correctButton.classList.add('correct');
+
+if(sign===q.answer){
+score++;
+scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+feedback.className='feedback success';
+feedback.textContent=`Bravo ! ${correctionText(q)}`;
+}else{
+button.classList.add('wrong');
+feedback.className='feedback error';
+feedback.textContent=`Ce n'est pas le bon signe. ${correctionText(q)}`;
+}
+nextBtn.hidden=false;
+nextBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+}
+
+function nextQuestion(){if(index<TOTAL-1){index++;renderQuestion()}else showFinal()}
+function showFinal(){
+exercise.style.display='none';
+final.classList.add('show');
+finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+if(score===10)finalMessage.textContent='Excellent !';
+else if(score>=8)finalMessage.textContent='Très bien !';
+else if(score>=6)finalMessage.textContent='C’est bien. Encore un peu d’entraînement.';
+else finalMessage.textContent='Reprends tranquillement la règle du cours.';
+}
+function restart(){
+questions=generateQuestions();index=0;score=0;locked=false;
+final.classList.remove('show');exercise.style.display='';renderQuestion();
+}
+signButtons.forEach(b=>b.addEventListener('click',()=>chooseSign(b.dataset.sign,b)));
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+questions=generateQuestions();
+renderQuestion();
+})();
+</script>
+</body>
+</html>

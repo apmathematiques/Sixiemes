@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;
+  gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;
+  text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:12px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.22rem,2.25vw,1.55rem);font-weight:600;
+  line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:230px;padding:18px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.original-row,.work-row,.comparison-row{
+  display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap
+}
+.original-row{
+  font-size:clamp(1.65rem,3.8vw,2.65rem);font-weight:750
+}
+.work-label{
+  margin:0;color:var(--m);font-size:1rem;font-weight:700;text-align:center
+}
+.fraction{
+  display:inline-grid;grid-template-rows:auto 4px auto;
+  align-items:center;justify-items:center;min-width:100px;vertical-align:middle;
+  font-size:clamp(2rem,5vw,3.45rem);font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums
+}
+.fraction.small{
+  min-width:78px;font-size:clamp(1.45rem,3.7vw,2.35rem)
+}
+.fraction-line{
+  width:100%;min-width:90px;height:4px;background:currentColor;border-radius:99px
+}
+.fraction.small .fraction-line{min-width:70px;height:3px}
+.fraction-value{
+  min-width:82px;padding:4px 8px;text-align:center
+}
+.fraction.small .fraction-value{min-width:64px;padding:3px 6px}
+.answer-input{
+  width:92px;height:58px;padding:4px 8px;color:var(--bd);
+  font:700 1.75rem Arial,Helvetica,sans-serif;text-align:center;
+  background:#fff;border:3px solid #b9d4e8;border-radius:13px;outline:none;
+  transition:border-color .15s ease,background .15s ease,color .15s ease
+}
+.answer-input:focus{
+  border-color:var(--b);box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+.answer-input.correct{
+  color:#165e36;background:var(--gs);border-color:#79c798
+}
+.answer-input.wrong{
+  color:#8f2727;background:var(--rs);border-color:#df8585
+}
+.answer-buttons{
+  display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap
+}
+.sign-button{
+  width:90px;height:62px;color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:15px;
+  font:800 1.9rem Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease,border-color .15s ease,background .15s ease,color .15s ease
+}
+.sign-button:hover:not(:disabled){filter:brightness(1.02);border-color:var(--b)}
+.sign-button:active:not(:disabled){transform:scale(.97)}
+.sign-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.sign-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.sign-button:disabled{cursor:default}
+.feedback{
+  min-height:62px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{
+  color:#165e36;background:var(--gs);border:1px solid #a9ddbd
+}
+.feedback.error{
+  color:#8f2727;background:var(--rs);border:1px solid #efbcbc
+}
+.controls{
+  min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap
+}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px;touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease
+}
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.48;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid;animation:reveal 280ms ease both}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.04rem}
+  .question-zone{min-height:160px;padding:9px;gap:10px}
+  .original-row,.work-row,.comparison-row{gap:10px}
+  .work-label{font-size:.86rem}
+  .fraction{min-width:72px;font-size:1.95rem}
+  .fraction-line{min-width:66px;height:3px}
+  .fraction-value{min-width:62px;padding:3px 5px}
+  .fraction.small{min-width:60px;font-size:1.5rem}
+  .fraction.small .fraction-line{min-width:54px}
+  .fraction.small .fraction-value{min-width:50px}
+  .answer-input{width:68px;height:45px;font-size:1.35rem}
+  .answer-buttons{gap:9px}
+  .sign-button{width:66px;height:46px;font-size:1.45rem}
+  .feedback{min-height:49px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+
+<body>
+
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction" id="instruction">
+      Complète la fraction pour obtenir le même dénominateur.
+    </p>
+
+    <div class="question-zone" id="questionZone"></div>
+
+    <div class="feedback" id="feedback" role="status">
+      Commence par transformer une des deux fractions.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" type="button" id="validate" disabled>
+        Valider
+      </button>
+      <button class="action secondary" type="button" id="stageNext" hidden>
+        Comparer maintenant
+      </button>
+      <button class="action secondary" type="button" id="next" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon" aria-hidden="true">🎯</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" type="button" id="restart">
+        Recommencer avec de nouvelles fractions
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const TOTAL=10;
+  const $=id=>document.getElementById(id);
+
+  const counter=$('counter');
+  const scoreBox=$('score');
+  const bar=$('bar');
+  const instruction=$('instruction');
+  const questionZone=$('questionZone');
+  const feedback=$('feedback');
+  const validateBtn=$('validate');
+  const stageNextBtn=$('stageNext');
+  const nextBtn=$('next');
+  const exercise=$('exercise');
+  const final=$('final');
+  const finalScore=$('finalScore');
+  const finalMessage=$('finalMessage');
+  const restartBtn=$('restart');
+
+  let questions=[];
+  let index=0;
+  let score=0;
+  let stage=1;
+  let attempts=0;
+  let locked=false;
+
+  function randInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    const copy=array.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function formatScore(value){
+    return Number.isInteger(value)
+      ? String(value)
+      : String(value).replace('.',',');
+  }
+
+  function fractionHTML(n,d,blank=false,small=false){
+
+    const top=blank
+      ? `<input class="answer-input" id="answer" inputmode="numeric"
+          autocomplete="off" maxlength="2" aria-label="Numérateur manquant">`
+      : `<span class="fraction-value">${n}</span>`;
+
+    return `
+      <span class="fraction${small ? ' small' : ''}">
+        ${top}
+        <span class="fraction-line"></span>
+        <span class="fraction-value">${d}</span>
+      </span>
+    `;
+  }
+
+  function expectedSign(a,b){
+    if(a<b) return '<';
+    if(a>b) return '>';
+    return '=';
+  }
+
+  function makeQuestion(k,mode){
+
+    /*
+      On crée deux dénominateurs :
+      d et D = d × k.
+      La fraction au petit dénominateur sera transformée.
+    */
+    const d=randInt(2,Math.min(18,Math.floor(90/k)));
+    const D=d*k;
+
+    const maxB=Math.max(2,Math.min(18,Math.floor(99/k)));
+    let b=randInt(1,maxB);
+    const B=b*k;
+
+    let a;
+
+    if(mode==='equal'){
+      a=B;
+    }else if(mode==='close'){
+      const deltas=shuffle([-2,-1,1,2]);
+      a=B+deltas.find(delta=>B+delta>=1 && B+delta<=99);
+    }else{
+      a=randInt(1,Math.min(99,D+18));
+      while(a===B || Math.abs(a-B)<=2){
+        a=randInt(1,Math.min(99,D+18));
+      }
+    }
+
+    const transformOnLeft=Math.random()<0.5;
+
+    if(transformOnLeft){
+      return {
+        k,
+        d,
+        D,
+        sourceNum:b,
+        transformedNum:B,
+        fixedNum:a,
+        transformSide:'left',
+        leftOriginal:{n:b,d},
+        rightOriginal:{n:a,d:D},
+        leftCommon:B,
+        rightCommon:a,
+        sign:expectedSign(B,a)
+      };
+    }
+
+    return {
+      k,
+      d,
+      D,
+      sourceNum:b,
+      transformedNum:B,
+      fixedNum:a,
+      transformSide:'right',
+      leftOriginal:{n:a,d:D},
+      rightOriginal:{n:b,d},
+      leftCommon:a,
+      rightCommon:B,
+      sign:expectedSign(a,B)
+    };
+  }
+
+  function signature(q){
+    return `${q.leftOriginal.n}/${q.leftOriginal.d}|${q.rightOriginal.n}/${q.rightOriginal.d}`;
+  }
+
+  function generateQuestions(){
+
+    const result=[];
+    const used=new Set();
+
+    /*
+      Progression :
+      - 4 questions avec coefficients 2 ou 3
+      - 3 questions avec coefficients 2 à 4
+      - 3 questions avec coefficients 3 à 5
+
+      Types de comparaisons :
+      - 2 égalités
+      - 4 numérateurs très proches après transformation
+      - 4 comparaisons plus variées
+    */
+    const modes=shuffle([
+      'equal','equal',
+      'close','close','close','close',
+      'normal','normal','normal','normal'
+    ]);
+
+    const ks=[
+      ...shuffle([2,2,3,3]),
+      ...shuffle([2,3,4]),
+      ...shuffle([3,4,5])
+    ];
+
+    for(let i=0;i<TOTAL;i++){
+
+      for(let tries=0;tries<500;tries++){
+
+        const q=makeQuestion(ks[i],modes[i]);
+
+        if(!used.has(signature(q))){
+          used.add(signature(q));
+          result.push(q);
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  function renderOriginalPair(q){
+    return `
+      <div class="original-row">
+        ${fractionHTML(q.leftOriginal.n,q.leftOriginal.d,false,true)}
+        <span>et</span>
+        ${fractionHTML(q.rightOriginal.n,q.rightOriginal.d,false,true)}
+      </div>
+    `;
+  }
+
+  function renderStageOne(){
+
+    const q=questions[index];
+
+    stage=1;
+    attempts=0;
+    locked=false;
+
+    counter.textContent=`Question ${index+1} / ${TOTAL}`;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+    instruction.textContent='Complète la fraction pour obtenir le même dénominateur.';
+
+    const source=q.transformSide==='left' ? q.leftOriginal : q.rightOriginal;
+
+    questionZone.innerHTML=`
+      ${renderOriginalPair(q)}
+
+      <p class="work-label">
+        Transforme la fraction de dénominateur ${q.d} pour obtenir le dénominateur ${q.D}.
+      </p>
+
+      <div class="work-row">
+        ${fractionHTML(source.n,source.d)}
+        <span style="font-size:2rem;font-weight:800">=</span>
+        ${fractionHTML(null,q.D,true)}
+      </div>
+    `;
+
+    feedback.className='feedback';
+    feedback.textContent='Écris le numérateur manquant puis valide.';
+
+    validateBtn.hidden=false;
+    validateBtn.disabled=true;
+    stageNextBtn.hidden=true;
+    nextBtn.hidden=true;
+
+    const input=$('answer');
+
+    input.addEventListener('input',()=>{
+      input.value=input.value.replace(/[^0-9]/g,'');
+      input.classList.remove('correct','wrong');
+      validateBtn.disabled=!input.value;
+    });
+
+    input.addEventListener('keydown',event=>{
+      if(event.key==='Enter' && !validateBtn.disabled && !locked){
+        validateEquivalent();
+      }
+    });
+
+    input.focus();
+  }
+
+  function stageOneHint(q){
+    return `Pour passer de ${q.d} à ${q.D}, on multiplie par ${q.k}. Fais la même chose au numérateur.`;
+  }
+
+  function stageOneCorrection(q){
+    return `${q.sourceNum} × ${q.k} = ${q.transformedNum}, donc ${q.sourceNum}/${q.d} = ${q.transformedNum}/${q.D}.`;
+  }
+
+  function validateEquivalent(){
+
+    if(locked || validateBtn.disabled) return;
+
+    const q=questions[index];
+    const input=$('answer');
+    const value=Number(input.value);
+
+    attempts++;
+
+    if(value===q.transformedNum){
+
+      locked=true;
+
+      score += attempts===1 ? 0.5 : 0.25;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+      input.disabled=true;
+      input.classList.remove('wrong');
+      input.classList.add('correct');
+
+      feedback.className='feedback success';
+      feedback.textContent=
+        attempts===1
+          ? `Bravo ! ${stageOneCorrection(q)}`
+          : `Oui ! ${stageOneCorrection(q)}`;
+
+      validateBtn.hidden=true;
+      stageNextBtn.hidden=false;
+
+      return;
+    }
+
+    if(attempts===1){
+
+      input.classList.add('wrong');
+
+      feedback.className='feedback error';
+      feedback.textContent=`${stageOneHint(q)} Il te reste un essai.`;
+
+      input.focus();
+      input.select();
+
+      return;
+    }
+
+    locked=true;
+
+    input.disabled=true;
+    input.classList.add('wrong');
+
+    feedback.className='feedback error';
+    feedback.textContent=`La réponse était ${q.transformedNum}. ${stageOneCorrection(q)}`;
+
+    validateBtn.hidden=true;
+    stageNextBtn.hidden=false;
+  }
+
+  function renderStageTwo(){
+
+    const q=questions[index];
+
+    stage=2;
+    locked=false;
+
+    instruction.textContent='Les dénominateurs sont maintenant identiques : choisis le bon signe.';
+
+    questionZone.innerHTML=`
+      <div class="comparison-row">
+        ${fractionHTML(q.leftCommon,q.D)}
+        <span style="font-size:2.4rem;font-weight:800">?</span>
+        ${fractionHTML(q.rightCommon,q.D)}
+      </div>
+
+      <div class="answer-buttons" aria-label="Choix du signe de comparaison">
+        <button class="sign-button" type="button" data-sign="<" aria-label="Inférieur à">&lt;</button>
+        <button class="sign-button" type="button" data-sign="=" aria-label="Égal à">=</button>
+        <button class="sign-button" type="button" data-sign=">" aria-label="Supérieur à">&gt;</button>
+      </div>
+    `;
+
+    feedback.className='feedback';
+    feedback.textContent='Compare les numérateurs. Un seul essai.';
+
+    validateBtn.hidden=true;
+    stageNextBtn.hidden=true;
+    nextBtn.hidden=true;
+
+    document.querySelectorAll('.sign-button').forEach(button=>{
+      button.addEventListener('click',()=>{
+        chooseSign(button.dataset.sign,button);
+      });
+    });
+  }
+
+  function comparisonCorrection(q){
+
+    if(q.leftCommon<q.rightCommon){
+      return `${q.leftCommon} < ${q.rightCommon}, donc ${q.leftCommon}/${q.D} < ${q.rightCommon}/${q.D}.`;
+    }
+
+    if(q.leftCommon>q.rightCommon){
+      return `${q.leftCommon} > ${q.rightCommon}, donc ${q.leftCommon}/${q.D} > ${q.rightCommon}/${q.D}.`;
+    }
+
+    return `${q.leftCommon} = ${q.rightCommon}, donc les deux fractions sont égales.`;
+  }
+
+  function chooseSign(sign,button){
+
+    if(locked) return;
+
+    locked=true;
+
+    const q=questions[index];
+    const buttons=[...document.querySelectorAll('.sign-button')];
+
+    buttons.forEach(btn=>btn.disabled=true);
+
+    const correctButton=buttons.find(btn=>btn.dataset.sign===q.sign);
+    correctButton.classList.add('correct');
+
+    if(sign===q.sign){
+
+      score += 0.5;
+      scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+      feedback.className='feedback success';
+      feedback.textContent=`Bravo ! ${comparisonCorrection(q)}`;
+
+    }else{
+
+      button.classList.add('wrong');
+
+      feedback.className='feedback error';
+      feedback.textContent=`Ce n'est pas le bon signe. ${comparisonCorrection(q)}`;
+    }
+
+    nextBtn.hidden=false;
+    nextBtn.textContent=
+      index===TOTAL-1 ? 'Voir mon résultat' : 'Question suivante';
+  }
+
+  function nextQuestion(){
+
+    if(index<TOTAL-1){
+      index++;
+      renderStageOne();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+
+    exercise.style.display='none';
+    final.classList.add('show');
+
+    finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    if(score>=9.5){
+
+      finalMessage.textContent='Excellent !';
+
+    }else if(score>=8){
+
+      finalMessage.textContent='Très bien !';
+
+    }else if(score>=6){
+
+      finalMessage.textContent='C’est bien. Encore un peu d’entraînement.';
+
+    }else{
+
+      finalMessage.textContent='Reprends tranquillement la mise au même dénominateur.';
+    }
+  }
+
+  function restart(){
+
+    questions=generateQuestions();
+    index=0;
+    score=0;
+    stage=1;
+    attempts=0;
+    locked=false;
+
+    final.classList.remove('show');
+    exercise.style.display='';
+
+    renderStageOne();
+  }
+
+  validateBtn.addEventListener('click',validateEquivalent);
+  stageNextBtn.addEventListener('click',renderStageTwo);
+  nextBtn.addEventListener('click',nextQuestion);
+  restartBtn.addEventListener('click',restart);
+
+  questions=generateQuestions();
+  renderStageOne();
+
+})();
+</script>
+
+</body>
+</html>
