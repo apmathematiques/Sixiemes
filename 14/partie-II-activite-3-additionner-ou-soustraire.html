@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;
+  padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;
+  text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.22rem,2.25vw,1.55rem);font-weight:600;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:230px;padding:16px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:15px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.context{
+  margin:0;text-align:center;color:var(--m);
+  font-size:clamp(.95rem,1.8vw,1.08rem);line-height:1.35
+}
+.cards{
+  width:min(760px,100%);display:grid;grid-template-columns:repeat(3,1fr);gap:14px
+}
+.card{
+  min-height:118px;padding:14px 10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;
+  background:#fff;border:2px solid #d8e7f2;border-radius:15px
+}
+.card.target{border-color:#8ab9dc;background:#f7fbfe}
+.xval,.yval{font-size:clamp(1.15rem,2.5vw,1.55rem);font-weight:800;text-align:center}
+.arrow{color:var(--m);font-size:1.25rem;font-weight:800}
+.unknown{color:var(--b);font-size:1.55rem;font-weight:900}
+
+.step{width:min(680px,100%);display:flex;flex-direction:column;align-items:center;gap:10px}
+.step-title{
+  margin:0;font-size:clamp(1rem,2vw,1.16rem);font-weight:800;color:var(--bd);text-align:center
+}
+.operation-buttons{
+  width:min(520px,100%);display:grid;grid-template-columns:1fr 1fr;gap:12px
+}
+.operation-button{
+  min-height:56px;padding:9px 12px;color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:15px;
+  font:800 1rem/1.2 Arial,Helvetica,sans-serif;cursor:pointer;touch-action:manipulation
+}
+.operation-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.operation-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.operation-button:disabled{cursor:default}
+
+.answer-row{
+  width:min(430px,100%);display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center
+}
+.answer-input{
+  width:100%;height:54px;padding:0 14px;border:3px solid #b9d4e8;border-radius:14px;
+  background:#fff;color:var(--i);font:800 1.15rem Arial,Helvetica,sans-serif;
+  text-align:center;outline:none
+}
+.answer-input:focus{border-color:var(--b)}
+.answer-input.correct{border-color:#79c798;background:var(--gs);color:#165e36}
+.answer-input.wrong{border-color:#df8585;background:var(--rs);color:#8f2727}
+.validate{
+  min-height:54px;padding:0 18px;border:0;border-radius:13px;
+  color:#fff;background:var(--b);font:800 1rem Arial,Helvetica,sans-serif;
+  cursor:pointer
+}
+.validate:disabled{cursor:default;opacity:.65}
+
+.feedback{
+  min-height:66px;padding:9px 14px;display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{
+  min-height:46px;padding:0 20px;font-size:1rem;font-weight:800;cursor:pointer;
+  border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+[hidden]{display:none!important}
+
+@media(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{
+    grid-template-columns:1fr auto auto;
+    padding:8px 14px 5px;
+    gap:8px
+  }
+  .track{grid-column:auto}
+  .pill{min-width:0;padding:6px 10px}
+  .main{padding:0 10px 8px;gap:5px}
+  .instruction{min-height:34px;font-size:1rem}
+  .question-zone{
+    min-height:0;
+    padding:7px;
+    gap:6px;
+    justify-content:flex-start;
+    overflow-y:auto
+  }
+  .context{font-size:.8rem}
+  .cards{gap:6px}
+  .card{min-height:70px;padding:5px 4px;gap:2px}
+  .xval,.yval{font-size:.94rem}
+  .arrow{font-size:.95rem}
+  .unknown{font-size:1.1rem}
+  .step{gap:5px}
+  .step-title{font-size:.88rem}
+  .operation-buttons{gap:6px}
+  .operation-button{min-height:38px;padding:5px;font-size:.84rem}
+  .answer-input,.validate{height:38px;min-height:38px}
+  .answer-input{font-size:.98rem}
+  .feedback{min-height:46px;padding:5px 8px;font-size:.78rem}
+  .controls{min-height:36px}
+  button.action{min-height:36px;height:36px;padding:0 12px}
+}
+
+@media(max-width:700px){
+  .top{grid-template-columns:1fr auto;padding:8px 12px 5px}
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px}
+  .cards{gap:5px}
+  .xval,.yval{font-size:.88rem}
+  .answer-row{grid-template-columns:1fr auto}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Utilise l'addition ou la soustraction pour trouver la valeur manquante.</p>
+
+    <div class="question-zone">
+      <p class="context" id="context"></p>
+
+      <div class="cards" id="cards"></div>
+
+      <div class="step" id="stepOperation">
+        <p class="step-title">1. Quelle opération faut-il utiliser ?</p>
+        <div class="operation-buttons">
+          <button class="operation-button" data-op="add">Additionner</button>
+          <button class="operation-button" data-op="sub">Soustraire</button>
+        </div>
+      </div>
+
+      <div class="step" id="stepResult" hidden>
+        <p class="step-title" id="resultPrompt">2. Quelle est la valeur manquante ?</p>
+        <div class="answer-row">
+          <input id="answerInput" class="answer-input" inputmode="decimal" autocomplete="off"
+                 aria-label="Valeur manquante">
+          <button id="validate" class="validate">Valider</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Compare les deux premières valeurs de la première grandeur avec la valeur demandée.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Recommencer avec de nouvelles valeurs</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+const counter=$('counter'),scoreBox=$('score'),bar=$('bar'),
+      context=$('context'),cards=$('cards'),
+      stepOperation=$('stepOperation'),stepResult=$('stepResult'),
+      resultPrompt=$('resultPrompt'),answerInput=$('answerInput'),
+      validateBtn=$('validate'),feedback=$('feedback'),nextBtn=$('next'),
+      exercise=$('exercise'),final=$('final'),
+      finalScore=$('finalScore'),finalMessage=$('finalMessage'),
+      restartBtn=$('restart'),
+      opButtons=[...document.querySelectorAll('.operation-button')];
+
+let questions=[],index=0,score=0,opAttempt=0,resultAttempt=0,lockedOp=false,lockedResult=false;
+
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){
+  const c=a.slice();
+  for(let i=c.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [c[i],c[j]]=[c[j],c[i]];
+  }
+  return c;
+}
+function round2(n){return Math.round((n+Number.EPSILON)*100)/100}
+function fmt(n){
+  n=round2(n);
+  return Number.isInteger(n)?String(n):String(n).replace('.',',');
+}
+function parseNumber(s){
+  if(typeof s!=='string')return NaN;
+  const cleaned=s.trim().replace(/\s+/g,'').replace(',','.');
+  if(!/^-?\d+(?:\.\d+)?$/.test(cleaned))return NaN;
+  return Number(cleaned);
+}
+function nearlyEqual(a,b){return Math.abs(a-b)<1e-9}
+
+const contexts=[
+  {label:'Masse de fruits et prix payé',xUnit:'kg',yUnit:'€',coeffs:[2,2.5,3,4,5,6]},
+  {label:'Longueur de tissu et prix payé',xUnit:'m',yUnit:'€',coeffs:[2,3,4,5,6]},
+  {label:'Durée de déplacement et distance parcourue',xUnit:'h',yUnit:'km',coeffs:[20,30,40,50,60]},
+  {label:'Nombre de personnes et quantité de farine',xUnit:'pers.',yUnit:'g',coeffs:[50,75,100,125]},
+  {label:'Nombre de bouteilles et volume total',xUnit:'bouteilles',yUnit:'L',coeffs:[0.5,0.75,1,1.5]},
+  {label:'Nombre de cahiers et prix payé',xUnit:'cahiers',yUnit:'€',coeffs:[1.5,2,2.5,3,4]}
+];
+
+const xPools={
+  'kg':[0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6],
+  'm':[1,1.5,2,2.5,3,3.5,4,5,6,7],
+  'h':[0.5,1,1.5,2,2.5,3,4],
+  'pers.':[1,2,3,4,5,6,7,8,10],
+  'bouteilles':[1,2,3,4,5,6,8,10,12],
+  'cahiers':[1,2,3,4,5,6,7,8,10]
+};
+
+function generatePairValues(ctx,op){
+  const pool=shuffle(xPools[ctx.xUnit]);
+  let x1,x2,target;
+
+  if(op==='add'){
+    for(let tries=0;tries<100;tries++){
+      x1=choice(pool); x2=choice(pool);
+      if(x1!==x2 && round2(x1+x2)<=15){
+        target=round2(x1+x2);
+        return {x1,x2,target};
+      }
+    }
+  }else{
+    for(let tries=0;tries<100;tries++){
+      const a=choice(pool),b=choice(pool);
+      x1=Math.max(a,b); x2=Math.min(a,b);
+      target=round2(x1-x2);
+      if(target>0 && target!==x1 && target!==x2){
+        return {x1,x2,target};
+      }
+    }
+  }
+  return op==='add'?{x1:2,x2:3,target:5}:{x1:5,x2:2,target:3};
+}
+
+function makeQuestion(op){
+  const ctx=choice(contexts);
+  const coeff=choice(ctx.coeffs);
+  const {x1,x2,target}=generatePairValues(ctx,op);
+
+  const y1=round2(x1*coeff);
+  const y2=round2(x2*coeff);
+  const answer=op==='add'?round2(y1+y2):round2(y1-y2);
+
+  return {op,ctx,coeff,x1,x2,target,y1,y2,answer};
+}
+
+function signature(q){
+  return [q.op,q.ctx.label,q.x1,q.x2,q.target,q.coeff].join('|');
+}
+
+function generate(){
+  const modes=shuffle(['add','add','add','add','add','sub','sub','sub','sub','sub']);
+  const result=[],used=new Set();
+
+  for(const op of modes){
+    for(let tries=0;tries<300;tries++){
+      const q=makeQuestion(op),sig=signature(q);
+      if(!used.has(sig)){
+        used.add(sig);result.push(q);break;
+      }
+    }
+  }
+  return result;
+}
+
+function cardHtml(x,y,ctx,target=false){
+  return `<div class="card${target?' target':''}">
+    <div class="xval">${fmt(x)} ${ctx.xUnit}</div>
+    <div class="arrow">↓</div>
+    <div class="${target?'unknown':'yval'}">${target?'?':fmt(y)+' '+ctx.yUnit}</div>
+  </div>`;
+}
+
+function render(){
+  const q=questions[index];
+
+  opAttempt=0;resultAttempt=0;lockedOp=false;lockedResult=false;
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${fmt(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  context.textContent=q.ctx.label;
+  cards.innerHTML=
+    cardHtml(q.x1,q.y1,q.ctx)+
+    cardHtml(q.x2,q.y2,q.ctx)+
+    cardHtml(q.target,null,q.ctx,true);
+
+  stepOperation.hidden=false;
+  stepResult.hidden=true;
+  answerInput.value='';
+  answerInput.disabled=false;
+  answerInput.className='answer-input';
+  validateBtn.disabled=false;
+
+  feedback.className='feedback';
+  feedback.textContent='Compare les deux premières valeurs de la première grandeur avec la valeur demandée.';
+
+  nextBtn.hidden=true;
+
+  opButtons.forEach(b=>{
+    b.disabled=false;
+    b.classList.remove('correct','wrong');
+  });
+}
+
+function addScore(points){
+  score=round2(score+points);
+  scoreBox.textContent=`Score : ${fmt(score)} / ${TOTAL}`;
+}
+
+function chooseOperation(op,button){
+  if(lockedOp)return;
+
+  const q=questions[index];
+  lockedOp=true;
+  opAttempt=1;
+
+  opButtons.forEach(b=>b.disabled=true);
+
+  if(op===q.op){
+    addScore(0.5);
+    button.classList.add('correct');
+
+    feedback.className='feedback success';
+    feedback.textContent=q.op==='add'
+      ? `${fmt(q.x1)} + ${fmt(q.x2)} = ${fmt(q.target)}. Il faut donc additionner aussi les valeurs correspondantes.`
+      : `${fmt(q.x1)} − ${fmt(q.x2)} = ${fmt(q.target)}. Il faut donc soustraire aussi les valeurs correspondantes.`;
+  }else{
+    button.classList.add('wrong');
+    const good=opButtons.find(b=>b.dataset.op===q.op);
+    if(good)good.classList.add('correct');
+
+    feedback.className='feedback error';
+    feedback.textContent=q.op==='add'
+      ? `Il fallait additionner : ${fmt(q.x1)} + ${fmt(q.x2)} = ${fmt(q.target)}. On fait donc la même chose avec les valeurs correspondantes.`
+      : `Il fallait soustraire : ${fmt(q.x1)} − ${fmt(q.x2)} = ${fmt(q.target)}. On fait donc la même chose avec les valeurs correspondantes.`;
+  }
+
+  stepResult.hidden=false;
+  resultPrompt.textContent=`2. Quelle valeur correspond à ${fmt(q.target)} ${q.ctx.xUnit} ?`;
+  setTimeout(()=>answerInput.focus(),50);
+}
+
+function validateResult(){
+  if(lockedResult || stepResult.hidden)return;
+
+  const q=questions[index];
+  const value=parseNumber(answerInput.value);
+
+  if(Number.isNaN(value)){
+    feedback.className='feedback error';
+    feedback.textContent='Entre un nombre. Tu peux utiliser une virgule ou un point pour les décimaux.';
+    return;
+  }
+
+  resultAttempt++;
+
+  if(nearlyEqual(value,q.answer)){
+    lockedResult=true;
+    addScore(resultAttempt===1?0.5:0.25);
+
+    answerInput.disabled=true;
+    answerInput.classList.remove('wrong');
+    answerInput.classList.add('correct');
+    validateBtn.disabled=true;
+
+    feedback.className='feedback success';
+    const calc=q.op==='add'
+      ? `${fmt(q.y1)} + ${fmt(q.y2)} = ${fmt(q.answer)}`
+      : `${fmt(q.y1)} − ${fmt(q.y2)} = ${fmt(q.answer)}`;
+    feedback.textContent=`Bravo ! ${calc} ${q.ctx.yUnit}.`;
+
+    nextBtn.hidden=false;
+    nextBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+    return;
+  }
+
+  answerInput.classList.add('wrong');
+
+  if(resultAttempt===1){
+    feedback.className='feedback error';
+    const hint=q.op==='add'
+      ? `Tu dois faire la même addition avec ${fmt(q.y1)} et ${fmt(q.y2)}.`
+      : `Tu dois faire la même soustraction avec ${fmt(q.y1)} et ${fmt(q.y2)}.`;
+    feedback.textContent=`Pas encore. ${hint}`;
+    answerInput.select();
+    return;
+  }
+
+  lockedResult=true;
+  answerInput.disabled=true;
+  validateBtn.disabled=true;
+
+  feedback.className='feedback error';
+  const calc=q.op==='add'
+    ? `${fmt(q.y1)} + ${fmt(q.y2)} = ${fmt(q.answer)}`
+    : `${fmt(q.y1)} − ${fmt(q.y2)} = ${fmt(q.answer)}`;
+  feedback.textContent=`La bonne réponse est ${fmt(q.answer)} ${q.ctx.yUnit}, car ${calc}.`;
+
+  nextBtn.hidden=false;
+  nextBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+}
+
+function next(){
+  if(index<TOTAL-1){
+    index++;render();
+  }else showFinal();
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${fmt(score)} / ${TOTAL}`;
+
+  if(score>=9){
+    finalMessage.textContent='Excellent ! Tu sais utiliser la linéarité par addition ou soustraction.';
+  }else if(score>=7){
+    finalMessage.textContent='Très bien ! Pense toujours à effectuer la même opération sur les valeurs correspondantes.';
+  }else if(score>=5){
+    finalMessage.textContent='C’est en bonne voie. Observe d’abord comment obtenir la quantité demandée, puis reproduis la même opération.';
+  }else{
+    finalMessage.textContent='Reprends tranquillement : dans une situation de proportionnalité, la même addition ou soustraction s’applique aux valeurs correspondantes.';
+  }
+}
+
+function restart(){
+  questions=generate();
+  index=0;score=0;
+  final.classList.remove('show');
+  exercise.style.display='';
+  render();
+}
+
+opButtons.forEach(b=>b.addEventListener('click',()=>chooseOperation(b.dataset.op,b)));
+validateBtn.addEventListener('click',validateResult);
+answerInput.addEventListener('keydown',e=>{if(e.key==='Enter')validateResult()});
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+questions=generate();
+render();
+})();
+</script>
+</body>
+</html>
