@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.instruction{min-height:54px;margin:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.28rem,2.35vw,1.62rem);font-weight:600;line-height:1.25;text-align:center}
+.question-zone{flex:1;min-height:245px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px}
+.situation{width:min(820px,100%);margin:0;font-size:clamp(1.35rem,2.7vw,1.95rem);font-weight:600;line-height:1.42;text-align:center}
+.choice-buttons{width:min(700px,100%);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.choice-button{min-height:82px;padding:12px 18px;color:var(--bd);background:var(--bs);border:3px solid #b9d4e8;border-radius:16px;font:800 clamp(1.05rem,2.1vw,1.3rem)/1.2 Arial,Helvetica,sans-serif;cursor:pointer;touch-action:manipulation;transition:transform .08s ease,border-color .15s ease,background .15s ease}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.985)}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.feedback{min-height:72px;padding:10px 16px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;font-size:clamp(.95rem,1.7vw,1.08rem);line-height:1.38;text-align:center;background:#f4f7fb;border-radius:14px}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.action{min-height:46px;padding:0 22px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}.instruction{min-height:42px;font-size:1.08rem}
+  .question-zone{min-height:170px;padding:12px;gap:14px}.situation{font-size:1.12rem;line-height:1.32}
+  .choice-buttons{gap:8px}.choice-button{min-height:54px;padding:8px 10px;font-size:.98rem}
+  .feedback{min-height:54px;padding:7px 10px;font-size:.84rem}.controls{min-height:42px}button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">La situation est-elle proportionnelle ?</p>
+
+    <div class="question-zone">
+      <p class="situation" id="situation"></p>
+      <div class="choice-buttons">
+        <button class="choice-button" data-answer="yes">Proportionnel</button>
+        <button class="choice-button" data-answer="no">Non proportionnel</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback">Lis bien toute la situation avant de répondre.</div>
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Recommencer avec de nouvelles situations</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+const counter=$('counter'),scoreBox=$('score'),bar=$('bar'),situation=$('situation'),feedback=$('feedback'),nextBtn=$('next'),exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
+const choiceButtons=[...document.querySelectorAll('.choice-button')];
+let questions=[],index=0,score=0,attempts=0,locked=false;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){const c=a.slice();for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
+function money(n){return n.toFixed(2).replace('.',',').replace(',00','')}
+
+const proportionalFamilies=[
+  ()=>{
+    const item=pick(['cahier','stylo','gomme','carnet']);
+    const price=pick([1.2,1.5,1.8,2.4,2.5,3.2]);
+    return {
+      answer:'yes',
+      text:`Dans une papeterie, chaque ${item} coûte ${money(price)} €. On compare le nombre de ${item}s achetés et le prix payé.`,
+      hint:'Demande-toi si chaque objet ajouté fait toujours augmenter le prix de la même façon.',
+      correction:`Oui. Chaque ${item} a toujours le même prix : si on multiplie le nombre de ${item}s, le prix est multiplié de la même façon.`
+    };
+  },
+  ()=>{
+    const food=pick(['pommes','fraises','tomates','abricots','noix']);
+    const price=pick([2.4,2.8,3.2,3.5,4.6,6.8]);
+    return {
+      answer:'yes',
+      text:`Des ${food} sont vendues ${money(price)} € le kilogramme, quel que soit le poids acheté. On compare la masse achetée et le prix payé.`,
+      hint:'Le prix d’un kilogramme change-t-il selon la quantité achetée ?',
+      correction:`Oui. Le prix d’un kilogramme reste le même : la masse et le prix sont proportionnels.`
+    };
+  },
+  ()=>{
+    const grams=pick([200,250,300,350,400]);
+    const people=pick([2,4,5,6]);
+    const ingredient=pick(['farine','riz','semoule','chocolat']);
+    return {
+      answer:'yes',
+      text:`Une recette prévoit ${grams} g de ${ingredient} pour ${people} personnes. On garde exactement la même recette quand on change le nombre de personnes. On compare le nombre de personnes et la masse de ${ingredient}.`,
+      hint:'Que se passe-t-il pour la quantité d’ingrédient si on double toutes les portions ?',
+      correction:'Oui. En gardant exactement la même recette, multiplier le nombre de personnes multiplie la quantité d’ingrédient de la même façon.'
+    };
+  },
+  ()=>{
+    const speed=pick([50,60,70,80,90]);
+    return {
+      answer:'yes',
+      text:`Une voiture roule à vitesse constante de ${speed} km/h. On compare la durée du trajet et la distance parcourue.`,
+      hint:'À vitesse constante, que devient la distance si la durée est doublée ?',
+      correction:'Oui. À vitesse constante, deux fois plus de temps correspond à deux fois plus de distance.'
+    };
+  },
+  ()=>({
+    answer:'yes',
+    text:'On compare la longueur du côté d’un carré et son périmètre.',
+    hint:'Écris mentalement comment calculer le périmètre d’un carré à partir de la longueur de son côté.',
+    correction:'Oui. Le périmètre d’un carré vaut toujours 4 fois la longueur de son côté.'
+  }),
+  ()=>{
+    const perBox=pick([6,8,10,12,15,20]);
+    const object=pick(['crayons','feutres','billes','cartes']);
+    return {
+      answer:'yes',
+      text:`Toutes les boîtes contiennent exactement ${perBox} ${object}. On compare le nombre de boîtes et le nombre total de ${object}.`,
+      hint:'Chaque nouvelle boîte ajoute-t-elle toujours le même nombre d’objets ?',
+      correction:`Oui. Une boîte contient toujours ${perBox} ${object} : le nombre total de ${object} est proportionnel au nombre de boîtes.`
+    };
+  },
+  ()=>{
+    const rate=pick([4,5,6,8,10,12]);
+    return {
+      answer:'yes',
+      text:`Un réservoir est vide au départ et on y verse de l’eau à débit constant : ${rate} L chaque minute. On compare le temps écoulé et la quantité d’eau versée.`,
+      hint:'Le réservoir est vide au départ. Que devient la quantité versée si le temps est doublé ?',
+      correction:'Oui. Le réservoir part de 0 L et la même quantité est ajoutée chaque minute : la quantité versée est proportionnelle au temps.'
+    };
+  }
+];
+
+const nonProportionalFamilies=[
+  ()=>{
+    const start=pick([3,4,5,6]);
+    const km=pick([1.2,1.5,1.8,2,2.2]);
+    return {
+      answer:'no',
+      text:`Un taxi facture ${money(start)} € de prise en charge, puis ${money(km)} € par kilomètre parcouru. On compare la distance parcourue et le prix de la course.`,
+      hint:'Quel prix faudrait-il payer pour une distance de 0 km ?',
+      correction:`Non. Pour 0 km, il faut déjà payer ${money(start)} € : le prix ne part pas de 0 €.`
+    };
+  },
+  ()=>{
+    const fee=pick([8,10,12,15,20]);
+    const unit=pick([2,3,4,5,6]);
+    const context=pick(['une salle de sport','un club de jeux','un atelier créatif']);
+    return {
+      answer:'no',
+      text:`${context} demande ${fee} € d’inscription puis ${unit} € par séance. On compare le nombre de séances et le prix total.`,
+      hint:'Y a-t-il quelque chose à payer même avant la première séance ?',
+      correction:`Non. Les ${fee} € d’inscription s’ajoutent au prix des séances : le prix total n’est pas proportionnel au nombre de séances.`
+    };
+  },
+  ()=>{
+    const initial=pick([100,150,200,250,300]);
+    const rate=pick([5,8,10,12,15]);
+    return {
+      answer:'no',
+      text:`Un bassin contient déjà ${initial} L d’eau. On ajoute ensuite ${rate} L chaque minute. On compare le temps écoulé et la quantité totale d’eau dans le bassin.`,
+      hint:'Observe la quantité d’eau présente au moment où le chronomètre indique 0 minute.',
+      correction:`Non. Au départ, le bassin contient déjà ${initial} L : la quantité totale d’eau n’est pas proportionnelle au temps.`
+    };
+  },
+  ()=>({
+    answer:'no',
+    text:'On compare l’âge d’un enfant et sa taille.',
+    hint:'Un enfant deux fois plus âgé est-il forcément deux fois plus grand ?',
+    correction:'Non. Quand l’âge double, la taille ne double pas nécessairement.'
+  }),
+  ()=>({
+    answer:'no',
+    text:'On compare la longueur du côté d’un carré et son aire.',
+    hint:'Si le côté d’un carré est doublé, par combien son aire est-elle multipliée ?',
+    correction:'Non. Si le côté double, l’aire est multipliée par 4, et non par 2.'
+  }),
+  ()=>{
+    const normal=pick([8,9,10,12]);
+    const reduced=pick([5,6,7].filter(v=>v<normal));
+    const threshold=pick([4,5,6]);
+    return {
+      answer:'no',
+      text:`Des billets coûtent ${normal} € chacun, mais à partir du ${threshold}e billet, les billets suivants coûtent ${reduced} € chacun. On compare le nombre de billets et le prix total.`,
+      hint:'Tous les billets ont-ils le même prix ?',
+      correction:'Non. Le prix d’un billet change à partir d’une certaine quantité : il n’y a pas un même multiplicateur pour tous les achats.'
+    };
+  },
+  ()=>{
+    const first=pick([2,2.5,3]);
+    const next=pick([0.5,1,1.5]);
+    return {
+      answer:'no',
+      text:`Un parking coûte ${money(first)} € pour la première heure, puis ${money(next)} € par heure supplémentaire. On compare la durée de stationnement et le prix payé.`,
+      hint:'La première heure et les heures suivantes coûtent-elles le même prix ?',
+      correction:'Non. Le prix par heure n’est pas constant : la première heure et les suivantes ne sont pas facturées de la même façon.'
+    };
+  }
+];
+
+function generate(){
+  const props=shuffle(proportionalFamilies).slice(0,5).map(f=>f());
+  const nonProps=shuffle(nonProportionalFamilies).slice(0,5).map(f=>f());
+  return shuffle([...props,...nonProps]);
+}
+
+function render(){
+  const q=questions[index];
+  attempts=0;locked=false;
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+  situation.textContent=q.text;
+  feedback.className='feedback';
+  feedback.textContent='Lis bien toute la situation avant de répondre.';
+  nextBtn.hidden=true;
+  choiceButtons.forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong')});
+}
+
+function formatScore(n){return Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',')}
+
+function choose(answer,button){
+  if(locked)return;
+  const q=questions[index];
+  attempts++;
+
+  if(answer===q.answer){
+    locked=true;
+    score+=attempts===1?1:0.5;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    button.classList.add('correct');
+    choiceButtons.forEach(b=>b.disabled=true);
+    feedback.className='feedback success';
+    feedback.textContent=`Bravo ! ${q.correction}`;
+    showNext();
+    return;
+  }
+
+  button.classList.add('wrong');
+  button.disabled=true;
+
+  if(attempts===1){
+    feedback.className='feedback error';
+    feedback.textContent=`Ce n’est pas ça. Indice : ${q.hint}`;
+    return;
+  }
+
+  locked=true;
+  const good=choiceButtons.find(b=>b.dataset.answer===q.answer);
+  good.classList.add('correct');
+  choiceButtons.forEach(b=>b.disabled=true);
+  feedback.className='feedback error';
+  feedback.textContent=q.correction;
+  showNext();
+}
+
+function showNext(){
+  nextBtn.hidden=false;
+  nextBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+}
+
+function next(){
+  if(index<TOTAL-1){index++;render()}else showFinal();
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  finalMessage.textContent=
+    score>=9?'Excellent ! Tu reconnais très bien les situations de proportionnalité.':
+    score>=7?'Très bien ! Pense toujours à vérifier qu’une même règle relie les deux grandeurs.':
+    score>=5?'C’est bien. Relis attentivement les indices : un prix fixe au départ ou une règle qui change empêchent souvent la proportionnalité.':
+    'Reprends tranquillement : cherche si multiplier une grandeur multiplie toujours l’autre de la même façon.';
+}
+
+function restart(){
+  questions=generate();index=0;score=0;attempts=0;locked=false;
+  final.classList.remove('show');exercise.style.display='';render();
+}
+
+choiceButtons.forEach(b=>b.addEventListener('click',()=>choose(b.dataset.answer,b)));
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+questions=generate();
+render();
+})();
+</script>
+</body>
+</html>
