@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.38rem,2.55vw,1.78rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:270px;padding:14px 18px 16px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.division-wrap{
+  width:min(500px,92%);height:180px;
+  display:grid;place-items:center
+}
+.division{
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) minmax(105px,.72fr);
+  grid-template-rows:auto auto;
+  min-width:300px;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(2.2rem,5.2vw,3.55rem);
+  font-weight:700;
+  line-height:1;
+  color:var(--i)
+}
+.div-cell{
+  min-height:72px;display:flex;align-items:center
+}
+.dividend{
+  justify-content:flex-end;padding:0 22px 10px 0;
+  border-right:4px solid var(--line)
+}
+.divisor{
+  justify-content:flex-start;padding:0 0 10px 22px;
+  border-bottom:4px solid var(--line)
+}
+.remainder{
+  justify-content:flex-end;padding:10px 22px 0 0;
+  border-right:4px solid var(--line)
+}
+.quotient{
+  justify-content:flex-start;padding:10px 0 0 22px
+}
+.prompt{
+  margin:0;
+  font-size:clamp(1.45rem,3vw,2rem);
+  font-weight:800;text-align:center
+}
+.asked-number{
+  display:inline-block;min-width:1.5ch;
+  padding:2px 8px;border-radius:9px;
+  background:#f2f5f8
+}
+.choice-buttons{
+  width:min(760px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:12px 16px
+}
+.choice-button{
+  min-height:62px;padding:10px 16px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.03rem,2vw,1.25rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.985)}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.feedback{
+  min-height:70px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.12rem}
+  .question-zone{min-height:190px;padding:8px 10px 10px;gap:7px}
+  .division-wrap{height:125px}
+  .division{min-width:235px;grid-template-columns:135px 100px;font-size:2.15rem}
+  .div-cell{min-height:50px}
+  .dividend,.remainder{padding-right:15px;border-right-width:3px}
+  .divisor,.quotient{padding-left:15px}
+  .divisor{border-bottom-width:3px}
+  .prompt{font-size:1.25rem}
+  .choice-buttons{gap:8px}
+  .choice-button{min-height:48px;padding:7px 9px;font-size:.96rem}
+  .feedback{min-height:52px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Complète la phrase en choisissant le bon mot.</p>
+
+    <div class="question-zone">
+      <div class="division-wrap">
+        <div class="division" role="img" id="division"
+             aria-label="Division euclidienne posée">
+          <div class="div-cell dividend" id="dividend"></div>
+          <div class="div-cell divisor" id="divisor"></div>
+          <div class="div-cell remainder" id="remainder"></div>
+          <div class="div-cell quotient" id="quotient"></div>
+        </div>
+      </div>
+
+      <p class="prompt"><span class="asked-number" id="asked"></span> est…</p>
+
+      <div class="choice-buttons" id="choices"></div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Observe la division posée puis choisis le vocabulaire correspondant.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouvelles divisions
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const ROLES=['dividende','diviseur','quotient','reste'];
+const LABELS={
+  dividende:'le dividende',
+  diviseur:'le diviseur',
+  quotient:'le quotient',
+  reste:'le reste'
+};
+
+const $=id=>document.getElementById(id);
+const dividendBox=$('dividend');
+const divisorBox=$('divisor');
+const quotientBox=$('quotient');
+const remainderBox=$('remainder');
+const askedBox=$('asked');
+const choicesBox=$('choices');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+const division=$('division');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fmt(n){
+  return n.toLocaleString('fr-FR');
+}
+function distinctValues(q){
+  return new Set([q.dividend,q.divisor,q.quotient,q.remainder]).size===4;
+}
+
+function makeDivision(forceZeroRemainder=false){
+  let q;
+  do{
+    const divisor=randInt(3,29);
+    const quotient=randInt(12,99);
+    let remainder;
+
+    if(forceZeroRemainder){
+      remainder=0;
+    }else{
+      remainder=randInt(1,divisor-1);
+    }
+
+    const dividend=divisor*quotient+remainder;
+    q={dividend,divisor,quotient,remainder};
+  }while(!distinctValues(q) || q.dividend<100 || q.dividend>4999);
+
+  return q;
+}
+
+function buildQuestions(){
+  // Deux questions par rôle, dans un ordre différent à chaque partie.
+  const roles=shuffle([
+    'dividende','dividende',
+    'diviseur','diviseur',
+    'quotient','quotient',
+    'reste','reste'
+  ]);
+
+  // Deux divisions à reste nul sur l'ensemble de la partie,
+  // réparties à des positions aléatoires.
+  const zeroPositions=new Set(shuffle([0,1,2,3,4,5,6,7]).slice(0,2));
+
+  return roles.map((role,i)=>{
+    const q=makeDivision(zeroPositions.has(i));
+    return {...q,role};
+  });
+}
+
+function explanation(role,q){
+  switch(role){
+    case 'dividende':
+      return `${fmt(q.dividend)} est le dividende : c’est le nombre que l’on divise.`;
+    case 'diviseur':
+      return `${fmt(q.divisor)} est le diviseur : c’est le nombre par lequel on divise.`;
+    case 'quotient':
+      return `${fmt(q.quotient)} est le quotient : c’est le résultat entier de la division.`;
+    case 'reste':
+      return `${fmt(q.remainder)} est le reste : il est inférieur au diviseur ${fmt(q.divisor)}.`;
+  }
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${Number.isInteger(score)?score:score.toFixed(1).replace('.',',')} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderChoices(){
+  choicesBox.innerHTML='';
+  const labels=shuffle(ROLES);
+
+  labels.forEach(role=>{
+    const btn=document.createElement('button');
+    btn.className='choice-button';
+    btn.type='button';
+    btn.dataset.role=role;
+    btn.textContent=LABELS[role];
+    btn.addEventListener('click',()=>choose(btn,role));
+    choicesBox.appendChild(btn);
+  });
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;
+  locked=false;
+
+  dividendBox.textContent=fmt(q.dividend);
+  divisorBox.textContent=fmt(q.divisor);
+  quotientBox.textContent=fmt(q.quotient);
+  remainderBox.textContent=fmt(q.remainder);
+  const askedValue={
+    dividende:q.dividend,
+    diviseur:q.divisor,
+    quotient:q.quotient,
+    reste:q.remainder
+  }[q.role];
+  askedBox.textContent=fmt(askedValue);
+
+  division.setAttribute(
+    'aria-label',
+    `Division posée de ${q.dividend} par ${q.divisor}, quotient ${q.quotient}, reste ${q.remainder}`
+  );
+
+  renderChoices();
+  nextBtn.hidden=true;
+  setFeedback('Observe la division posée puis choisis le vocabulaire correspondant.');
+  updateTop();
+}
+
+function disableAll(){
+  [...choicesBox.querySelectorAll('.choice-button')].forEach(b=>b.disabled=true);
+}
+
+function markCorrect(role){
+  const btn=[...choicesBox.querySelectorAll('.choice-button')]
+    .find(b=>b.dataset.role===role);
+  if(btn) btn.classList.add('correct');
+}
+
+function choose(btn,role){
+  if(locked || btn.disabled) return;
+
+  const q=questions[index];
+  attempts++;
+
+  if(role===q.role){
+    locked=true;
+    score+=attempts===1?1:0.5;
+    btn.classList.add('correct');
+    disableAll();
+    setFeedback(explanation(q.role,q),'success');
+    scoreBox.textContent=`Score : ${Number.isInteger(score)?score:score.toFixed(1).replace('.',',')} / ${TOTAL}`;
+    nextBtn.hidden=false;
+    return;
+  }
+
+  btn.classList.add('wrong');
+  btn.disabled=true;
+
+  if(attempts===1){
+    setFeedback(
+      'Ce n’est pas le bon vocabulaire. Observe bien la place du nombre dans la division posée.',
+      'error'
+    );
+    return;
+  }
+
+  locked=true;
+  disableAll();
+  markCorrect(q.role);
+  setFeedback(`Correction : ${explanation(q.role,q)}`,'error');
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  const shown=Number.isInteger(score)?String(score):score.toFixed(1).replace('.',',');
+  finalScore.textContent=`Score : ${shown} / ${TOTAL}`;
+
+  if(score>=7){
+    finalMessage.textContent='Très bien ! Tu repères correctement le dividende, le diviseur, le quotient et le reste.';
+  }else if(score>=5){
+    finalMessage.textContent='C’est bien. Relis encore la place de chaque nombre dans une division posée pour consolider le vocabulaire.';
+  }else{
+    finalMessage.textContent='Reprends le vocabulaire de la division euclidienne puis rejoue : dividende, diviseur, quotient et reste.';
+  }
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  locked=false;
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>

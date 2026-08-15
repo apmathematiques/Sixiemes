@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.35rem,2.5vw,1.72rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:275px;padding:16px 20px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.equation{
+  font-size:clamp(2rem,5vw,3.2rem);
+  font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums
+}
+.choices{
+  width:min(820px,100%);
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:12px 16px
+}
+.choice{
+  min-height:66px;padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+  color:var(--i);background:#fff;
+  border:3px solid #c8dcea;border-radius:15px;
+  font-size:clamp(1rem,1.9vw,1.18rem);
+  font-weight:700;text-align:left;
+  cursor:pointer;touch-action:manipulation;
+  transition:border-color .15s ease,background .15s ease,transform .08s ease
+}
+.choice:hover:not(:disabled){border-color:#8eb8d5}
+.choice:active:not(:disabled){transform:scale(.99)}
+.choice.selected{
+  color:var(--bd);background:var(--bs);border-color:var(--b)
+}
+.choice.correct{
+  color:#165e36;background:var(--gs);border-color:#79c798
+}
+.choice.wrong{
+  color:#8f2727;background:var(--rs);border-color:#df8585
+}
+.choice:disabled{cursor:default}
+.check{
+  width:26px;height:26px;flex:0 0 26px;
+  display:grid;place-items:center;
+  border:3px solid #9ebdd4;border-radius:7px;
+  background:#fff;
+  font-size:1rem;font-weight:900
+}
+.choice.selected .check{
+  color:#fff;background:var(--b);border-color:var(--b)
+}
+.choice.correct .check{
+  color:#fff;background:var(--g);border-color:var(--g)
+}
+.choice.wrong .check{
+  color:#fff;background:var(--r);border-color:var(--r)
+}
+.feedback{
+  min-height:82px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.95rem,1.7vw,1.08rem);
+  line-height:1.42;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px;
+  touch-action:manipulation
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:40px;font-size:1.02rem}
+  .question-zone{min-height:190px;padding:9px 10px;gap:10px}
+  .equation{font-size:1.75rem}
+  .choices{gap:7px}
+  .choice{min-height:48px;padding:7px 9px;gap:8px;font-size:.88rem;border-width:2px}
+  .check{width:21px;height:21px;flex-basis:21px;border-width:2px}
+  .feedback{min-height:56px;padding:7px 10px;font-size:.8rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Sélectionne toutes les affirmations vraies.</p>
+
+    <div class="question-zone">
+      <div class="equation" id="equation"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Plusieurs réponses peuvent être correctes.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouveaux nombres
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const $=id=>document.getElementById(id);
+
+const equation=$('equation');
+const choicesBox=$('choices');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fmt(n){
+  return n.toLocaleString('fr-FR');
+}
+function scoreText(v){
+  return Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.',',');
+}
+
+function makeQuestion(){
+  let a,b,p;
+  do{
+    a=randInt(2,20);
+    b=randInt(2,20);
+    p=a*b;
+  }while(a===b || p>300);
+
+  const truePool=[
+    {text:`${fmt(a)} est un diviseur de ${fmt(p)}`,truth:true},
+    {text:`${fmt(b)} est un diviseur de ${fmt(p)}`,truth:true},
+    {text:`${fmt(p)} est un multiple de ${fmt(a)}`,truth:true},
+    {text:`${fmt(p)} est un multiple de ${fmt(b)}`,truth:true},
+    {text:`${fmt(p)} est divisible par ${fmt(a)}`,truth:true},
+    {text:`${fmt(p)} est divisible par ${fmt(b)}`,truth:true}
+  ];
+
+  const falsePool=[
+    {text:`${fmt(p)} est un diviseur de ${fmt(a)}`,truth:false},
+    {text:`${fmt(p)} est un diviseur de ${fmt(b)}`,truth:false},
+    {text:`${fmt(a)} est un multiple de ${fmt(p)}`,truth:false},
+    {text:`${fmt(b)} est un multiple de ${fmt(p)}`,truth:false},
+    {text:`${fmt(a)} est divisible par ${fmt(p)}`,truth:false},
+    {text:`${fmt(b)} est divisible par ${fmt(p)}`,truth:false}
+  ];
+
+  // Nombre de réponses vraies variable : 2, 3 ou 4.
+  const trueCount=pick([2,3,4]);
+  const falseCount=4-trueCount;
+
+  // On garantit que les deux facteurs sont réellement exploités.
+  const mustUseA=pick([
+    {text:`${fmt(a)} est un diviseur de ${fmt(p)}`,truth:true},
+    {text:`${fmt(p)} est un multiple de ${fmt(a)}`,truth:true},
+    {text:`${fmt(p)} est divisible par ${fmt(a)}`,truth:true}
+  ]);
+  const mustUseB=pick([
+    {text:`${fmt(b)} est un diviseur de ${fmt(p)}`,truth:true},
+    {text:`${fmt(p)} est un multiple de ${fmt(b)}`,truth:true},
+    {text:`${fmt(p)} est divisible par ${fmt(b)}`,truth:true}
+  ]);
+
+  const selectedTrue=[mustUseA,mustUseB];
+  const usedTexts=new Set(selectedTrue.map(x=>x.text));
+
+  const restTrue=shuffle(truePool.filter(x=>!usedTexts.has(x.text)));
+  while(selectedTrue.length<trueCount && restTrue.length){
+    const item=restTrue.shift();
+    if(!usedTexts.has(item.text)){
+      usedTexts.add(item.text);
+      selectedTrue.push(item);
+    }
+  }
+
+  const selectedFalse=[];
+  const restFalse=shuffle(falsePool);
+  while(selectedFalse.length<falseCount && restFalse.length){
+    const item=restFalse.shift();
+    if(!usedTexts.has(item.text)){
+      usedTexts.add(item.text);
+      selectedFalse.push(item);
+    }
+  }
+
+  const propositions=shuffle([...selectedTrue,...selectedFalse]);
+
+  return{
+    a,b,p,
+    propositions,
+    correctTexts:selectedTrue.map(x=>x.text)
+  };
+}
+
+function buildQuestions(){
+  const seen=new Set();
+  const qs=[];
+
+  while(qs.length<TOTAL){
+    const q=makeQuestion();
+    const key=[Math.min(q.a,q.b),Math.max(q.a,q.b)].join('x');
+    if(seen.has(key)) continue;
+    seen.add(key);
+    qs.push(q);
+  }
+
+  return qs;
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${scoreText(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderChoices(q){
+  choicesBox.innerHTML='';
+
+  q.propositions.forEach((prop,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice';
+    btn.dataset.index=String(i);
+    btn.dataset.truth=prop.truth?'true':'false';
+    btn.innerHTML=`<span class="check"></span><span>${prop.text}</span>`;
+
+    btn.addEventListener('click',()=>{
+      if(locked || btn.disabled) return;
+      btn.classList.toggle('selected');
+      const check=btn.querySelector('.check');
+      check.textContent=btn.classList.contains('selected')?'✓':'';
+    });
+
+    choicesBox.appendChild(btn);
+  });
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;
+  locked=false;
+
+  equation.textContent=`${fmt(q.p)} = ${fmt(q.a)} × ${fmt(q.b)}`;
+  renderChoices(q);
+
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+  setFeedback('Plusieurs réponses peuvent être correctes.');
+  updateTop();
+}
+
+function selectedButtons(){
+  return [...choicesBox.querySelectorAll('.choice.selected')];
+}
+
+function selectionCorrect(){
+  const buttons=[...choicesBox.querySelectorAll('.choice')];
+
+  return buttons.every(btn=>{
+    const selected=btn.classList.contains('selected');
+    const truth=btn.dataset.truth==='true';
+    return selected===truth;
+  });
+}
+
+function disableAll(){
+  [...choicesBox.querySelectorAll('.choice')].forEach(btn=>btn.disabled=true);
+}
+
+function showCorrection(){
+  [...choicesBox.querySelectorAll('.choice')].forEach(btn=>{
+    const truth=btn.dataset.truth==='true';
+    const selected=btn.classList.contains('selected');
+    const check=btn.querySelector('.check');
+
+    btn.classList.remove('selected');
+
+    if(truth){
+      btn.classList.add('correct');
+      check.textContent='✓';
+    }else if(selected){
+      btn.classList.add('wrong');
+      check.textContent='×';
+    }else{
+      check.textContent='';
+    }
+  });
+}
+
+function correctionText(q){
+  return `${fmt(q.a)} et ${fmt(q.b)} sont tous les deux des diviseurs de ${fmt(q.p)}. Donc ${fmt(q.p)} est divisible par ${fmt(q.a)} et par ${fmt(q.b)}, et c’est un multiple de ces deux nombres.`;
+}
+
+function validate(){
+  if(locked) return;
+
+  if(selectedButtons().length===0){
+    setFeedback('Sélectionne au moins une affirmation avant de valider.','error');
+    return;
+  }
+
+  attempts++;
+  const q=questions[index];
+
+  if(selectionCorrect()){
+    locked=true;
+    score+=attempts===1?1:0.5;
+    disableAll();
+    showCorrection();
+
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    setFeedback(correctionText(q),'success');
+    updateTop();
+    return;
+  }
+
+  if(attempts===1){
+    [...choicesBox.querySelectorAll('.choice')].forEach(btn=>{
+      btn.classList.remove('selected');
+      btn.querySelector('.check').textContent='';
+    });
+
+    setFeedback(
+      'Vérifie dans quel sens se lisent les mots « multiple », « diviseur » et « divisible ».',
+      'error'
+    );
+    return;
+  }
+
+  locked=true;
+  disableAll();
+  showCorrection();
+
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+  setFeedback(`Correction : ${correctionText(q)}`,'error');
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalScore.textContent=`Score : ${scoreText(score)} / ${TOTAL}`;
+
+  if(score>=7){
+    finalMessage.textContent='Très bien ! Tu maîtrises les liens entre multiple, diviseur et divisible.';
+  }else if(score>=5){
+    finalMessage.textContent='C’est bien. Continue à faire attention au sens des mots multiple et diviseur.';
+  }else{
+    finalMessage.textContent='Reprends les trois formulations équivalentes, puis rejoue avec de nouveaux nombres.';
+  }
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  locked=false;
+
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>
