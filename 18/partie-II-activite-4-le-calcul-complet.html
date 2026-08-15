@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:52px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.38rem,2.6vw,1.8rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:290px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.original{
+  display:flex;align-items:center;justify-content:center;gap:.34em;
+  font-size:clamp(1.65rem,4vw,2.45rem);
+  font-weight:800;line-height:1.1;text-align:center
+}
+.flow{
+  width:min(880px,100%);
+  display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.25fr);
+  align-items:center;gap:14px
+}
+.step-card{
+  min-width:0;
+  padding:14px 14px 16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;background:#f7fbfe;border:2px solid #cfe2f1;border-radius:18px
+}
+.step-title{
+  font-size:clamp(.98rem,1.9vw,1.12rem);
+  font-weight:800;color:var(--bd);text-align:center
+}
+.equality,.calc-row{
+  display:flex;align-items:center;justify-content:center;gap:.30em;
+  font-size:clamp(1.55rem,3.4vw,2.2rem);
+  font-weight:800;line-height:1.05;text-align:center;
+  white-space:nowrap
+}
+.arrow{
+  color:var(--b);font-size:1.8rem;font-weight:900;line-height:1;
+  flex:0 0 auto
+}
+.frac{
+  display:inline-grid;grid-template-rows:auto 2px auto;
+  min-width:1.3em;vertical-align:middle;align-items:center;
+  text-align:center;line-height:1
+}
+.frac .num{padding:0 .12em .08em}
+.frac .line{height:2px;background:currentColor;width:100%}
+.frac .den{padding:.08em .12em 0}
+.op{padding:0 .04em}
+.answer-frac{
+  display:inline-grid;grid-template-rows:auto 3px auto;
+  width:68px;align-items:center;text-align:center;line-height:1
+}
+.answer-frac .line{
+  height:3px;background:var(--i);width:100%;border-radius:2px
+}
+.answer-frac input{
+  width:68px;height:44px;padding:3px 5px;
+  border:3px solid #b9d4e8;border-radius:10px;
+  color:var(--bd);background:#fff;
+  font:800 1.2rem/1 Arial,Helvetica,sans-serif;
+  text-align:center;outline:none
+}
+.answer-frac input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 3px rgba(23,105,170,.12)
+}
+.answer-frac input.correct{
+  border-color:#79c798;background:var(--gs);color:#165e36
+}
+.answer-frac input.wrong{
+  border-color:#df8585;background:var(--rs);color:#8f2727
+}
+.answer-frac .num-input{margin-bottom:5px}
+.answer-frac .den-input{margin-top:5px}
+.mirror-frac{
+  display:inline-grid;grid-template-rows:auto 2px auto;
+  min-width:1.6em;vertical-align:middle;align-items:center;
+  text-align:center;line-height:1;color:var(--bd)
+}
+.mirror-frac .num{padding:0 .12em .08em}
+.mirror-frac .line{height:2px;background:currentColor;width:100%}
+.mirror-frac .den{padding:.08em .12em 0}
+.feedback{
+  min-height:82px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.96rem,1.75vw,1.1rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:14px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:46px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:44px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+button.action:disabled{opacity:.45;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:2px 8px 8px;gap:6px}
+  .instruction{min-height:38px;font-size:1.02rem}
+  .question-zone{min-height:205px;padding:8px;gap:8px}
+  .original{font-size:1.35rem}
+  .flow{grid-template-columns:minmax(0,1fr) auto minmax(0,1.2fr);gap:7px}
+  .step-card{padding:8px 6px;gap:7px;border-radius:13px}
+  .step-title{font-size:.78rem}
+  .equality,.calc-row{font-size:1.17rem;gap:.18em}
+  .arrow{font-size:1.2rem}
+  .answer-frac{width:48px}
+  .answer-frac input{
+    width:48px;height:34px;font-size:.95rem;border-radius:8px;border-width:2px
+  }
+  .answer-frac .num-input{margin-bottom:4px}
+  .answer-frac .den-input{margin-top:4px}
+  .feedback{min-height:54px;padding:7px 9px;font-size:.79rem}
+  .controls{min-height:36px}
+  button.action{min-height:36px;height:36px;padding:0 13px;font-size:.9rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Transforme une fraction, puis calcule.</p>
+
+    <div class="question-zone">
+      <div class="original" id="original"></div>
+
+      <div class="flow">
+        <div class="step-card">
+          <div class="step-title">1. Transforme la fraction</div>
+          <div class="equality" id="transformStep"></div>
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="step-card">
+          <div class="step-title">2. Calcule</div>
+          <div class="calc-row" id="calcStep"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux calculs</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const $=id=>document.getElementById(id);
+
+const original=$('original');
+const transformStep=$('transformStep');
+const calcStep=$('calcStep');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fractionHTML(n,d){
+  return `<span class="frac" aria-label="${n} sur ${d}">
+    <span class="num">${n}</span><span class="line"></span><span class="den">${d}</span>
+  </span>`;
+}
+function answerFractionHTML(numId,denId,label){
+  return `<span class="answer-frac">
+    <input id="${numId}" class="num-input" type="number" inputmode="numeric"
+      min="0" step="1" aria-label="Numérateur ${label}">
+    <span class="line"></span>
+    <input id="${denId}" class="den-input" type="number" inputmode="numeric"
+      min="1" step="1" aria-label="Dénominateur ${label}">
+  </span>`;
+}
+function mirrorFractionHTML(){
+  return `<span class="mirror-frac">
+    <span class="num" id="mirrorNum">□</span>
+    <span class="line"></span>
+    <span class="den" id="mirrorDen">□</span>
+  </span>`;
+}
+
+function makeQuestion(op){
+  for(let tries=0;tries<200;tries++){
+    const small=pick([2,3,4,5,6,7,8,9,10]);
+    const factor=pick([2,3,4]);
+    const big=small*factor;
+    const firstIsSmall=Math.random()<.5;
+
+    const d1=firstIsSmall?small:big;
+    const d2=firstIsSmall?big:small;
+
+    const n1=randInt(1,d1+3);
+    const n2=randInt(1,d2+3);
+
+    const sourceN=firstIsSmall?n1:n2;
+    const sourceD=small;
+    const targetD=big;
+    const transformedN=sourceN*factor;
+
+    const firstTargetN=firstIsSmall?transformedN:n1;
+    const secondTargetN=firstIsSmall?n2:transformedN;
+    const resultN=op==='+' ? firstTargetN+secondTargetN : firstTargetN-secondTargetN;
+
+    if(op==='−' && resultN<=0) continue;
+
+    return{
+      n1,d1,n2,d2,op,
+      firstIsSmall,
+      sourceN,sourceD,targetD,factor,transformedN,
+      firstTargetN,secondTargetN,
+      resultN,resultD:targetD
+    };
+  }
+
+  return{
+    n1:3,d1:4,n2:5,d2:8,op:'+',
+    firstIsSmall:true,
+    sourceN:3,sourceD:4,targetD:8,factor:2,transformedN:6,
+    firstTargetN:6,secondTargetN:5,resultN:11,resultD:8
+  };
+}
+
+function buildQuestions(){
+  return shuffle([
+    makeQuestion('+'),
+    makeQuestion('+'),
+    makeQuestion('+'),
+    makeQuestion('+'),
+    makeQuestion('−'),
+    makeQuestion('−'),
+    makeQuestion('−'),
+    makeQuestion('−')
+  ]);
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  locked=false;
+
+  original.innerHTML=
+    `${fractionHTML(q.n1,q.d1)}
+     <span class="op">${q.op}</span>
+     ${fractionHTML(q.n2,q.d2)}`;
+
+  transformStep.innerHTML=
+    `${fractionHTML(q.sourceN,q.sourceD)}
+     <span class="op">=</span>
+     ${answerFractionHTML('transformNum','transformDen','de la fraction transformée')}`;
+
+  const transformed = mirrorFractionHTML();
+  const other = q.firstIsSmall
+    ? fractionHTML(q.n2,q.d2)
+    : fractionHTML(q.n1,q.d1);
+
+  const left = q.firstIsSmall ? transformed : other;
+  const right = q.firstIsSmall ? other : transformed;
+
+  calcStep.innerHTML=
+    `${left}
+     <span class="op">${q.op}</span>
+     ${right}
+     <span class="op">=</span>
+     ${answerFractionHTML('resultNum','resultDen','du résultat')}`;
+
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+
+  updateTop();
+
+  const transformNum=$('transformNum');
+  const transformDen=$('transformDen');
+  const resultNum=$('resultNum');
+  const resultDen=$('resultDen');
+
+  function updateMirror(){
+    $('mirrorNum').textContent=transformNum.value===''?'□':transformNum.value;
+    $('mirrorDen').textContent=transformDen.value===''?'□':transformDen.value;
+  }
+
+  [transformNum,transformDen].forEach(input=>{
+    input.addEventListener('input',()=>{
+      input.classList.remove('correct','wrong');
+      updateMirror();
+    });
+  });
+
+  [resultNum,resultDen].forEach(input=>{
+    input.addEventListener('input',()=>input.classList.remove('correct','wrong'));
+  });
+
+  [transformNum,transformDen,resultNum,resultDen].forEach(input=>{
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter' && !locked) validateAnswer();
+    });
+  });
+
+  transformNum.focus();
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  const q=questions[index];
+  const tNum=$('transformNum');
+  const tDen=$('transformDen');
+  const rNum=$('resultNum');
+  const rDen=$('resultDen');
+  const inputs=[tNum,tDen,rNum,rDen];
+
+  if(inputs.some(i=>i.value==='')){
+    setFeedback('Complète les deux étapes avant de valider.','error');
+    return;
+  }
+
+  const values=inputs.map(i=>Number(i.value));
+  if(values.some((v,i)=>!Number.isInteger(v) || v<0 || (i%2===1 && v<=0))){
+    setFeedback('Entre uniquement des nombres entiers, avec des dénominateurs strictement positifs.','error');
+    return;
+  }
+
+  // Normalise l'affichage : 07 devient 7, 040 devient 40, etc.
+  inputs.forEach((input,i)=>{
+    input.value=String(values[i]);
+  });
+
+  locked=true;
+  inputs.forEach(i=>i.disabled=true);
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+
+  const transformOK=
+    Number(tNum.value)===q.transformedN &&
+    Number(tDen.value)===q.targetD;
+
+  const resultOK=
+    Number(rNum.value)===q.resultN &&
+    Number(rDen.value)===q.resultD;
+
+  tNum.classList.add(Number(tNum.value)===q.transformedN?'correct':'wrong');
+  tDen.classList.add(Number(tDen.value)===q.targetD?'correct':'wrong');
+  rNum.classList.add(Number(rNum.value)===q.resultN?'correct':'wrong');
+  rDen.classList.add(Number(rDen.value)===q.resultD?'correct':'wrong');
+
+  if(transformOK && resultOK){
+    score++;
+    setFeedback(
+      `Bravo ! On transforme d’abord la fraction avec le dénominateur ${q.sourceD} en une fraction de dénominateur ${q.targetD}, puis on ${q.op==='+'?'additionne':'soustrait'} les numérateurs.`,
+      'success'
+    );
+  }else if(!transformOK && resultOK){
+    setFeedback(
+      `Le résultat final est correct, mais la transformation ne l’est pas. Pour passer de ${q.sourceD} à ${q.targetD}, on multiplie par ${q.factor} : ${q.sourceN} devient ${q.transformedN}.`,
+      'error'
+    );
+  }else if(transformOK && !resultOK){
+    const operation=q.op==='+'?'additionne':'soustrait';
+    const symbol=q.op==='+'?'+':'−';
+    setFeedback(
+      `La transformation est correcte. Ensuite, les dénominateurs sont identiques : on ${operation} les numérateurs, ${q.firstTargetN} ${symbol} ${q.secondTargetN} = ${q.resultN}, et on conserve ${q.targetD}.`,
+      'error'
+    );
+  }else{
+    const symbol=q.op==='+'?'+':'−';
+    setFeedback(
+      `Pour la transformation : ${q.sourceD} × ${q.factor} = ${q.targetD}, donc ${q.sourceN} × ${q.factor} = ${q.transformedN}. Puis ${q.firstTargetN} ${symbol} ${q.secondTargetN} = ${q.resultN} et on conserve le dénominateur ${q.targetD}.`,
+      'error'
+    );
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===8){
+    finalMessage.textContent='Excellent ! Tu sais transformer les fractions puis effectuer le calcul.';
+  }else if(score>=6){
+    finalMessage.textContent='Très bien ! Tu enchaînes correctement les deux étapes dans la plupart des cas.';
+  }else if(score>=4){
+    finalMessage.textContent='C’est en bonne voie. Vérifie d’abord la transformation, puis effectue le calcul avec le dénominateur commun.';
+  }else{
+    finalMessage.textContent='Rejoue pour t’entraîner à bien séparer les deux étapes : transformer, puis calculer.';
+  }
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  locked=false;
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validateAnswer);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>
