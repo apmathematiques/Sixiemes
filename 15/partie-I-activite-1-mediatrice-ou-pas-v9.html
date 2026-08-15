@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;color:var(--i);font-family:Arial,Helvetica,sans-serif}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;max-height:calc(100vh - 24px);
+  overflow:hidden;display:flex;flex-direction:column;background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:14px;padding:16px 24px 10px}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);border-radius:inherit;transition:width 260ms ease}
+.pill{min-width:116px;padding:9px 14px;color:var(--bd);font-weight:700;text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px}
+.main{flex:1;min-height:0;padding:5px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.instruction{min-height:56px;margin:0;display:flex;align-items:center;justify-content:center;padding:0 10px;font-size:clamp(1.45rem,2.7vw,1.82rem);font-weight:700;line-height:1.25;text-align:center}
+.question-zone{flex:1;min-height:260px;padding:12px 18px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px}
+.figure-wrap{width:min(760px,100%);height:min(285px,34vh);min-height:220px;display:grid;place-items:center}
+#figure{width:100%;height:100%;display:block}
+.choice-buttons{width:min(650px,100%);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.choice-button{min-height:70px;padding:12px 18px;color:var(--bd);background:var(--bs);border:3px solid #b9d4e8;border-radius:16px;font:800 clamp(1.1rem,2.2vw,1.35rem)/1.2 Arial,Helvetica,sans-serif;cursor:pointer;touch-action:manipulation;transition:transform .08s ease,border-color .15s ease,background .15s ease}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.985)}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.feedback{min-height:72px;padding:10px 16px;display:flex;align-items:center;justify-content:center;color:var(--m);font-weight:650;font-size:clamp(.98rem,1.8vw,1.12rem);line-height:1.38;text-align:center;background:#f4f7fb;border-radius:14px}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px}
+button.action{min-height:46px;padding:0 22px;font-size:1rem;font-weight:800;cursor:pointer;border:0;border-radius:13px}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.svg-segment{stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.svg-line{stroke:var(--b);stroke-width:4;stroke-linecap:round}
+.svg-tick{stroke:var(--line);stroke-width:4;stroke-linecap:round}
+.svg-point-mark{stroke:var(--line);stroke-width:4;stroke-linecap:round}
+.svg-right{fill:none;stroke:var(--line);stroke-width:3}
+.svg-label{fill:var(--i);font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:700}
+.svg-line-label{fill:var(--bd);font-family:Arial,Helvetica,sans-serif;font-size:24px;font-weight:700}
+.svg-measure{fill:var(--i);font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:700}
+.svg-angle{fill:var(--i);font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}.instruction{min-height:44px;font-size:1.12rem}
+  .question-zone{min-height:180px;padding:8px 10px 10px;gap:8px}.figure-wrap{min-height:150px;height:min(210px,32vh)}
+  .choice-buttons{gap:8px}.choice-button{min-height:52px;padding:8px 10px;font-size:1rem}
+  .feedback{min-height:54px;padding:7px 10px;font-size:.86rem}.controls{min-height:42px}button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" id="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="question-zone">
+      <div class="figure-wrap">
+        <svg id="figure" viewBox="0 0 760 300" role="img" aria-label="Figure géométrique à analyser"></svg>
+      </div>
+
+      <div class="choice-buttons">
+        <button class="choice-button" data-answer="yes">Oui</button>
+        <button class="choice-button" data-answer="no">Non</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback">Observe bien les codages et les mesures avant de répondre.</div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Recommencer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const SVG_NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+
+const figure=$('figure');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+const choiceButtons=[...document.querySelectorAll('.choice-button')];
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){
+  const c=a.slice();
+  for(let i=c.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [c[i],c[j]]=[c[j],c[i]];
+  }
+  return c;
+}
+function deg(a){return a*Math.PI/180}
+function point(cx,cy,ux,uy,t){return{x:cx+ux*t,y:cy+uy*t}}
+function fmt(n){return n.toFixed(1).replace('.',',')}
+
+function svgEl(name,attrs={},text=''){
+  const el=document.createElementNS(SVG_NS,name);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  if(text) el.textContent=text;
+  return el;
+}
+function add(name,attrs={},text=''){
+  const el=svgEl(name,attrs,text);
+  figure.appendChild(el);
+  return el;
+}
+
+const letterPairs=[
+  ['A','B'],['C','D'],['E','F'],['G','H'],
+  ['J','K'],['M','N'],['P','Q'],['R','S'],['U','V']
+];
+
+function makeQuestion(type){
+  const pair=pick(letterPairs);
+  const segAngle=pick([-38,-30,-22,-14,0,12,20,28,36]);
+  const segLen=randInt(310,390);
+  const cx=380+rand(-18,18);
+  const cy=150+rand(-10,10);
+
+  const a=deg(segAngle);
+  const ux=Math.cos(a), uy=Math.sin(a);
+  const vx=-uy, vy=ux;
+
+  let intersectionShift=0;
+  let lineAngle=segAngle+90;
+  let angleValue=90;
+
+  if(type==='perpOnly'){
+    intersectionShift=pick([-1,1])*rand(segLen*.11,segLen*.22);
+  }else if(type==='midOnly'){
+    const delta=pick([-28,-22,-16,16,22,28]);
+    lineAngle=segAngle+90+delta;
+    angleValue=Math.round(90-Math.abs(delta));
+  }else if(type==='neither'){
+    intersectionShift=pick([-1,1])*rand(segLen*.10,segLen*.20);
+    const delta=pick([-26,-20,-14,14,20,26]);
+    lineAngle=segAngle+90+delta;
+    angleValue=Math.round(90-Math.abs(delta));
+  }
+
+  const midpointOk=(type==='both'||type==='midOnly');
+  const perpendicularOk=(type==='both'||type==='perpOnly');
+
+  const midpointEvidence=midpointOk ? pick(['ticks','equalMeasures']) : 'unequalMeasures';
+  const perpendicularEvidence=perpendicularOk ? 'square' : 'angleLabel';
+
+  const base=randInt(24,48)/10;
+  let leftMeasure=base;
+  let rightMeasure=base;
+
+  if(!midpointOk){
+    const gap=pick([0.4,0.5,0.6,0.7,0.8,0.9]);
+    if(intersectionShift>0) leftMeasure=base+gap;
+    else rightMeasure=base+gap;
+  }
+
+  return{
+    type,pair,segAngle,segLen,cx,cy,ux,uy,vx,vy,
+    intersectionShift,lineAngle,angleValue,
+    midpointOk,perpendicularOk,
+    midpointEvidence,perpendicularEvidence,
+    leftMeasure,rightMeasure,
+    answer:type==='both'?'yes':'no'
+  };
+}
+
+function buildQuestions(){
+  const falseTypes=['perpOnly','midOnly','neither',pick(['perpOnly','midOnly','neither'])];
+  const base=[
+    makeQuestion('both'),makeQuestion('both'),makeQuestion('both'),makeQuestion('both'),
+    ...falseTypes.map(makeQuestion)
+  ];
+
+  // Mélange aléatoire, mais sans série de plus de 2 réponses identiques.
+  // On garde donc bien 4 "oui" et 4 "non", sans rendre l'ordre prévisible.
+  let mixed;
+  let attempts=0;
+
+  do{
+    mixed=shuffle(base);
+    attempts++;
+  }while(
+    mixed.some((q,i,a)=>
+      i>=2 &&
+      q.answer===a[i-1].answer &&
+      q.answer===a[i-2].answer
+    ) &&
+    attempts<200
+  );
+
+  return mixed;
+}
+
+function drawTick(x,y,vx,vy){
+  const half=10;
+  add('line',{x1:x-vx*half,y1:y-vy*half,x2:x+vx*half,y2:y+vy*half,class:'svg-tick'});
+}
+
+function drawPointMark(x,y,vx,vy){
+  const half=8;
+  add('line',{x1:x-vx*half,y1:y-vy*half,x2:x+vx*half,y2:y+vy*half,class:'svg-point-mark'});
+}
+
+function drawRightAngle(ix,iy,segUx,segUy,lineUx,lineUy){
+  const size=22;
+  const p1=point(ix,iy,segUx,segUy,size);
+  const p2={x:p1.x+lineUx*size,y:p1.y+lineUy*size};
+  const p3=point(ix,iy,lineUx,lineUy,size);
+  add('polyline',{points:`${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`,class:'svg-right'});
+}
+
+function drawAngleMark(ix,iy,segUx,segUy,lineUx,lineUy,angleText){
+  const radius=24;
+  const a1=Math.atan2(segUy,segUx);
+  const a2=Math.atan2(lineUy,lineUx);
+  const norm=a=>{ while(a<=-Math.PI) a+=2*Math.PI; while(a>Math.PI) a-=2*Math.PI; return a; };
+  let diff=norm(a2-a1);
+  if(Math.abs(diff)>Math.PI/2){ diff = diff>0 ? diff-Math.PI : diff+Math.PI; }
+  const start=a1;
+  const end=a1+diff;
+  const x1=ix+radius*Math.cos(start), y1=iy+radius*Math.sin(start);
+  const x2=ix+radius*Math.cos(end), y2=iy+radius*Math.sin(end);
+  add('path',{d:`M ${x1} ${y1} A ${radius} ${radius} 0 0 ${diff>0?1:0} ${x2} ${y2}`,class:'svg-angle-arc'});
+  const mid=start+diff/2, labelRadius=42;
+  add('text',{x:ix+labelRadius*Math.cos(mid),y:iy+labelRadius*Math.sin(mid)+7,class:'svg-angle','text-anchor':'middle'},angleText);
+}
+
+function drawQuestion(q){
+  figure.innerHTML='';
+
+  const A=point(q.cx,q.cy,q.ux,q.uy,-q.segLen/2);
+  const B=point(q.cx,q.cy,q.ux,q.uy,q.segLen/2);
+  const I=point(q.cx,q.cy,q.ux,q.uy,q.intersectionShift);
+
+  const la=deg(q.lineAngle);
+  const lux=Math.cos(la), luy=Math.sin(la);
+  const lineLen=145;
+  const L1=point(I.x,I.y,lux,luy,-lineLen);
+  const L2=point(I.x,I.y,lux,luy,lineLen);
+
+  add('line',{x1:L1.x,y1:L1.y,x2:L2.x,y2:L2.y,class:'svg-line'});
+  add('line',{x1:A.x,y1:A.y,x2:B.x,y2:B.y,class:'svg-segment'});
+
+  // Les points nommés sont matérialisés par un petit trait
+  // perpendiculaire au segment, jamais par une croix.
+  drawPointMark(A.x,A.y,q.vx,q.vy);
+  drawPointMark(B.x,B.y,q.vx,q.vy);
+
+  const endpointOffset=24;
+  add('text',{
+    x:A.x-q.ux*7-q.vx*endpointOffset,
+    y:A.y-q.uy*7-q.vy*endpointOffset+8,
+    class:'svg-label','text-anchor':'middle'
+  },q.pair[0]);
+
+  add('text',{
+    x:B.x+q.ux*7-q.vx*endpointOffset,
+    y:B.y+q.uy*7-q.vy*endpointOffset+8,
+    class:'svg-label','text-anchor':'middle'
+  },q.pair[1]);
+
+  const labelEnd=Math.random()<.5?L1:L2;
+  add('text',{x:labelEnd.x+12,y:labelEnd.y-10,class:'svg-line-label','text-anchor':'middle'},'(d)');
+
+  if(q.midpointEvidence==='ticks'){
+    const leftMid={x:(A.x+I.x)/2,y:(A.y+I.y)/2};
+    const rightMid={x:(I.x+B.x)/2,y:(I.y+B.y)/2};
+    drawTick(leftMid.x,leftMid.y,q.vx,q.vy);
+    drawTick(rightMid.x,rightMid.y,q.vx,q.vy);
+  }else{
+    const leftMid={x:(A.x+I.x)/2,y:(A.y+I.y)/2};
+    const rightMid={x:(I.x+B.x)/2,y:(I.y+B.y)/2};
+    const textOffset=26;
+
+    add('text',{
+      x:leftMid.x+q.vx*textOffset,
+      y:leftMid.y+q.vy*textOffset+7,
+      class:'svg-measure','text-anchor':'middle'
+    },`${fmt(q.leftMeasure)} cm`);
+
+    add('text',{
+      x:rightMid.x+q.vx*textOffset,
+      y:rightMid.y+q.vy*textOffset+7,
+      class:'svg-measure','text-anchor':'middle'
+    },`${fmt(q.rightMeasure)} cm`);
+  }
+
+  if(q.perpendicularEvidence==='square'){
+    drawRightAngle(I.x,I.y,q.ux,q.uy,lux,luy);
+  }else{
+    drawAngleMark(I.x,I.y,q.ux,q.uy,lux,luy,`${q.angleValue}°`);
+  }
+}
+
+function feedbackText(q,ok){
+  const prefix=ok?'Bravo ! ':'';
+  if(q.type==='both'){
+    return `${prefix}La droite (d) est perpendiculaire au segment et elle le coupe en son milieu : c’est bien sa médiatrice.`;
+  }
+  if(q.type==='perpOnly'){
+    return `${prefix}La droite (d) est bien perpendiculaire au segment, mais les deux parties du segment n’ont pas la même longueur : elle ne passe pas par son milieu.`;
+  }
+  if(q.type==='midOnly'){
+    return `${prefix}La droite (d) passe bien par le milieu du segment, mais l’angle indiqué n’est pas de 90° : elle n’est pas perpendiculaire au segment.`;
+  }
+  return `${prefix}La droite (d) ne passe pas par le milieu du segment et elle n’est pas perpendiculaire au segment : ce n’est pas sa médiatrice.`;
+}
+
+function render(){
+  const q=questions[index];
+  locked=false;
+  instruction.textContent=`La droite (d) est-elle la médiatrice du segment [${q.pair[0]}${q.pair[1]}] ?`;
+  drawQuestion(q);
+
+  choiceButtons.forEach(b=>{b.disabled=false;b.className='choice-button'});
+
+  feedback.className='feedback';
+  feedback.textContent='Observe bien les codages et les mesures avant de répondre.';
+
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${(index+1)/TOTAL*100}%`;
+}
+
+function answer(value){
+  if(locked) return;
+  locked=true;
+
+  const q=questions[index];
+  const ok=value===q.answer;
+  if(ok) score++;
+
+  choiceButtons.forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.answer===q.answer) b.classList.add('correct');
+    if(!ok && b.dataset.answer===value) b.classList.add('wrong');
+  });
+
+  feedback.className='feedback '+(ok?'success':'error');
+  feedback.textContent=feedbackText(q,ok);
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===8){
+    finalMessage.textContent='Excellent ! Tu sais reconnaître une médiatrice en vérifiant les deux conditions : perpendicularité et milieu.';
+  }else if(score>=6){
+    finalMessage.textContent='Très bien. Pense toujours à vérifier les deux conditions avant de conclure.';
+  }else if(score>=4){
+    finalMessage.textContent='Tu progresses. Une seule condition ne suffit pas : une médiatrice doit être perpendiculaire au segment et passer par son milieu.';
+  }else{
+    finalMessage.textContent='À revoir : vérifie séparément la perpendicularité et le passage par le milieu du segment.';
+  }
+}
+
+choiceButtons.forEach(b=>b.addEventListener('click',()=>answer(b.dataset.answer)));
+
+nextBtn.addEventListener('click',()=>{
+  index++;
+  if(index>=TOTAL) showFinal();
+  else render();
+});
+
+restartBtn.addEventListener('click',()=>{
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  final.classList.remove('show');
+  exercise.style.display='';
+  render();
+});
+
+questions=buildQuestions();
+render();
+})();
+</script>
+</body>
+</html>

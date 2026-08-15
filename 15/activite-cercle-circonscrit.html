@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<link rel="stylesheet" href="https://apmathematiques.github.io/Sixiemes/geolib/v1.3/geolib.css">
+<link rel="stylesheet" href="https://apmathematiques.github.io/Sixiemes/geolib/v1.4/compass.css">
+
+<style>
+
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#24364a;
+  --teal:#0f766e
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;color:var(--i);
+  font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:8px}
+button{font:inherit}
+
+.app{
+  width:min(100%,1020px,calc((100vh - 16px) * 16 / 9));aspect-ratio:16/9;
+  overflow:hidden;display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+
+.top{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;
+  gap:13px;padding:12px 20px 6px
+}
+.track{height:11px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:33.33%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 250ms ease
+}
+.pill{
+  min-width:112px;padding:8px 12px;color:var(--bd);font-weight:700;
+  text-align:center;white-space:nowrap;background:var(--bs);border-radius:999px
+}
+
+.main{
+  flex:1;min-height:0;padding:0 12px 12px;
+  display:grid;grid-template-rows:64px minmax(0,1fr);gap:7px
+}
+
+.instruction{
+  height:64px;min-height:64px;margin:0;padding:5px 10px;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;line-height:1.3;
+  font-size:clamp(1.08rem,2vw,1.35rem);font-weight:800;
+  background:#fff
+}
+
+.workspace{
+  min-height:0;height:100%;overflow:hidden;
+  display:grid;grid-template-columns:96px minmax(0,1fr) 114px;
+  gap:10px;align-items:center
+}
+
+.toolbar,.actions{
+  display:flex;flex-direction:column;gap:9px;align-self:center
+}
+.side-title{
+  color:var(--m);font-size:.72rem;font-weight:800;text-align:center;
+  text-transform:uppercase;letter-spacing:.04em
+}
+button.side-btn{
+  width:100%;min-height:54px;padding:7px 5px;
+  border:1px solid #d6e4ef;border-radius:14px;
+  background:#f5f9fc;color:var(--bd);
+  font-size:.84rem;font-weight:800;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px
+}
+button.side-btn:hover:not(:disabled){background:#edf5fb}
+button.side-btn.active{color:#fff;background:var(--b);border-color:var(--b)}
+button.side-btn.compass.active{background:var(--teal);border-color:var(--teal)}
+button.side-btn.primary{color:#fff;background:var(--b);border-color:var(--b)}
+button.side-btn.danger-lite{color:#8f2727;background:#fff5f5;border-color:#f0cccc}
+button.side-btn:disabled{opacity:.42;cursor:default}
+.tool-icon{font-size:1.35rem;line-height:1}
+
+.center{
+  min-width:0;min-height:0;height:100%;
+  display:grid;grid-template-rows:minmax(0,1fr) auto;
+  gap:7px;align-items:center;justify-items:center;
+  container-type:size
+}
+.board-wrap{
+  position:relative;width:min(100%,720px);aspect-ratio:2/1;
+  overflow:hidden;background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+@supports (width:1cqh){
+  .board-wrap{width:min(720px,100cqw,calc((100cqh - 54px) * 2))}
+}
+#scene{
+  position:absolute;inset:0;width:100%;height:100%;
+  touch-action:none;user-select:none
+}
+#scene.geolib-scene{border:0;border-radius:0;background:transparent}
+#scene svg{display:block;width:100%;height:100%}
+
+.feedback{
+  width:min(100%,720px);height:46px;min-height:46px;padding:6px 10px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--bd);font-size:.87rem;font-weight:650;line-height:1.25;
+  text-align:center;background:var(--bs);border:1px solid #c9dfef;border-radius:12px
+}
+.feedback.success{color:#165e36;background:var(--gs);border-color:#a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border-color:#efbcbc}
+.feedback.info{color:var(--bd);background:var(--bs);border-color:#c9dfef}
+
+.context-btn{
+  position:absolute;right:10px;bottom:10px;z-index:8;
+  min-height:42px;padding:0 14px;border:0;border-radius:11px;
+  color:#fff;background:var(--b);font-weight:800;font-size:.84rem;cursor:pointer
+}
+.context-btn.compass{background:var(--teal)}
+
+.student-triangle{
+  fill:none;stroke:var(--line);stroke-width:4.4;stroke-linejoin:round;
+  vector-effect:non-scaling-stroke
+}
+.vertex-mark{
+  stroke:var(--line);stroke-width:4;stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+.vertex-label{
+  fill:var(--i);font:800 24px Arial,Helvetica,sans-serif;
+  dominant-baseline:middle;text-anchor:middle;
+  paint-order:stroke;stroke:#fff;stroke-width:5px;stroke-linejoin:round
+}
+.user-ruler-line{
+  stroke:#4c79a0;stroke-width:2.7;stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+.ruler-edge-choice{
+  stroke:rgba(23,105,170,.25);stroke-width:34;stroke-linecap:round;
+  cursor:pointer;pointer-events:stroke
+}
+.ruler-edge-choice:hover{stroke:rgba(23,105,170,.42)}
+.correction-bisector{
+  stroke:#23905a;stroke-width:3;stroke-dasharray:9 7;stroke-linecap:round;
+  vector-effect:non-scaling-stroke
+}
+.correction-circle{
+  fill:none;stroke:#23905a;stroke-width:3.2;vector-effect:non-scaling-stroke
+}
+.correction-center{fill:#23905a}
+.correction-label{fill:#17653e;font:800 18px Arial,Helvetica,sans-serif}
+.geolib-compass-circle{
+  fill:none;stroke:#c50062;stroke-width:2.6;vector-effect:non-scaling-stroke
+}
+.geolib-line{stroke:#4c79a0;stroke-width:2.7;vector-effect:non-scaling-stroke}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;
+  border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{font-size:3rem;margin-bottom:4px}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.25rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}
+
+@media(max-width:820px),(max-height:680px){
+  body{padding:4px}
+  .app{width:min(100%,1020px,calc((100vh - 8px) * 16 / 9));border-radius:15px}
+  .top{grid-template-columns:1fr auto;padding:7px 9px 3px;gap:5px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:5px 8px}
+  .main{padding:0 7px 7px;gap:4px;grid-template-rows:52px minmax(0,1fr)}
+  .instruction{height:52px;min-height:52px;font-size:.9rem;padding:2px 4px}
+  .workspace{grid-template-columns:82px minmax(0,1fr) 96px;gap:6px}
+  .toolbar,.actions{gap:5px}
+  button.side-btn{min-height:44px;font-size:.72rem;border-radius:11px}
+  .tool-icon{font-size:1.1rem}
+  .side-title{font-size:.62rem}
+  .feedback{min-height:39px;height:39px;font-size:.76rem;padding:4px 7px}
+  .vertex-label{font-size:22px}
+  .context-btn{min-height:40px;font-size:.76rem}
+}
+
+@media(pointer:coarse){
+  button.side-btn{min-height:50px}
+  .context-btn{min-height:46px;padding:0 16px}
+  .ruler-edge-choice{stroke-width:38}
+  .geolib-tool-rotate-handle{stroke:rgba(23,105,170,.001);stroke-width:16}
+  .geolib-edge-hit{stroke-width:28 !important}
+  .compass-head-hit,.compass-pencil-hit{
+    stroke:rgba(197,0,98,.001);stroke-width:18
+  }
+  #scene svg,.geolib-straightedge,.geolib-set-square,.geolib-compass-v4{
+    touch-action:none
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Construction 1 / 3</div>
+    <div class="pill" id="score">Score : 0 / 3</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Construis le cercle circonscrit au triangle ABC.</p>
+
+    <div class="workspace">
+      <aside class="toolbar">
+        <div class="side-title">Instruments</div>
+
+        <button class="side-btn" type="button" id="rulerBtn">
+          <span class="tool-icon">📏</span>
+          <span>Règle</span>
+        </button>
+
+        <button class="side-btn" type="button" id="squareBtn">
+          <span class="tool-icon">📐</span>
+          <span>Équerre</span>
+        </button>
+
+        <button class="side-btn compass" type="button" id="compassBtn">
+          <span class="tool-icon">✥</span>
+          <span>Compas</span>
+        </button>
+      </aside>
+
+      <div class="center">
+        <div class="board-wrap">
+          <div id="scene" aria-label="Zone de construction"></div>
+          <button class="context-btn" id="traceBtn" type="button" hidden>Tracer</button>
+        </div>
+
+        <div class="feedback info" id="feedback" role="status">
+          Choisis un instrument pour le faire apparaître.
+        </div>
+      </div>
+
+      <aside class="actions">
+        <div class="side-title">Actions</div>
+
+        <button class="side-btn" type="button" id="undoBtn" disabled>
+          <span class="tool-icon">↶</span>
+          <span>Annuler</span>
+        </button>
+
+        <button class="side-btn danger-lite" type="button" id="restartFigureBtn">
+          <span class="tool-icon">↺</span>
+          <span>Recommencer</span>
+        </button>
+
+        <button class="side-btn primary" type="button" id="validateBtn" disabled>
+          <span class="tool-icon">✓</span>
+          <span>Valider</span>
+        </button>
+
+        <button class="side-btn" type="button" id="nextBtn" hidden>
+          <span class="tool-icon">→</span>
+          <span>Suivant</span>
+        </button>
+      </aside>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">📐</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+
+      <button class="side-btn primary" type="button" id="restartAllBtn">
+        Recommencer avec de nouveaux triangles
+      </button>
+    </div>
+  </section>
+</main>
+
+
+<script src="https://apmathematiques.github.io/Sixiemes/geolib/v1.3/geolib.js"></script>
+<script src="https://apmathematiques.github.io/Sixiemes/geolib/v1.4/compass.js"></script>
+
+<script>
+
+(()=>{
+'use strict';
+
+const TOTAL=3;
+const W=760,H=380;
+const NS='http://www.w3.org/2000/svg';
+
+const $=id=>document.getElementById(id);
+
+const feedback=$('feedback');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+
+const rulerBtn=$('rulerBtn');
+const squareBtn=$('squareBtn');
+const compassBtn=$('compassBtn');
+const traceBtn=$('traceBtn');
+
+const undoBtn=$('undoBtn');
+const restartFigureBtn=$('restartFigureBtn');
+const validateBtn=$('validateBtn');
+const nextBtn=$('nextBtn');
+
+const restartAllBtn=$('restartAllBtn');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+
+let scene=null;
+let ruler=null;
+let setSquare=null;
+let compass=null;
+
+let userLines=[];
+let userCircles=[];
+let traceStack=[];
+let baseSnapPoints=[];
+let rulerEdgeSelectors=[];
+let activeTool=null;
+let squareTraceToken=0;
+
+function rand(a,b){return Math.random()*(b-a)+a}
+function shuffle(a){
+  const b=a.slice();
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
+  }
+  return b;
+}
+function dist(P,Q){return Math.hypot(P.x-Q.x,P.y-Q.y)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function fmtScore(x){
+  return Number.isInteger(x) ? String(x) : String(x).replace('.',',');
+}
+
+function svg(tag,attrs={},parent){
+  const el=document.createElementNS(NS,tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,String(v)));
+  if(parent) parent.appendChild(el);
+  return el;
+}
+
+function circumcenter(A,B,C){
+  const d=2*(A.x*(B.y-C.y)+B.x*(C.y-A.y)+C.x*(A.y-B.y));
+  if(Math.abs(d)<1e-9) return null;
+
+  const a2=A.x*A.x+A.y*A.y;
+  const b2=B.x*B.x+B.y*B.y;
+  const c2=C.x*C.x+C.y*C.y;
+
+  return{
+    x:(a2*(B.y-C.y)+b2*(C.y-A.y)+c2*(A.y-B.y))/d,
+    y:(a2*(C.x-B.x)+b2*(A.x-C.x)+c2*(B.x-A.x))/d
+  };
+}
+
+function polar(O,r,a){
+  return{
+    x:O.x+r*Math.cos(a),
+    y:O.y+r*Math.sin(a)
+  };
+}
+
+function pointInsideWorkspace(P){
+  return P.x>=55 && P.x<=455 && P.y>=40 && P.y<=340;
+}
+
+function triangleOK(A,B,C){
+  if(!pointInsideWorkspace(A)||!pointInsideWorkspace(B)||!pointInsideWorkspace(C)) return false;
+
+  const sides=[dist(A,B),dist(B,C),dist(C,A)];
+  return Math.min(...sides)>125 && Math.max(...sides)<360;
+}
+
+function makeAcute(){
+  for(let tries=0;tries<500;tries++){
+    const O={x:rand(205,335),y:rand(130,235)};
+    const r=rand(95,125);
+    const rot=rand(0,Math.PI*2);
+
+    const g1=rand(1.78,2.26);
+    const g2=rand(1.78,2.26);
+    const g3=Math.PI*2-g1-g2;
+    if(g3<1.78||g3>2.26) continue;
+
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+g1),
+      polar(O,r,rot+g1+g2)
+    ];
+    const [A,B,C]=shuffle(pts);
+    if(!triangleOK(A,B,C)) continue;
+
+    return{type:'acute',A,B,C};
+  }
+  throw new Error('Triangle aigu impossible à générer.');
+}
+
+function makeRight(){
+  for(let tries=0;tries<500;tries++){
+    const O={x:rand(205,335),y:rand(130,235)};
+    const r=rand(98,126);
+    const rot=rand(0,Math.PI*2);
+    const theta=rand(.85,2.28);
+
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+Math.PI),
+      polar(O,r,rot+theta)
+    ];
+    const [A,B,C]=shuffle(pts);
+    if(!triangleOK(A,B,C)) continue;
+
+    return{type:'right',A,B,C};
+  }
+  throw new Error('Triangle rectangle impossible à générer.');
+}
+
+function makeObtuse(){
+  for(let tries=0;tries<700;tries++){
+    const O={x:rand(205,335),y:rand(130,235)};
+    const r=rand(98,126);
+    const rot=rand(0,Math.PI*2);
+
+    const largeGap=rand(3.35,3.92);
+    const smallGap=rand(.95,1.48);
+    const lastGap=Math.PI*2-largeGap-smallGap;
+    if(lastGap<.72||lastGap>1.7) continue;
+
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+largeGap),
+      polar(O,r,rot+largeGap+smallGap)
+    ];
+    const [A,B,C]=shuffle(pts);
+    if(!triangleOK(A,B,C)) continue;
+
+    return{type:'obtuse',A,B,C};
+  }
+  throw new Error('Triangle obtus impossible à générer.');
+}
+
+function enrichQuestion(q){
+  q.O=circumcenter(q.A,q.B,q.C);
+  q.R=dist(q.O,q.A);
+  return q;
+}
+
+function buildQuestions(){
+  return shuffle([
+    enrichQuestion(makeAcute()),
+    enrichQuestion(makeRight()),
+    enrichQuestion(makeObtuse())
+  ]);
+}
+
+function direction(P,Q){
+  const dx=Q.x-P.x,dy=Q.y-P.y;
+  const l=Math.hypot(dx,dy)||1;
+  return{x:dx/l,y:dy/l};
+}
+
+function drawVertexMark(P,Q,parent){
+  const u=direction(P,Q);
+  const v={x:-u.y,y:u.x};
+  const h=7;
+  svg('line',{
+    x1:P.x-v.x*h,y1:P.y-v.y*h,
+    x2:P.x+v.x*h,y2:P.y+v.y*h,
+    class:'vertex-mark'
+  },parent);
+}
+
+function drawTriangle(q){
+  const layer=scene.layers.lines;
+  svg('polygon',{
+    points:`${q.A.x},${q.A.y} ${q.B.x},${q.B.y} ${q.C.x},${q.C.y}`,
+    class:'student-triangle'
+  },layer);
+
+  drawVertexMark(q.A,q.B,layer);
+  drawVertexMark(q.B,q.C,layer);
+  drawVertexMark(q.C,q.A,layer);
+
+  const G={
+    x:(q.A.x+q.B.x+q.C.x)/3,
+    y:(q.A.y+q.B.y+q.C.y)/3
+  };
+
+  [['A',q.A],['B',q.B],['C',q.C]].forEach(([name,P])=>{
+    let vx=P.x-G.x,vy=P.y-G.y;
+    const l=Math.hypot(vx,vy)||1;
+    vx/=l;vy/=l;
+    const t=svg('text',{
+      x:P.x+vx*22,
+      y:P.y+vy*22,
+      class:'vertex-label'
+    },scene.layers.points);
+    t.textContent=name;
+  });
+}
+
+function createTools(){
+  ruler=scene.add(new GeoLib.Straightedge({
+    x:625,y:310,angle:-8,length:220,thickness:36
+  }));
+
+  setSquare=scene.add(new GeoLib.SetSquare({
+    x:585,y:82,angle:8,width:132,height:96
+  }));
+
+  compass=scene.add(new GeoLib.Compass({
+    x:625,
+    y:245,
+    radius:105,
+    angle:-150,
+    pxPerUnit:48,
+    unitLabel:'cm',
+    minRadius:45,
+    maxRadius:235,
+    showOpening:false,
+    snapTolerance:22,
+    pencilColor:'#c50062'
+  }));
+
+  refreshSnapPoints();
+}
+
+function resetToolPositions(){
+  if(!scene) return;
+
+  clearRulerEdgeSelectors();
+
+  if(setSquare && typeof setSquare.releaseRuler==='function'){
+    try{setSquare.releaseRuler()}catch(e){}
+  }
+
+  if(ruler){
+    ruler.setPosition(625,310);
+    ruler.setAngle(-8);
+    if(typeof ruler.setLocked==='function') ruler.setLocked(false);
+  }
+
+  if(setSquare){
+    setSquare.setPosition(585,82);
+    setSquare.setAngle(8);
+  }
+
+  if(compass){
+    compass.x=625;
+    compass.y=245;
+    compass.radius=105;
+    compass.angle=-150;
+    if(typeof compass._draw==='function') compass._draw();
+  }
+
+  refreshSnapPoints();
+}
+
+function lineIntersection(l1,l2){
+  try{return l1.intersection(l2)}catch(e){return null}
+}
+
+function circleCircleIntersections(c1,c2){
+  const x0=c1.center.x,y0=c1.center.y,r0=c1.radius;
+  const x1=c2.center.x,y1=c2.center.y,r1=c2.radius;
+
+  const dx=x1-x0,dy=y1-y0;
+  const d=Math.hypot(dx,dy);
+
+  if(d<1e-9) return [];
+  if(d>r0+r1+1e-9) return [];
+  if(d<Math.abs(r0-r1)-1e-9) return [];
+
+  const a=(r0*r0-r1*r1+d*d)/(2*d);
+  const h2=r0*r0-a*a;
+  if(h2<-1e-6) return [];
+
+  const h=Math.sqrt(Math.max(0,h2));
+  const xm=x0+a*dx/d;
+  const ym=y0+a*dy/d;
+
+  const rx=-dy*(h/d);
+  const ry=dx*(h/d);
+
+  if(h<1e-6) return [{x:xm,y:ym}];
+
+  return[
+    {x:xm+rx,y:ym+ry},
+    {x:xm-rx,y:ym-ry}
+  ];
+}
+
+function lineCircleIntersections(line,c){
+  const p=line.point;
+  const d=line.direction();
+  const fx=p.x-c.center.x;
+  const fy=p.y-c.center.y;
+
+  const b=2*(fx*d.x+fy*d.y);
+  const cc=fx*fx+fy*fy-c.radius*c.radius;
+  const disc=b*b-4*cc;
+
+  if(disc<-1e-6) return [];
+  if(Math.abs(disc)<1e-6){
+    const t=-b/2;
+    return[{x:p.x+d.x*t,y:p.y+d.y*t}];
+  }
+
+  const s=Math.sqrt(disc);
+  const t1=(-b+s)/2;
+  const t2=(-b-s)/2;
+
+  return[
+    {x:p.x+d.x*t1,y:p.y+d.y*t1},
+    {x:p.x+d.x*t2,y:p.y+d.y*t2}
+  ];
+}
+
+function dedupePoints(points){
+  const out=[];
+  for(const p of points){
+    if(!Number.isFinite(p.x)||!Number.isFinite(p.y)) continue;
+    if(p.x<0||p.x>W||p.y<0||p.y>H) continue;
+    if(!out.some(q=>dist(p,q)<4)) out.push(p);
+  }
+  return out;
+}
+
+function refreshSnapPoints(){
+  if(!compass) return;
+
+  const pts=baseSnapPoints.map(p=>({x:p.x,y:p.y}));
+
+  for(let i=0;i<userLines.length;i++){
+    for(let j=i+1;j<userLines.length;j++){
+      const P=lineIntersection(userLines[i].line,userLines[j].line);
+      if(P) pts.push(P);
+    }
+  }
+
+  for(let i=0;i<userCircles.length;i++){
+    for(let j=i+1;j<userCircles.length;j++){
+      pts.push(...circleCircleIntersections(userCircles[i],userCircles[j]));
+    }
+  }
+
+  for(const L of userLines){
+    for(const C of userCircles){
+      pts.push(...lineCircleIntersections(L.line,C));
+    }
+  }
+
+  compass.setSnapPoints(dedupePoints(pts));
+}
+
+function infiniteLineElement(line,className='user-ruler-line'){
+  const p1=line.pointAt(-2000);
+  const p2=line.pointAt(2000);
+  return svg('line',{
+    x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,class:className
+  },scene.layers.drawings);
+}
+
+function clearRulerEdgeSelectors(){
+  rulerEdgeSelectors.forEach(el=>{
+    if(el && el.remove) el.remove();
+  });
+  rulerEdgeSelectors=[];
+}
+
+function cancelPendingTrace(){
+  squareTraceToken++;
+  clearRulerEdgeSelectors();
+
+  if(setSquare && setSquare._edgeSelection &&
+     typeof setSquare.cancelEdgeSelection==='function'){
+    try{setSquare.cancelEdgeSelection()}catch(e){}
+  }
+}
+
+function rulerEdgeLine(sign){
+  const angleRad=ruler.angle*Math.PI/180;
+  const normal={
+    x:-Math.sin(angleRad),
+    y: Math.cos(angleRad)
+  };
+  const offset=sign*(ruler.thickness/2);
+
+  return new GeoLib.Line(
+    {
+      x:ruler.x+normal.x*offset,
+      y:ruler.y+normal.y*offset
+    },
+    ruler.angle
+  );
+}
+
+function rulerEdgeSegment(sign){
+  const line=rulerEdgeLine(sign);
+  const half=ruler.length/2;
+  return{
+    line,
+    p1:line.pointAt(-half),
+    p2:line.pointAt(half)
+  };
+}
+
+function chooseRulerEdge(){
+  clearRulerEdgeSelectors();
+
+  [-1,1].forEach(sign=>{
+    const edge=rulerEdgeSegment(sign);
+
+    const hit=svg('line',{
+      x1:edge.p1.x,
+      y1:edge.p1.y,
+      x2:edge.p2.x,
+      y2:edge.p2.y,
+      class:'ruler-edge-choice'
+    },scene.layers.tools);
+
+    hit.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+
+      const selected=rulerEdgeLine(sign);
+      const el=infiniteLineElement(selected);
+
+      registerLine(selected,el,null);
+      clearRulerEdgeSelectors();
+
+      setFeedback('Droite tracée le long du bord choisi de la règle.','info');
+    });
+
+    rulerEdgeSelectors.push(hit);
+  });
+
+  setFeedback('Clique sur le bord de la règle que tu veux utiliser.','info');
+}
+
+function registerLine(line,element=null,drawnObject=null){
+  userLines.push({line,element,drawnObject});
+  traceStack.push({type:'line',ref:userLines[userLines.length-1]});
+  refreshSnapPoints();
+  updateUndoState();
+}
+
+function registerCircle(result){
+  const c={
+    center:{x:result.center.x,y:result.center.y},
+    radius:result.radius,
+    element:result.element
+  };
+  userCircles.push(c);
+  traceStack.push({type:'circle',ref:c});
+  refreshSnapPoints();
+  updateUndoState();
+  updateValidateState();
+}
+
+function removeTraceFromCollections(item){
+  if(item.type==='line'){
+    const i=userLines.indexOf(item.ref);
+    if(i>=0) userLines.splice(i,1);
+
+    if(item.ref.element && item.ref.element.remove) item.ref.element.remove();
+
+    const obj=item.ref.drawnObject;
+    if(obj && obj.element && obj.element.remove) obj.element.remove();
+  }else{
+    const i=userCircles.indexOf(item.ref);
+    if(i>=0) userCircles.splice(i,1);
+    if(item.ref.element && item.ref.element.remove) item.ref.element.remove();
+  }
+}
+
+function setFeedback(text,type='info'){
+  feedback.className='feedback '+type;
+  feedback.textContent=text;
+}
+
+function instrumentButtons(){
+  return [rulerBtn,squareBtn,compassBtn];
+}
+
+function actionButtons(){
+  return [undoBtn,restartFigureBtn,validateBtn];
+}
+
+function updateValidateState(){
+  validateBtn.disabled=locked || userCircles.length===0;
+}
+
+function updateUndoState(){
+  undoBtn.disabled=locked || traceStack.length===0;
+}
+
+function showOnlyTool(name){
+  if(locked) return;
+
+  cancelPendingTrace();
+  activeTool=name;
+
+  if(ruler && ruler.group){
+    ruler.group.style.display=name==='ruler' ? '' : 'none';
+  }
+  if(setSquare && setSquare.group){
+    setSquare.group.style.display=name==='square' ? '' : 'none';
+  }
+  if(compass && compass.group){
+    compass.group.style.display=name==='compass' ? '' : 'none';
+  }
+
+  rulerBtn.classList.toggle('active',name==='ruler');
+  squareBtn.classList.toggle('active',name==='square');
+  compassBtn.classList.toggle('active',name==='compass');
+
+  traceBtn.hidden=!name;
+  traceBtn.classList.toggle('compass',name==='compass');
+
+  if(name==='ruler'){
+    traceBtn.textContent='Tracer avec la règle';
+    setFeedback('Place la règle puis clique sur « Tracer avec la règle ».','info');
+  }else if(name==='square'){
+    traceBtn.textContent='Tracer avec l’équerre';
+    setFeedback('Place l’équerre puis clique sur « Tracer avec l’équerre ».','info');
+  }else if(name==='compass'){
+    traceBtn.textContent='Tracer le cercle';
+    setFeedback('Place et règle le compas puis trace le cercle.','info');
+  }else{
+    setFeedback('Choisis un instrument pour le faire apparaître.','info');
+  }
+}
+
+function clearActiveTool(){
+  activeTool=null;
+
+  if(ruler && ruler.group) ruler.group.style.display='none';
+  if(setSquare && setSquare.group) setSquare.group.style.display='none';
+  if(compass && compass.group) compass.group.style.display='none';
+
+  instrumentButtons().forEach(btn=>btn.classList.remove('active'));
+  traceBtn.hidden=true;
+  traceBtn.classList.remove('compass');
+}
+
+function setConstructionEnabled(enabled){
+  instrumentButtons().forEach(b=>b.disabled=!enabled);
+  restartFigureBtn.disabled=!enabled;
+
+  if(!enabled){
+    cancelPendingTrace();
+    clearActiveTool();
+    validateBtn.disabled=true;
+  }else{
+    updateValidateState();
+  }
+  updateUndoState();
+}
+
+function clearUserConstruction(){
+  cancelPendingTrace();
+
+  if(scene && typeof scene.clearLayer==='function'){
+    scene.clearLayer('drawings');
+  }
+
+  userLines=[];
+  userCircles=[];
+  traceStack=[];
+
+  resetToolPositions();
+  clearActiveTool();
+  updateUndoState();
+  updateValidateState();
+}
+
+function nearestCircleToSolution(q){
+  if(!userCircles.length) return null;
+
+  let best=null;
+  let bestValue=Infinity;
+
+  for(const c of userCircles){
+    const centerErr=dist(c.center,q.O);
+    const edgeErr=Math.max(
+      Math.abs(dist(c.center,q.A)-c.radius),
+      Math.abs(dist(c.center,q.B)-c.radius),
+      Math.abs(dist(c.center,q.C)-c.radius)
+    );
+
+    const value=centerErr+edgeErr;
+    if(value<bestValue){
+      bestValue=value;
+      best={circle:c,centerErr,edgeErr};
+    }
+  }
+
+  return best;
+}
+
+function correctCircleExists(q){
+  return userCircles.some(c=>{
+    const centerErr=dist(c.center,q.O);
+    const maxVertexErr=Math.max(
+      Math.abs(dist(c.center,q.A)-c.radius),
+      Math.abs(dist(c.center,q.B)-c.radius),
+      Math.abs(dist(c.center,q.C)-c.radius)
+    );
+    return centerErr<=16 && maxVertexErr<=14;
+  });
+}
+
+function matchingMediators(q){
+  const sides=[
+    {key:'AB',P:q.A,Q:q.B},
+    {key:'BC',P:q.B,Q:q.C},
+    {key:'CA',P:q.C,Q:q.A}
+  ];
+  const matches=new Set();
+
+  for(const side of sides){
+    const expected=mediatorLine(side.P,side.Q);
+    const midpoint=median(side.P,side.Q);
+
+    const found=userLines.some(item=>{
+      const angleError=GeoLib.Utils.angleDifference(item.line.angle,expected.angle);
+      const midpointError=item.line.distanceToPoint(midpoint);
+      return angleError<=4 && midpointError<=12;
+    });
+
+    if(found) matches.add(side.key);
+  }
+
+  return matches;
+}
+
+function constructionResult(q){
+  const mediators=matchingMediators(q);
+  return{
+    circleOK:correctCircleExists(q),
+    mediatorCount:mediators.size,
+    success:mediators.size>=2 && correctCircleExists(q)
+  };
+}
+
+function median(P,Q){
+  return{x:(P.x+Q.x)/2,y:(P.y+Q.y)/2};
+}
+
+function mediatorLine(P,Q){
+  const M=median(P,Q);
+  const a=Math.atan2(Q.y-P.y,Q.x-P.x)*180/Math.PI+90;
+  return new GeoLib.Line(M,a);
+}
+
+function showCorrection(q){
+  const l1=mediatorLine(q.A,q.B);
+  const l2=mediatorLine(q.A,q.C);
+
+  infiniteLineElement(l1,'correction-bisector');
+  infiniteLineElement(l2,'correction-bisector');
+
+  svg('circle',{
+    cx:q.O.x,cy:q.O.y,r:q.R,class:'correction-circle'
+  },scene.layers.drawings);
+
+  svg('circle',{
+    cx:q.O.x,cy:q.O.y,r:5.5,class:'correction-center'
+  },scene.layers.drawings);
+
+  const t=svg('text',{
+    x:q.O.x+11,y:q.O.y-10,class:'correction-label'
+  },scene.layers.drawings);
+  t.textContent='O';
+}
+
+function renderQuestion(){
+  cancelPendingTrace();
+  locked=false;
+  attempts=0;
+  userLines=[];
+  userCircles=[];
+  traceStack=[];
+
+  const q=questions[index];
+
+  if(scene){
+    try{scene.destroy()}catch(e){}
+    scene=null;
+  }
+
+  document.getElementById('scene').innerHTML='';
+
+  scene=new GeoLib.Scene('#scene',{
+    width:W,
+    height:H,
+    keyboard:false
+  });
+
+  drawTriangle(q);
+
+  baseSnapPoints=[
+    {x:q.A.x,y:q.A.y},
+    {x:q.B.x,y:q.B.y},
+    {x:q.C.x,y:q.C.y}
+  ];
+
+  createTools();
+
+  counter.textContent=`Construction ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${fmtScore(score)} / ${TOTAL}`;
+  bar.style.width=`${(index+1)/TOTAL*100}%`;
+
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Construction suivante';
+
+  clearActiveTool();
+  setConstructionEnabled(true);
+  updateUndoState();
+  updateValidateState();
+  setFeedback('Choisis un instrument pour le faire apparaître.','info');
+}
+
+rulerBtn.addEventListener('click',()=>{
+  if(locked) return;
+  showOnlyTool(activeTool==='ruler' ? null : 'ruler');
+});
+
+squareBtn.addEventListener('click',()=>{
+  if(locked) return;
+  showOnlyTool(activeTool==='square' ? null : 'square');
+});
+
+compassBtn.addEventListener('click',()=>{
+  if(locked) return;
+  showOnlyTool(activeTool==='compass' ? null : 'compass');
+});
+
+traceBtn.addEventListener('click',async()=>{
+  if(locked || !activeTool) return;
+
+  cancelPendingTrace();
+
+  if(activeTool==='ruler'){
+    chooseRulerEdge();
+    return;
+  }
+
+  if(activeTool==='square'){
+    const token=++squareTraceToken;
+    try{
+      setFeedback('Clique sur le bord de l’équerre que tu veux utiliser.','info');
+
+      const c=await setSquare.trace();
+      if(token!==squareTraceToken || locked || activeTool!=='square') return;
+      if(!c || !c.line) return;
+
+      registerLine(
+        c.line,
+        c.drawnLine && c.drawnLine.element ? c.drawnLine.element : null,
+        c.drawnLine || null
+      );
+
+      setFeedback('Droite tracée avec l’équerre.','info');
+    }catch(e){
+      if(token!==squareTraceToken || locked || activeTool!=='square') return;
+      console.error(e);
+      setFeedback('Impossible de tracer avec l’équerre. Recommence.','error');
+    }
+    return;
+  }
+
+  if(activeTool==='compass'){
+    try{
+      const result=compass.drawCircle();
+      registerCircle(result);
+      setFeedback('Cercle tracé.','info');
+    }catch(e){
+      console.error(e);
+      setFeedback('Impossible de tracer le cercle.','error');
+    }
+  }
+});
+
+undoBtn.addEventListener('click',()=>{
+  if(locked) return;
+
+  clearRulerEdgeSelectors();
+
+  const item=traceStack.pop();
+  if(!item){
+    setFeedback('Il n’y a aucun tracé à annuler.','info');
+    return;
+  }
+
+  removeTraceFromCollections(item);
+  refreshSnapPoints();
+  updateUndoState();
+  updateValidateState();
+  setFeedback('Dernier tracé annulé.','info');
+});
+
+restartFigureBtn.addEventListener('click',()=>{
+  if(locked) return;
+
+  clearUserConstruction();
+  setFeedback('Construction effacée. Tu peux recommencer.','info');
+});
+
+validateBtn.addEventListener('click',()=>{
+  if(locked) return;
+
+  cancelPendingTrace();
+
+  const q=questions[index];
+
+  if(!userCircles.length){
+    setFeedback('Trace au moins un cercle avant de valider.','error');
+    return;
+  }
+
+  const result=constructionResult(q);
+
+  if(result.success){
+    locked=true;
+
+    const gain=attempts===0?1:.5;
+    score+=gain;
+
+    scoreBox.textContent=`Score : ${fmtScore(score)} / ${TOTAL}`;
+
+    setFeedback(
+      attempts===0
+        ? 'Bravo ! Tu as construit deux médiatrices, trouvé leur intersection et tracé le cercle passant par les trois sommets.'
+        : 'Bravo ! Ta correction est juste : les médiatrices donnent le centre du cercle circonscrit.',
+      'success'
+    );
+
+    setConstructionEnabled(false);
+    nextBtn.hidden=false;
+    return;
+  }
+
+  attempts++;
+
+  const best=nearestCircleToSolution(q);
+
+  if(attempts===1){
+    if(result.mediatorCount<2 && result.circleOK){
+      setFeedback(
+        'Ton cercle est correct, mais la construction n’est pas complète : trace deux médiatrices pour justifier son centre.',
+        'error'
+      );
+    }else if(result.mediatorCount<2){
+      setFeedback(
+        `Tu as tracé ${result.mediatorCount} médiatrice${result.mediatorCount>1?'s':''} correcte${result.mediatorCount>1?'s':''}. Il en faut deux, puis leur intersection donnera le centre du cercle.`,
+        'error'
+      );
+    }else if(best && best.centerErr>18){
+      setFeedback(
+        'Tes médiatrices conviennent, mais le centre du cercle doit être placé exactement à leur intersection.',
+        'error'
+      );
+    }else{
+      setFeedback(
+        'Ton cercle ne passe pas par les trois sommets. Vérifie son rayon.',
+        'error'
+      );
+    }
+    return;
+  }
+
+  locked=true;
+  showCorrection(q);
+
+  setFeedback(
+    'Correction : construis deux médiatrices. Leur intersection O est équidistante des trois sommets. Place la pointe sèche du compas en O, ouvre-le jusqu’à un sommet, puis trace le cercle.',
+    'error'
+  );
+
+  setConstructionEnabled(false);
+  nextBtn.hidden=false;
+});
+
+nextBtn.addEventListener('click',()=>{
+  index++;
+  if(index>=TOTAL){
+    showFinal();
+  }else{
+    renderQuestion();
+  }
+});
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalScore.textContent=`Score : ${fmtScore(score)} / ${TOTAL}`;
+
+  if(score===3){
+    finalMessage.textContent=
+      'Excellent ! Tu sais construire le cercle circonscrit dans les trois configurations.';
+  }else if(score>=2){
+    finalMessage.textContent=
+      'Très bien. Tu sais construire des médiatrices, trouver leur intersection et régler le rayon du cercle.';
+  }else if(score>=1){
+    finalMessage.textContent=
+      'Tu progresses. Pense à déterminer un point équidistant des trois sommets avant de tracer le cercle.';
+  }else{
+    finalMessage.textContent=
+      'À revoir : le centre du cercle circonscrit est l’intersection des médiatrices.';
+  }
+}
+
+restartAllBtn.addEventListener('click',()=>{
+  questions=buildQuestions();
+  index=0;
+  score=0;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  renderQuestion();
+});
+
+function init(){
+  if(!window.GeoLib || !GeoLib.Scene || !GeoLib.Compass){
+    setConstructionEnabled(false);
+    setFeedback(
+      'GeoLib n’a pas pu être chargé. Vérifie la connexion puis recharge l’activité.',
+      'error'
+    );
+    return;
+  }
+
+  questions=buildQuestions();
+  renderQuestion();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+}else{
+  init();
+}
+})();
+
+</script>
+</body>
+</html>

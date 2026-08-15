@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:52px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.65vw,1.82rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:270px;padding:14px 18px 16px;
+  display:grid;grid-template-columns:minmax(290px,.88fr) minmax(360px,1.12fr);
+  align-items:center;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.left{
+  min-height:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px
+}
+.given{
+  width:100%;margin:0;padding:12px 14px;
+  text-align:center;font-size:clamp(1.05rem,2vw,1.3rem);
+  font-weight:700;line-height:1.35;
+  background:#f3f8fc;border:1px solid #d7e7f3;border-radius:14px
+}
+.figure-wrap{width:100%;height:210px;display:grid;place-items:center}
+#figure{width:100%;height:100%;display:block}
+.answers{width:100%;display:grid;grid-template-columns:1fr;gap:12px}
+.answer{
+  min-height:68px;padding:12px 16px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:15px;
+  font:800 clamp(1rem,1.8vw,1.18rem)/1.25 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;text-align:center;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.answer:hover:not(:disabled){border-color:#74a9cf}
+.answer:active:not(:disabled){transform:scale(.985)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.answer:disabled{cursor:default}
+.feedback{
+  min-height:72px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback:empty{visibility:hidden}
+.feedback.success{visibility:visible;color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{visibility:visible;color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:48px;display:flex;align-items:center;justify-content:center}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+.seg{stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.aux{stroke:var(--b);stroke-width:4;stroke-linecap:round}
+.point-mark{stroke:var(--line);stroke-width:4;stroke-linecap:round}
+.eq-mark{stroke:var(--b);stroke-width:4;stroke-linecap:round}
+.label{
+  fill:var(--i);font-family:Arial,Helvetica,sans-serif;
+  font-size:27px;font-weight:700
+}
+.line-label{
+  fill:var(--bd);font-family:Arial,Helvetica,sans-serif;
+  font-size:23px;font-weight:700
+}
+.note{
+  fill:#7b8791;font-family:Arial,Helvetica,sans-serif;
+  font-size:16px;font-style:italic
+}
+
+@media(max-width:760px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.12rem}
+  .question-zone{
+    min-height:180px;padding:8px 10px 10px;gap:8px;
+    grid-template-columns:1fr 1fr
+  }
+  .given{font-size:.95rem;padding:8px 10px}
+  .figure-wrap{height:150px}
+  .answers{gap:7px}
+  .answer{min-height:48px;padding:7px 9px;font-size:.88rem}
+  .feedback{min-height:54px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Quelle conclusion peux-tu tirer ?</p>
+
+    <div class="question-zone">
+      <div class="left">
+        <p class="given" id="given"></p>
+        <div class="figure-wrap">
+          <svg id="figure" viewBox="0 0 430 230" role="img"
+               aria-label="Figure géométrique"></svg>
+        </div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Recommencer avec de nouvelles situations
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+
+const figure=$('figure');
+const given=$('given');
+const answers=$('answers');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[],index=0,score=0,locked=false;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){
+  const c=a.slice();
+  for(let i=c.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [c[i],c[j]]=[c[j],c[i]];
+  }
+  return c;
+}
+function add(name,attrs={},text=''){
+  const el=document.createElementNS(NS,name);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  if(text) el.textContent=text;
+  figure.appendChild(el);
+  return el;
+}
+
+const triples=[
+  ['A','B','M'],['C','D','N'],['E','F','P'],
+  ['G','H','R'],['J','K','S'],['P','Q','T']
+];
+
+function makeQuestion(type){
+  const [a,b,m]=pick(triples);
+  return {type,a,b,m};
+}
+
+function buildQuestions(){
+  const base=[
+    makeQuestion('onMediator'),makeQuestion('onMediator'),
+    makeQuestion('onMediator'),makeQuestion('onMediator'),
+    makeQuestion('equalDistances'),makeQuestion('equalDistances'),
+    makeQuestion('equalDistances'),makeQuestion('equalDistances')
+  ];
+
+  let mixed=base,tries=0;
+  do{
+    mixed=shuffle(base);
+    tries++;
+  }while(
+    mixed.some((q,i,a)=>
+      i>=2 &&
+      q.type===a[i-1].type &&
+      q.type===a[i-2].type
+    ) &&
+    tries<200
+  );
+  return mixed;
+}
+
+function unit(P,Q){
+  const dx=Q.x-P.x,dy=Q.y-P.y,l=Math.hypot(dx,dy);
+  return{x:dx/l,y:dy/l};
+}
+function perp(u){return{x:-u.y,y:u.x}}
+
+function pointMark(P,u){
+  const v=perp(u),h=8;
+  add('line',{
+    x1:P.x-v.x*h,y1:P.y-v.y*h,
+    x2:P.x+v.x*h,y2:P.y+v.y*h,
+    class:'point-mark'
+  });
+}
+function eqMark(P,Q,count=1){
+  const u=unit(P,Q),v=perp(u);
+  const C={x:(P.x+Q.x)/2,y:(P.y+Q.y)/2};
+  const offs=count===1?[0]:[-5,5];
+  offs.forEach(o=>{
+    const c={x:C.x+u.x*o,y:C.y+u.y*o},h=8;
+    add('line',{
+      x1:c.x-v.x*h,y1:c.y-v.y*h,
+      x2:c.x+v.x*h,y2:c.y+v.y*h,
+      class:'eq-mark'
+    });
+  });
+}
+function label(P,text,dx,dy,cls='label'){
+  add('text',{
+    x:P.x+dx,y:P.y+dy,
+    class:cls,'text-anchor':'middle'
+  },text);
+}
+
+function drawOnMediator(q){
+  const A={x:72,y:176};
+  const B={x:358,y:176};
+  const mid={x:215,y:176};
+  const M={x:215+rand(-12,12),y:66+rand(-8,8)};
+  const d1={x:M.x,y:25};
+  const d2={x:mid.x,y:212};
+
+  add('line',{x1:A.x,y1:A.y,x2:B.x,y2:B.y,class:'seg'});
+  add('line',{x1:d1.x,y1:d1.y,x2:d2.x,y2:d2.y,class:'aux'});
+
+  pointMark(A,{x:1,y:0});
+  pointMark(B,{x:1,y:0});
+
+  label(A,q.a,-16,26);
+  label(B,q.b,16,26);
+  label(M,q.m,18,-5);
+  label(d1,'(d)',22,9,'line-label');
+
+  add('text',{
+    x:418,y:220,class:'note','text-anchor':'end'
+  },'Figure non à l’échelle');
+}
+
+function drawEqualDistances(q){
+  const M={x:215,y:190};
+  const A={x:82+rand(-8,8),y:64+rand(-6,6)};
+  const B={x:348+rand(-8,8),y:64+rand(-6,6)};
+
+  add('line',{x1:M.x,y1:M.y,x2:A.x,y2:A.y,class:'seg'});
+  add('line',{x1:M.x,y1:M.y,x2:B.x,y2:B.y,class:'seg'});
+
+  pointMark(A,unit(M,A));
+  pointMark(B,unit(M,B));
+
+  eqMark(M,A,1);
+  eqMark(M,B,1);
+
+  label(A,q.a,-14,-10);
+  label(B,q.b,14,-10);
+  label(M,q.m,0,30);
+
+  add('text',{
+    x:418,y:220,class:'note','text-anchor':'end'
+  },'Figure non à l’échelle');
+}
+
+function optionsFor(q){
+  if(q.type==='onMediator'){
+    return shuffle([
+      {
+        key:'correct',
+        text:`${q.m}${q.a} = ${q.m}${q.b}`
+      },
+      {
+        key:'wrong1',
+        text:`${q.a}${q.b} = ${q.a}${q.m}`
+      },
+      {
+        key:'wrong2',
+        text:`${q.a}${q.b} = ${q.b}${q.m}`
+      }
+    ]);
+  }
+
+  return shuffle([
+    {
+      key:'correct',
+      text:`${q.m} appartient à la médiatrice de [${q.a}${q.b}]`
+    },
+    {
+      key:'wrong1',
+      text:`${q.a} appartient à la médiatrice de [${q.m}${q.b}]`
+    },
+    {
+      key:'wrong2',
+      text:`${q.b} appartient à la médiatrice de [${q.m}${q.a}]`
+    }
+  ]);
+}
+
+function render(){
+  const q=questions[index];
+  locked=false;
+  figure.innerHTML='';
+  answers.innerHTML='';
+  feedback.className='feedback';
+  feedback.textContent='';
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${(index+1)/TOTAL*100}%`;
+
+  if(q.type==='onMediator'){
+    given.textContent=`On sait que ${q.m} appartient à la médiatrice de [${q.a}${q.b}].`;
+    drawOnMediator(q);
+  }else{
+    given.textContent=`On sait que ${q.m}${q.a} = ${q.m}${q.b}.`;
+    drawEqualDistances(q);
+  }
+
+  const opts=optionsFor(q);
+  opts.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='answer';
+    btn.textContent=opt.text;
+    btn.dataset.key=opt.key;
+    btn.addEventListener('click',()=>answer(btn,opt,q));
+    answers.appendChild(btn);
+  });
+}
+
+function answer(btn,opt,q){
+  if(locked) return;
+  locked=true;
+
+  const all=[...answers.querySelectorAll('.answer')];
+  const correct=all.find(b=>b.dataset.key==='correct');
+  const ok=opt.key==='correct';
+
+  if(ok) score++;
+
+  all.forEach(b=>b.disabled=true);
+  correct.classList.add('correct');
+  if(!ok) btn.classList.add('wrong');
+
+  feedback.className='feedback '+(ok?'success':'error');
+
+  if(q.type==='onMediator'){
+    feedback.textContent=
+      `${ok?'Bravo ! ':''}${q.m} appartient à la médiatrice de [${q.a}${q.b}], donc ${q.m}${q.a} = ${q.m}${q.b}.`;
+  }else{
+    feedback.textContent=
+      `${ok?'Bravo ! ':''}${q.m}${q.a} = ${q.m}${q.b}, donc ${q.m} appartient à la médiatrice de [${q.a}${q.b}].`;
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===8){
+    finalMessage.textContent='Excellent ! Tu sais utiliser la propriété de la médiatrice dans les deux sens.';
+  }else if(score>=6){
+    finalMessage.textContent='Très bien. Tu distingues bien les deux sens de la propriété.';
+  }else if(score>=4){
+    finalMessage.textContent='Tu progresses. Regarde bien ce que tu sais au départ avant de choisir la conclusion.';
+  }else{
+    finalMessage.textContent='À revoir : selon l’information donnée, il faut choisir le bon sens de la propriété de la médiatrice.';
+  }
+}
+
+nextBtn.addEventListener('click',()=>{
+  index++;
+  if(index>=TOTAL) showFinal();
+  else render();
+});
+
+restartBtn.addEventListener('click',()=>{
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  final.classList.remove('show');
+  exercise.style.display='';
+  render();
+});
+
+questions=buildQuestions();
+render();
+})();
+</script>
+</body>
+</html>

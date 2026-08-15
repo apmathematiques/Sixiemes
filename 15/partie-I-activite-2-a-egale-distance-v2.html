@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.65vw,1.82rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:260px;padding:12px 18px 16px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.figure-wrap{
+  width:min(760px,100%);height:min(285px,34vh);
+  min-height:220px;display:grid;place-items:center
+}
+#figure{width:100%;height:100%;display:block}
+.choice-buttons{
+  width:min(650px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:18px
+}
+.choice-button{
+  min-height:70px;padding:12px 18px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.1rem,2.2vw,1.35rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.985)}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.feedback{
+  min-height:72px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.12rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+.seg{stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.point-mark{stroke:var(--line);stroke-width:4;stroke-linecap:round}
+.eq-mark{stroke:var(--b);stroke-width:4;stroke-linecap:round}
+.label{
+  fill:var(--i);font-family:Arial,Helvetica,sans-serif;
+  font-size:27px;font-weight:700
+}
+.measure{
+  fill:var(--bd);font-family:Arial,Helvetica,sans-serif;
+  font-size:23px;font-weight:800
+}
+.note{
+  fill:#7b8791;font-family:Arial,Helvetica,sans-serif;
+  font-size:16px;font-style:italic
+}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:44px;font-size:1.12rem}
+  .question-zone{min-height:180px;padding:8px 10px 10px;gap:8px}
+  .figure-wrap{min-height:150px;height:min(210px,32vh)}
+  .choice-buttons{gap:8px}
+  .choice-button{min-height:52px;padding:8px 10px;font-size:1rem}
+  .feedback{min-height:54px;padding:7px 10px;font-size:.86rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="question-zone">
+      <div class="figure-wrap">
+        <svg id="figure" viewBox="0 0 760 300" role="img"
+             aria-label="Figure géométrique à analyser"></svg>
+      </div>
+
+      <div class="choice-buttons">
+        <button class="choice-button" data-answer="yes">Oui</button>
+        <button class="choice-button" data-answer="no">Non</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Recommencer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+
+const figure=$('figure');
+const instruction=$('instruction');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+const choiceButtons=[...document.querySelectorAll('.choice-button')];
+
+let questions=[],index=0,score=0,locked=false;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){
+  const c=a.slice();
+  for(let i=c.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [c[i],c[j]]=[c[j],c[i]];
+  }
+  return c;
+}
+function fmt(n){return n.toFixed(1).replace('.',',')}
+
+function add(name,attrs={},text=''){
+  const el=document.createElementNS(NS,name);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  if(text) el.textContent=text;
+  figure.appendChild(el);
+  return el;
+}
+
+const triplets=[
+  ['A','B','M'],['C','D','N'],['E','F','P'],
+  ['G','H','R'],['J','K','S'],['P','Q','T']
+];
+
+function makeQuestion(equal,mode){
+  const [a,b,m]=pick(triplets);
+
+  const M={x:380+rand(-18,18),y:235+rand(-8,8)};
+  const leftAngle=rand(-150,-118)*Math.PI/180;
+  const rightAngle=rand(-62,-30)*Math.PI/180;
+
+  // La figure n'est volontairement pas utilisée comme preuve :
+  // les longueurs dessinées varient indépendamment des données.
+  const drawLeft=rand(185,245);
+  const drawRight=rand(185,245);
+
+  const A={
+    x:M.x+Math.cos(leftAngle)*drawLeft,
+    y:M.y+Math.sin(leftAngle)*drawLeft
+  };
+  const B={
+    x:M.x+Math.cos(rightAngle)*drawRight,
+    y:M.y+Math.sin(rightAngle)*drawRight
+  };
+
+  const base=randInt(28,62)/10;
+  let d1=base,d2=base;
+
+  if(!equal){
+    const gap=pick([0.1,0.2,0.3,0.4,0.5]);
+    if(Math.random()<.5) d1=base+gap;
+    else d2=base+gap;
+  }
+
+  return{
+    equal,mode,a,b,m,A,B,M,
+    d1,d2,
+    answer:equal?'yes':'no'
+  };
+}
+
+function noLongRun(arr){
+  return !arr.some((q,i,a)=>
+    i>=2 &&
+    q.answer===a[i-1].answer &&
+    q.answer===a[i-2].answer
+  );
+}
+
+function buildQuestions(){
+  const base=[
+    makeQuestion(true,'measure'),
+    makeQuestion(true,'measure'),
+    makeQuestion(true,'coding'),
+    makeQuestion(true,'coding'),
+    makeQuestion(false,'measure'),
+    makeQuestion(false,'measure'),
+    makeQuestion(false,'coding'),
+    makeQuestion(false,'coding')
+  ];
+
+  let mixed=base,tries=0;
+  do{
+    mixed=shuffle(base);
+    tries++;
+  }while(!noLongRun(mixed) && tries<200);
+
+  return mixed;
+}
+
+function unitVector(P,Q){
+  const dx=Q.x-P.x,dy=Q.y-P.y;
+  const l=Math.hypot(dx,dy);
+  return{x:dx/l,y:dy/l};
+}
+
+function perpendicular(u){return{x:-u.y,y:u.x}}
+
+function drawPointMark(P,u){
+  const v=perpendicular(u);
+  const half=8;
+  add('line',{
+    x1:P.x-v.x*half,y1:P.y-v.y*half,
+    x2:P.x+v.x*half,y2:P.y+v.y*half,
+    class:'point-mark'
+  });
+}
+
+function drawEqualityMark(P,Q,count){
+  const u=unitVector(P,Q);
+  const v=perpendicular(u);
+  const center={
+    x:P.x+(Q.x-P.x)*0.52,
+    y:P.y+(Q.y-P.y)*0.52
+  };
+  const offsets=count===1?[0]:[-6,6];
+
+  offsets.forEach(o=>{
+    const c={x:center.x+u.x*o,y:center.y+u.y*o};
+    const half=9;
+    add('line',{
+      x1:c.x-v.x*half,y1:c.y-v.y*half,
+      x2:c.x+v.x*half,y2:c.y+v.y*half,
+      class:'eq-mark'
+    });
+  });
+}
+
+function drawLabel(P,text,dx,dy){
+  add('text',{
+    x:P.x+dx,y:P.y+dy,
+    class:'label','text-anchor':'middle'
+  },text);
+}
+
+function drawMeasure(P,Q,text,side){
+  const u=unitVector(P,Q);
+  const v=perpendicular(u);
+  const mid={x:(P.x+Q.x)/2,y:(P.y+Q.y)/2};
+  const offset=side*30;
+
+  add('text',{
+    x:mid.x+v.x*offset,
+    y:mid.y+v.y*offset+7,
+    class:'measure','text-anchor':'middle'
+  },text);
+}
+
+function drawQuestion(q){
+  figure.innerHTML='';
+
+  add('line',{x1:q.M.x,y1:q.M.y,x2:q.A.x,y2:q.A.y,class:'seg'});
+  add('line',{x1:q.M.x,y1:q.M.y,x2:q.B.x,y2:q.B.y,class:'seg'});
+
+  const uA=unitVector(q.M,q.A);
+  const uB=unitVector(q.M,q.B);
+
+  // Les extrémités A et B sont repérées par un petit trait
+  // perpendiculaire au segment, sans croix.
+  drawPointMark(q.A,uA);
+  drawPointMark(q.B,uB);
+
+  drawLabel(q.A,q.a,-18,-10);
+  drawLabel(q.B,q.b,18,-10);
+  drawLabel(q.M,q.m,0,34);
+
+  if(q.mode==='measure'){
+    drawMeasure(q.M,q.A,`${fmt(q.d1)} cm`,1);
+    drawMeasure(q.M,q.B,`${fmt(q.d2)} cm`,-1);
+  }else{
+    if(q.equal){
+      drawEqualityMark(q.M,q.A,1);
+      drawEqualityMark(q.M,q.B,1);
+    }else{
+      drawEqualityMark(q.M,q.A,1);
+      drawEqualityMark(q.M,q.B,2);
+    }
+  }
+
+  add('text',{
+    x:740,y:288,class:'note','text-anchor':'end'
+  },'Figure non à l’échelle');
+}
+
+function feedbackText(q,ok){
+  const prefix=ok?'Bravo ! ':'';
+
+  if(q.mode==='measure'){
+    if(q.equal){
+      return `${prefix}${q.m}${q.a} = ${q.m}${q.b}. Le point ${q.m} est donc équidistant des points ${q.a} et ${q.b}.`;
+    }
+    return `${prefix}${q.m}${q.a} ≠ ${q.m}${q.b}. Le point ${q.m} n’est donc pas équidistant des points ${q.a} et ${q.b}.`;
+  }
+
+  if(q.equal){
+    return `${prefix}Les segments [${q.m}${q.a}] et [${q.m}${q.b}] portent le même codage : leurs longueurs sont égales. ${q.m} est donc équidistant de ${q.a} et ${q.b}.`;
+  }
+
+  return `${prefix}Les segments [${q.m}${q.a}] et [${q.m}${q.b}] ne portent pas le même codage : on ne peut pas dire que leurs longueurs sont égales. ${q.m} n’est donc pas équidistant de ${q.a} et ${q.b}.`;
+}
+
+function render(){
+  const q=questions[index];
+  locked=false;
+
+  instruction.textContent=`Le point ${q.m} est-il équidistant des points ${q.a} et ${q.b} ?`;
+  drawQuestion(q);
+
+  choiceButtons.forEach(b=>{
+    b.disabled=false;
+    b.className='choice-button';
+  });
+
+  feedback.className='feedback';
+  feedback.textContent='';
+
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${(index+1)/TOTAL*100}%`;
+}
+
+function answer(value){
+  if(locked) return;
+  locked=true;
+
+  const q=questions[index];
+  const ok=value===q.answer;
+  if(ok) score++;
+
+  choiceButtons.forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.answer===q.answer) b.classList.add('correct');
+    if(!ok && b.dataset.answer===value) b.classList.add('wrong');
+  });
+
+  feedback.className='feedback '+(ok?'success':'error');
+  feedback.textContent=feedbackText(q,ok);
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===8){
+    finalMessage.textContent='Excellent ! Tu sais reconnaître quand un point est équidistant de deux autres points.';
+  }else if(score>=6){
+    finalMessage.textContent='Très bien. Continue à t’appuyer sur les mesures et les codages, pas sur l’apparence de la figure.';
+  }else if(score>=4){
+    finalMessage.textContent='Tu progresses. Pour être équidistant de deux points, les deux distances doivent être égales.';
+  }else{
+    finalMessage.textContent='À revoir : « équidistant » signifie « à égale distance ». Appuie-toi sur les mesures ou les codages.';
+  }
+}
+
+choiceButtons.forEach(b=>{
+  b.addEventListener('click',()=>answer(b.dataset.answer));
+});
+
+nextBtn.addEventListener('click',()=>{
+  index++;
+  if(index>=TOTAL) showFinal();
+  else render();
+});
+
+restartBtn.addEventListener('click',()=>{
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  final.classList.remove('show');
+  exercise.style.display='';
+  render();
+});
+
+questions=buildQuestions();
+render();
+})();
+</script>
+</body>
+</html>

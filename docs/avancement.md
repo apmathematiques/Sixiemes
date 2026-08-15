@@ -4,12 +4,18 @@
 
 Version stable actuelle : **1.3**
 
+Extension complémentaire utilisée : **compas GeoLib 1.4**, compatible avec le noyau GeoLib 1.3 et testée dans `geolib/v1.4/demo-compass.html`.
+
 Versions conservées :
 
 - `geolib/v1/`
 - `geolib/v1.1/`
 - `geolib/v1.2/`
 - `geolib/v1.3/`
+
+## Chapitre 15 — Cercles
+
+- [ ] Activité — Construire le cercle circonscrit à un triangle (version améliorée, à valider manuellement dans Genially)
 
 ## Chapitre 5 — Nombres décimaux
 
