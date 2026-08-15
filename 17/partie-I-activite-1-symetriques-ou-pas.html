@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.35rem,2.5vw,1.76rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:270px;padding:10px 14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+#scene{
+  width:100%;height:100%;min-height:260px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.geolib-line.axis-line{
+  stroke:#263442;stroke-width:4;stroke-linecap:round
+}
+.geolib-line-label{
+  fill:#17212b;font:700 23px Arial,Helvetica,sans-serif
+}
+.figure-shape{
+  fill:rgba(23,105,170,.13);
+  stroke:#1769aa;stroke-width:4;
+  stroke-linejoin:round
+}
+.figure-vertex{
+  fill:#1769aa
+}
+.answer-row{
+  width:min(650px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:16px;
+  margin:0 auto
+}
+.choice{
+  min-height:62px;padding:10px 16px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.08rem,2vw,1.28rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice:hover:not(:disabled){border-color:#74a9cf}
+.choice:active:not(:disabled){transform:scale(.985)}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice:disabled{cursor:default}
+.feedback{
+  min-height:66px;padding:9px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:46px;display:flex;align-items:center;justify-content:center
+}
+button.action{
+  min-height:44px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{
+  padding:20px;color:#8f2727;font-weight:700;text-align:center
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 14px 5px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:1px 10px 10px;gap:7px}
+  .instruction{min-height:40px;font-size:1.1rem}
+  .figure-zone{min-height:185px;padding:6px 8px}
+  #scene{min-height:180px}
+  .answer-row{gap:8px}
+  .choice{min-height:46px;padding:7px 9px;font-size:.98rem}
+  .feedback{min-height:50px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:38px}
+  button.action{min-height:36px;height:36px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Les deux figures sont-elles symétriques par rapport à la droite <em>(d)</em> ?
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Deux figures séparées par une droite d"></div>
+    </div>
+
+    <div class="answer-row">
+      <button class="choice" id="yes" type="button">Symétriques</button>
+      <button class="choice" id="no" type="button">Non symétriques</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Imagine le pliage le long de la droite <em>(d)</em>.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=860;
+const H=300;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const yesBtn=$('yes');
+const noBtn=$('no');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+let scene=null;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+
+const TEMPLATES=[
+  [[-105,68],[-62,46],[-18,58],[10,92],[-25,124],[-88,116]],
+  [[-100,84],[-73,48],[-18,52],[18,82],[-3,122],[-48,107],[-84,132]],
+  [[-108,58],[-54,43],[-8,70],[18,108],[-40,130],[-92,112]],
+  [[-98,95],[-69,52],[-25,46],[11,67],[20,111],[-35,127],[-86,118]],
+  [[-110,72],[-77,42],[-31,56],[8,47],[24,92],[-7,130],[-69,121]]
+];
+
+function localToGlobal(u,v,angle){
+  const r=degToRad(angle);
+  const dx=Math.cos(r), dy=Math.sin(r);
+  const nx=-dy, ny=Math.cos(r);
+  return {
+    x:W/2 + u*dx + v*nx,
+    y:H/2 + u*dy + v*ny
+  };
+}
+
+function makeBaseLocal(){
+  const tpl=pick(TEMPLATES);
+  const scale=rand(.82,1.02);
+  return tpl.map(([u,v],i)=>[
+    u*scale + rand(-6,6),
+    v*scale + rand(-5,5) + (i%2?rand(-2,2):0)
+  ]);
+}
+
+function reflectLocal(points){
+  return points.map(([u,v])=>[u,-v]);
+}
+
+function centroid(points){
+  const n=points.length;
+  return {
+    x:points.reduce((s,p)=>s+p[0],0)/n,
+    y:points.reduce((s,p)=>s+p[1],0)/n
+  };
+}
+
+function distort(points,type){
+  const p=points.map(q=>q.slice());
+
+  if(type==='vertex'){
+    const i=randInt(0,p.length-1);
+    const du=pick([-1,1])*rand(18,30);
+    const dv=pick([-1,1])*rand(14,24);
+    p[i][0]+=du;
+    p[i][1]+=dv;
+    return p;
+  }
+
+  if(type==='translate'){
+    const du=pick([-1,1])*rand(22,34);
+    const dv=pick([-1,1])*rand(13,22);
+    return p.map(([u,v])=>[u+du,v+dv]);
+  }
+
+  if(type==='rotate'){
+    const c=centroid(p);
+    const a=degToRad(pick([-1,1])*rand(10,16));
+    return p.map(([u,v])=>{
+      const x=u-c.x, y=v-c.y;
+      return [
+        c.x+x*Math.cos(a)-y*Math.sin(a),
+        c.y+x*Math.sin(a)+y*Math.cos(a)
+      ];
+    });
+  }
+
+  if(type==='distance'){
+    const factor=pick([rand(.70,.82),rand(1.18,1.30)]);
+    return p.map(([u,v])=>[u,v*factor]);
+  }
+
+  return p;
+}
+
+function makeQuestion(angle,isSymmetric,errorType){
+  const leftLocal=makeBaseLocal();
+  const perfect=reflectLocal(leftLocal);
+  const rightLocal=isSymmetric ? perfect : distort(perfect,errorType);
+
+  return {
+    angle,
+    isSymmetric,
+    errorType:isSymmetric?null:errorType,
+    left:leftLocal.map(([u,v])=>localToGlobal(u,v,angle)),
+    right:rightLocal.map(([u,v])=>localToGlobal(u,v,angle))
+  };
+}
+
+function buildQuestions(){
+  // On garantit exactement 4 cas vrais et 4 cas faux.
+  const truths=shuffle([true,true,true,true,false,false,false,false]);
+
+  // Vertical, horizontal et plusieurs axes obliques dans chaque partie.
+  const angles=shuffle([0,90,30,-30,45,-45,60,-60]);
+
+  // Les quatre faux cas correspondent chacun à une erreur différente.
+  const errors=shuffle(['vertex','translate','rotate','distance']);
+  let errIndex=0;
+
+  return truths.map((truth,i)=>{
+    const error=truth?null:errors[errIndex++];
+    return makeQuestion(angles[i],truth,error);
+  });
+}
+
+function polygonPoints(points){
+  return points.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+}
+
+function drawPolygon(points){
+  const poly=GeoLib.Utils.createSvg('polygon',{
+    points:polygonPoints(points),
+    class:'figure-shape'
+  });
+  scene.layers.drawings.appendChild(poly);
+
+  points.forEach(p=>{
+    const dot=GeoLib.Utils.createSvg('circle',{
+      cx:p.x,cy:p.y,r:4.3,class:'figure-vertex'
+    });
+    scene.layers.drawings.appendChild(dot);
+  });
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+
+  // Axe passant par le centre de la scène.
+  const axis=new GeoLib.Line(
+    {x:W/2,y:H/2},
+    q.angle,
+    {name:'(d)',className:'axis-line'}
+  );
+  scene.add(axis);
+
+  drawPolygon(q.left);
+  drawPolygon(q.right);
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Deux figures séparées par la droite (d), question ${index+1}`
+  );
+}
+
+function errorExplanation(type){
+  switch(type){
+    case 'vertex':
+      return "Non. Au moins un sommet ne se superposerait pas avec son correspondant lors du pliage.";
+    case 'translate':
+      return "Non. Une des figures est décalée : le pliage suivant (d) ne les superposerait pas.";
+    case 'rotate':
+      return "Non. Une des figures a été tournée : ce n'est pas l'image obtenue par pliage suivant (d).";
+    case 'distance':
+      return "Non. Les points correspondants ne sont pas placés à la même distance de l'axe.";
+    default:
+      return "Non. Les deux figures ne se superposeraient pas par pliage suivant (d).";
+  }
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetButtons(){
+  locked=false;
+  yesBtn.disabled=false;
+  noBtn.disabled=false;
+  yesBtn.className='choice';
+  noBtn.className='choice';
+  nextBtn.hidden=true;
+  setFeedback("Imagine le pliage le long de la droite (d).");
+}
+
+function renderQuestion(){
+  resetButtons();
+  updateTop();
+  renderFigure();
+}
+
+function answer(value,button){
+  if(locked)return;
+  locked=true;
+
+  const q=questions[index];
+  const correct=value===q.isSymmetric;
+
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+
+  if(correct){
+    score++;
+    button.classList.add('correct');
+    if(q.isSymmetric){
+      setFeedback(
+        "Oui. Par pliage le long de (d), chaque sommet vient se superposer avec son correspondant.",
+        'success'
+      );
+    }else{
+      setFeedback(errorExplanation(q.errorType),'success');
+    }
+  }else{
+    button.classList.add('wrong');
+    const correctBtn=q.isSymmetric?yesBtn:noBtn;
+    correctBtn.classList.add('correct');
+
+    if(q.isSymmetric){
+      setFeedback(
+        "Ces figures sont bien symétriques : elles se superposeraient par pliage le long de (d).",
+        'error'
+      );
+    }else{
+      setFeedback(errorExplanation(q.errorType),'error');
+    }
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu reconnais les symétries même lorsque l'axe est oblique.";
+  }else if(score>=6){
+    message="Très bien. Pense toujours au pliage et à la position de tous les sommets.";
+  }else if(score>=4){
+    message="C'est en bonne voie. Vérifie chaque sommet au lieu de regarder seulement la forme générale.";
+  }else{
+    message="Rejoue avec de nouvelles figures : imagine le pliage le long de l'axe pour chaque situation.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+yesBtn.addEventListener('click',()=>answer(true,yesBtn));
+noBtn.addEventListener('click',()=>answer(false,noBtn));
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>

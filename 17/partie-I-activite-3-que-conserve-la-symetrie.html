@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:9px
+}
+.instruction{
+  min-height:48px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.26rem,2.35vw,1.65rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:250px;padding:14px 18px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.diagram{
+  width:min(590px,96%);height:145px;display:block;
+}
+.qtext{
+  margin:0;max-width:820px;
+  font-size:clamp(1.25rem,2.5vw,1.75rem);
+  font-weight:750;line-height:1.35;text-align:center
+}
+.math{
+  font-family:"Times New Roman",Times,serif;
+  font-size:1.08em
+}
+.answer-area{
+  width:min(760px,100%);
+  display:flex;align-items:center;justify-content:center
+}
+.choice-grid{
+  width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:12px
+}
+.choice{
+  min-height:58px;padding:10px 14px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:15px;
+  font:800 clamp(1rem,1.9vw,1.18rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation
+}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice:disabled{cursor:default}
+.numeric{
+  display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap
+}
+.numeric input{
+  width:150px;min-height:54px;padding:8px 12px;
+  border:3px solid #b9d4e8;border-radius:14px;
+  font:800 1.25rem Arial,Helvetica,sans-serif;
+  text-align:center;color:var(--i);background:#fff
+}
+.unit{
+  font-size:1.18rem;font-weight:750
+}
+button.validate{
+  min-height:52px;padding:0 22px;border:0;border-radius:13px;
+  background:var(--b);color:#fff;font-size:1rem;font-weight:800;cursor:pointer
+}
+.feedback{
+  min-height:64px;padding:9px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.95rem,1.7vw,1.07rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.feedback.hint{color:#7a5a18;background:#fff8df;border:1px solid #ead79a}
+.controls{min-height:42px;display:flex;align-items:center;justify-content:center}
+button.action{
+  min-height:40px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+.segment{stroke:#1769aa;stroke-width:5;stroke-linecap:round}
+.segment2{stroke:#5f6d79;stroke-width:5;stroke-linecap:round}
+.axis{stroke:#263442;stroke-width:3;stroke-dasharray:9 7}
+.pt{fill:#1769aa}
+.label{fill:#17212b;font:700 21px Arial,Helvetica,sans-serif}
+.measure{fill:#0d4778;font:700 19px Arial,Helvetica,sans-serif}
+.shape{fill:rgba(23,105,170,.12);stroke:#1769aa;stroke-width:4}
+.shape2{fill:rgba(95,109,121,.10);stroke:#5f6d79;stroke-width:4}
+
+@media(max-width:720px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 14px 5px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:1px 10px 10px;gap:6px}
+  .instruction{min-height:36px;font-size:1.04rem}
+  .question-zone{min-height:175px;padding:6px 9px;gap:7px}
+  .diagram{height:95px}
+  .qtext{font-size:1.08rem}
+  .choice-grid{gap:7px}
+  .choice{min-height:42px;padding:6px;font-size:.88rem}
+  .numeric input{width:120px;min-height:42px;font-size:1rem}
+  button.validate{min-height:40px}
+  .feedback{min-height:48px;padding:6px 10px;font-size:.81rem}
+  .controls{min-height:34px}
+  button.action{min-height:34px;height:34px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Utilise les propriétés de la symétrie axiale.</p>
+
+    <div class="question-zone">
+      <svg class="diagram" id="diagram" viewBox="0 0 600 150" aria-hidden="true"></svg>
+      <p class="qtext" id="qtext"></p>
+      <div class="answer-area" id="answerArea"></div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Toutes les données ne sont pas forcément utiles : choisis celles qui permettent de répondre.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles données</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const NS='http://www.w3.org/2000/svg';
+const TOTAL=8;
+const TYPES=['length','alignment','angle','area','parallel'];
+
+const $=id=>document.getElementById(id);
+const diagram=$('diagram');
+const qtext=$('qtext');
+const answerArea=$('answerArea');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function randDecimal(min,max){
+  return Math.round((min+Math.random()*(max-min))*10)/10
+}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fmt(n){
+  return Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',')
+}
+function svgEl(tag,attrs={}){
+  const e=document.createElementNS(NS,tag);
+  for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);
+  return e
+}
+function clearDiagram(){diagram.innerHTML=''}
+
+const LETTER_SETS=[
+  ['A','B','C'],['M','N','P'],['R','S','T'],['E','F','G'],['H','I','J']
+];
+
+function makeLength(){
+  const [A,B]=pick(LETTER_SETS).slice(0,2);
+  const value=randDecimal(2.4,9.8);
+  return {
+    type:'length',mode:'numeric',answer:value,unit:'cm',
+    text:`Le segment <span class="math">[${A}${B}]</span> mesure <strong>${fmt(value)} cm</strong>.
+          <span class="math">${A}'${B}'</span> est son image par une symétrie axiale.<br>
+          Quelle est la longueur <span class="math">${A}'${B}'</span> ?`,
+    property:'La symétrie axiale conserve les longueurs.',
+    hint:'Cherche quelle grandeur reste inchangée lors d’une symétrie.',
+    draw:()=>drawLength(A,B,value)
+  };
+}
+
+function makeAngle(){
+  const [A,B,C]=pick(LETTER_SETS);
+  const value=randInt(24,148);
+  return {
+    type:'angle',mode:'numeric',answer:value,unit:'°',
+    text:`L’angle <span class="math">${A}${B}${C}</span> mesure <strong>${value}°</strong>.
+          Son image est l’angle <span class="math">${A}'${B}'${C}'</span>.<br>
+          Quelle est la mesure de <span class="math">${A}'${B}'${C}'</span> ?`,
+    property:'La symétrie axiale conserve les mesures d’angles.',
+    hint:'La forme peut changer de côté, mais pense à la mesure de l’angle.',
+    draw:()=>drawAngle(A,B,C,value)
+  };
+}
+
+function makeArea(){
+  const area=randInt(8,48);
+  return {
+    type:'area',mode:'numeric',answer:area,unit:'cm²',
+    text:`Une figure a une aire de <strong>${area} cm²</strong>.
+          On construit son symétrique par rapport à une droite.<br>
+          Quelle est l’aire de la figure obtenue ?`,
+    property:'La symétrie axiale conserve les aires.',
+    hint:'La figure est déplacée par symétrie, mais sa surface est-elle modifiée ?',
+    draw:()=>drawArea(area)
+  };
+}
+
+function makeAlignment(){
+  const [A,B,C]=pick(LETTER_SETS);
+  const correct=`${A}', ${B}' et ${C}' sont alignés.`;
+  const choices=shuffle([
+    correct,
+    `${A}', ${B}' et ${C}' ne sont pas alignés.`,
+    `On ne peut pas savoir.`
+  ]);
+  return {
+    type:'alignment',mode:'choice',answer:correct,choices,
+    text:`Les points <span class="math">${A}, ${B}</span> et <span class="math">${C}</span> sont alignés.
+          Leurs images sont <span class="math">${A}', ${B}'</span> et <span class="math">${C}'</span>.<br>
+          Que peut-on affirmer ?`,
+    property:'La symétrie axiale conserve l’alignement.',
+    hint:'Imagine l’image d’une droite entière par symétrie.',
+    draw:()=>drawAlignment(A,B,C)
+  };
+}
+
+function makeParallel(){
+  const names=pick([['(d₁)','(d₂)'],['(u)','(v)'],['(r)','(s)']]);
+  const correct=`Leurs images sont parallèles.`;
+  const choices=shuffle([
+    correct,
+    `Leurs images sont perpendiculaires.`,
+    `On ne peut pas savoir.`
+  ]);
+  return {
+    type:'parallel',mode:'choice',answer:correct,choices,
+    text:`Les droites <span class="math">${names[0]}</span> et <span class="math">${names[1]}</span> sont parallèles.
+          On construit leurs images par la même symétrie axiale.<br>
+          Que peut-on affirmer ?`,
+    property:'La symétrie axiale conserve le parallélisme.',
+    hint:'Réfléchis à la direction relative des deux droites après la symétrie.',
+    draw:()=>drawParallel(names)
+  };
+}
+
+function makeQuestion(type){
+  return ({
+    length:makeLength,
+    alignment:makeAlignment,
+    angle:makeAngle,
+    area:makeArea,
+    parallel:makeParallel
+  })[type]();
+}
+
+function makeDistractor(q){
+  let distractor='';
+
+  switch(q.type){
+    case 'length':
+      distractor=pick([
+        `Un angle de la figure mesure <strong>${randInt(25,145)}°</strong>.`,
+        `La figure contenant ce segment a une aire de <strong>${randInt(12,45)} cm²</strong>.`
+      ]);
+      break;
+
+    case 'angle':
+      distractor=pick([
+        `Le segment correspondant à un côté de l’angle mesure <strong>${fmt(randDecimal(2.5,9.5))} cm</strong>.`,
+        `La figure contenant cet angle a une aire de <strong>${randInt(10,40)} cm²</strong>.`
+      ]);
+      break;
+
+    case 'area':
+      distractor=pick([
+        `Son périmètre mesure <strong>${randInt(16,58)} cm</strong>.`,
+        `Un de ses angles mesure <strong>${randInt(30,140)}°</strong>.`
+      ]);
+      break;
+
+    case 'alignment':
+      distractor=pick([
+        `La distance entre les deux premiers points est de <strong>${fmt(randDecimal(2.2,8.8))} cm</strong>.`,
+        `La distance entre les deux derniers points est de <strong>${fmt(randDecimal(2.2,8.8))} cm</strong>.`
+      ]);
+      break;
+
+    case 'parallel':
+      distractor=pick([
+        `La distance entre ces deux droites est de <strong>${fmt(randDecimal(1.5,6.5))} cm</strong>.`,
+        `Un segment tracé sur la première droite mesure <strong>${fmt(randDecimal(3,9))} cm</strong>.`
+      ]);
+      break;
+  }
+
+  // La donnée supplémentaire est insérée avant la question.
+  // Elle est volontairement inutile : l'élève doit sélectionner l'information pertinente.
+  q.text=q.text.replace('<br>', ` ${distractor}<br>`);
+  q.hasDistractor=true;
+  return q;
+}
+
+function buildQuestions(){
+  const base=TYPES.slice();
+  const extras=shuffle(TYPES).slice(0,3);
+  const qs=shuffle(base.concat(extras)).map(makeQuestion);
+
+  // Exactement 5 questions sur 8 comportent une donnée inutile.
+  // Les positions changent à chaque nouvelle partie.
+  const positions=shuffle([0,1,2,3,4,5,6,7]).slice(0,5);
+  positions.forEach(i=>makeDistractor(qs[i]));
+
+  return qs;
+}
+
+function addText(x,y,text,cls='label'){
+  const t=svgEl('text',{x,y,class:cls});
+  t.textContent=text;diagram.appendChild(t)
+}
+
+function drawAxis(){
+  diagram.appendChild(svgEl('line',{x1:300,y1:10,x2:300,y2:140,class:'axis'}));
+  addText(309,25,'(d)','label');
+}
+
+function drawLength(A,B,value){
+  clearDiagram();drawAxis();
+  diagram.appendChild(svgEl('line',{x1:90,y1:82,x2:230,y2:50,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:370,y1:50,x2:510,y2:82,class:'segment2'}));
+  [[90,82,A],[230,50,B],[370,50,B+"'"],[510,82,A+"'"]].forEach(([x,y,l])=>{
+    diagram.appendChild(svgEl('circle',{cx:x,cy:y,r:5,class:'pt'}));
+    addText(x-6,y-12,l)
+  });
+  addText(128,120,`${fmt(value)} cm`,'measure');
+  addText(430,120,'?','measure');
+}
+
+function drawAngle(A,B,C,value){
+  clearDiagram();drawAxis();
+  diagram.appendChild(svgEl('line',{x1:100,y1:110,x2:190,y2:75,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:190,y1:75,x2:230,y2:20,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:370,y1:20,x2:410,y2:75,class:'segment2'}));
+  diagram.appendChild(svgEl('line',{x1:410,y1:75,x2:500,y2:110,class:'segment2'}));
+  addText(83,126,A);addText(184,95,B);addText(225,20,C);
+  addText(502,126,A+"'");addText(405,95,B+"'");addText(360,20,C+"'");
+  addText(135,55,`${value}°`,'measure');
+  addText(448,55,'?','measure');
+}
+
+function drawArea(area){
+  clearDiagram();drawAxis();
+  diagram.appendChild(svgEl('polygon',{points:'85,102 130,35 230,58 205,123 120,130',class:'shape'}));
+  diagram.appendChild(svgEl('polygon',{points:'515,102 470,35 370,58 395,123 480,130',class:'shape2'}));
+  addText(120,88,`${area} cm²`,'measure');
+  addText(445,88,'?','measure');
+}
+
+function drawAlignment(A,B,C){
+  clearDiagram();drawAxis();
+  diagram.appendChild(svgEl('line',{x1:75,y1:118,x2:245,y2:35,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:355,y1:35,x2:525,y2:118,class:'segment2'}));
+  const left=[[95,108,A],[160,76,B],[225,45,C]];
+  const right=[[505,108,A+"'"],[440,76,B+"'"],[375,45,C+"'"]];
+  left.concat(right).forEach(([x,y,l])=>{
+    diagram.appendChild(svgEl('circle',{cx:x,cy:y,r:5,class:'pt'}));
+    addText(x+6,y-8,l)
+  });
+}
+
+function drawParallel(names){
+  clearDiagram();drawAxis();
+  diagram.appendChild(svgEl('line',{x1:70,y1:45,x2:245,y2:85,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:70,y1:95,x2:245,y2:135,class:'segment'}));
+  diagram.appendChild(svgEl('line',{x1:355,y1:85,x2:530,y2:45,class:'segment2'}));
+  diagram.appendChild(svgEl('line',{x1:355,y1:135,x2:530,y2:95,class:'segment2'}));
+  addText(76,38,names[0]);addText(76,90,names[1]);
+  addText(500,38,"images",'measure');
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  const scoreTxt=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  scoreBox.textContent=`Score : ${scoreTxt} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function normalizeNumber(str){
+  return Number(String(str).trim().replace(',','.'));
+}
+
+function renderNumeric(q){
+  answerArea.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.className='numeric';
+
+  const input=document.createElement('input');
+  input.type='text';
+  input.inputMode='decimal';
+  input.autocomplete='off';
+  input.setAttribute('aria-label','Réponse numérique');
+
+  const unit=document.createElement('span');
+  unit.className='unit';
+  unit.textContent=q.unit;
+
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.className='validate';
+  btn.textContent='Valider';
+
+  btn.addEventListener('click',()=>submitNumeric(q,input,btn));
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();btn.click()}
+  });
+
+  wrap.append(input,unit,btn);
+  answerArea.appendChild(wrap);
+  setTimeout(()=>input.focus(),50);
+}
+
+function renderChoices(q){
+  answerArea.innerHTML='';
+  const grid=document.createElement('div');
+  grid.className='choice-grid';
+
+  q.choices.forEach(text=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice';
+    btn.textContent=text;
+    btn.addEventListener('click',()=>submitChoice(q,text,btn,grid));
+    grid.appendChild(btn);
+  });
+  answerArea.appendChild(grid);
+}
+
+function firstWrong(q){
+  attempts=1;
+  setFeedback(q.hint,'hint');
+}
+
+function finishQuestion(q,correct,element=null){
+  locked=true;
+  if(correct){
+    if(attempts===0)score+=1;
+    else score+=0.5;
+  }
+
+  if(q.mode==='choice'){
+    const buttons=[...answerArea.querySelectorAll('.choice')];
+    buttons.forEach(b=>{
+      b.disabled=true;
+      if(b.textContent===q.answer)b.classList.add('correct');
+    });
+    if(!correct && element)element.classList.add('wrong');
+  }else{
+    const input=answerArea.querySelector('input');
+    const btn=answerArea.querySelector('.validate');
+    if(input)input.disabled=true;
+    if(btn)btn.disabled=true;
+  }
+
+  if(correct){
+    setFeedback(`${q.property} La réponse est donc correcte.`,'success');
+  }else{
+    const shown=q.mode==='numeric'
+      ? `${fmt(q.answer)} ${q.unit}`
+      : q.answer;
+    setFeedback(`${q.property} La bonne réponse était : ${shown}`,'error');
+  }
+
+  updateTop();
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function submitNumeric(q,input,btn){
+  if(locked)return;
+  const value=normalizeNumber(input.value);
+  if(Number.isNaN(value)){
+    setFeedback('Entre une valeur numérique avant de valider.','hint');
+    return;
+  }
+
+  const correct=Math.abs(value-q.answer)<0.001;
+  if(correct){
+    finishQuestion(q,true);
+    return;
+  }
+
+  if(attempts===0){
+    firstWrong(q);
+    input.value='';
+    input.focus();
+  }else{
+    finishQuestion(q,false);
+  }
+}
+
+function submitChoice(q,value,btn,grid){
+  if(locked)return;
+  const correct=value===q.answer;
+  if(correct){
+    finishQuestion(q,true,btn);
+    return;
+  }
+
+  if(attempts===0){
+    attempts=1;
+    btn.classList.add('wrong');
+    btn.disabled=true;
+    setFeedback(q.hint,'hint');
+  }else{
+    finishQuestion(q,false,btn);
+  }
+}
+
+function renderQuestion(){
+  locked=false;
+  attempts=0;
+  nextBtn.hidden=true;
+
+  const q=questions[index];
+  qtext.innerHTML=q.text;
+  q.draw();
+
+  setFeedback('Toutes les données ne sont pas forcément utiles : choisis celles qui permettent de répondre.');
+
+  if(q.mode==='numeric')renderNumeric(q);
+  else renderChoices(q);
+
+  updateTop();
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  const scoreTxt=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  finalScore.textContent=`Score : ${scoreTxt} / ${TOTAL}`;
+
+  let msg;
+  if(score>=7.5){
+    msg="Excellent : tu sais utiliser les propriétés de la symétrie dans des situations variées.";
+  }else if(score>=6){
+    msg="Très bien. Tu identifies généralement la bonne propriété à utiliser.";
+  }else if(score>=4){
+    msg="C’est en bonne voie. Rejoue pour rencontrer de nouvelles données et consolider les propriétés.";
+  }else{
+    msg="Rejoue avec de nouvelles situations et cherche d’abord quelle propriété est utile avant de calculer.";
+  }
+  finalMessage.textContent=msg;
+}
+
+function next(){
+  if(index===TOTAL-1){showFinal();return}
+  index++;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;attempts=0;locked=false;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+restart();
+})();
+</script>
+</body>
+</html>
