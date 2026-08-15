@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--axis:#263442;
+  --p:#7b4db3;--ps:#f3eef9
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:14px 22px 8px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:16.67%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:126px;padding:8px 13px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:2px 16px 14px;
+  display:flex;flex-direction:column;gap:7px
+}
+.instruction{
+  min-height:44px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.18rem,2.2vw,1.52rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:278px;padding:5px 7px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px;
+  overflow:hidden
+}
+#scene{
+  width:100%;height:100%;min-height:265px;
+  position:relative;overflow:hidden;border-radius:13px
+}
+#scene svg{width:100%;height:100%;display:block;touch-action:manipulation}
+.geolib-line{stroke:var(--axis);stroke-width:4;stroke-linecap:round}
+.geolib-line-label{fill:#17212b;font:700 22px Arial,Helvetica,sans-serif}
+.geolib-point-cross{stroke:var(--b);stroke-width:4.5;stroke-linecap:round}
+.geolib-point-label{fill:#17212b;font:800 21px Arial,Helvetica,sans-serif}
+
+.candidate-line-visible{
+  stroke:var(--p);stroke-width:3.4;stroke-linecap:round;
+  opacity:.92;pointer-events:none
+}
+.candidate-line-hit{
+  stroke:transparent;stroke-width:24;stroke-linecap:round;
+  cursor:pointer;pointer-events:stroke
+}
+.line-group.wrong .candidate-line-visible{stroke:var(--r)}
+.line-group.correct .candidate-line-visible{stroke:var(--g);stroke-width:4.2}
+.line-tag{
+  fill:var(--p);font:800 19px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.line-group.wrong .line-tag{fill:var(--r)}
+.line-group.correct .line-tag{fill:var(--g)}
+
+.candidate-point{cursor:pointer}
+.candidate-point .hit{fill:transparent;pointer-events:all}
+.candidate-point .cross{
+  stroke:var(--p);stroke-width:4.5;stroke-linecap:round;pointer-events:none
+}
+.candidate-point .label{
+  fill:var(--p);font:800 21px Arial,Helvetica,sans-serif;pointer-events:none
+}
+.candidate-point.wrong .cross{stroke:var(--r)}
+.candidate-point.wrong .label{fill:var(--r)}
+.candidate-point.correct .cross{stroke:var(--g)}
+.candidate-point.correct .label{fill:var(--g)}
+
+.guide-line{
+  stroke:var(--g);stroke-width:3.2;stroke-dasharray:9 7;pointer-events:none
+}
+.equal-mark{stroke:var(--g);stroke-width:3;stroke-linecap:round}
+.right-angle{fill:none;stroke:var(--g);stroke-width:3}
+.midpoint{fill:var(--g)}
+.stage{
+  min-height:38px;display:flex;align-items:center;justify-content:center
+}
+.stage-pill{
+  padding:7px 13px;border-radius:999px;
+  color:var(--bd);background:var(--bs);font-weight:800
+}
+.feedback{
+  min-height:58px;padding:8px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.92rem,1.62vw,1.03rem);
+  line-height:1.32;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:38px;display:flex;align-items:center;justify-content:center}
+button.action{
+  min-height:40px;padding:0 20px;font-size:.96rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:12px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{padding:20px;color:#8f2727;font-weight:700;text-align:center}
+
+@media(max-width:720px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:8px 12px 4px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:0 8px 8px;gap:5px}
+  .instruction{min-height:34px;font-size:.98rem}
+  .figure-zone{min-height:180px;padding:3px}
+  #scene{min-height:175px}
+  .stage{min-height:30px}.stage-pill{padding:5px 9px;font-size:.84rem}
+  .feedback{min-height:44px;padding:5px 8px;font-size:.78rem}
+  .controls{min-height:30px}
+  button.action{min-height:32px;height:32px;padding:0 11px;font-size:.82rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Situation 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction">
+      Choisis la droite perpendiculaire à <em>(d)</em> qui passe par <em>M</em>.
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Axe d, point M et droites candidates"></div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-pill" id="stagePill">Étape 1 sur 2 — choisir la bonne droite</div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Une seule droite vérifie les deux conditions.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="continue" hidden>Choisir M′</button>
+      <button class="action secondary" id="next" hidden>Situation suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Mission terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles situations</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const W=860,H=315;
+const POINT_NAMES=['A','B','C','D'];
+const LINE_NAMES=['(a)','(b)','(c)'];
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const instruction=$('instruction');
+const stagePill=$('stagePill');
+const feedback=$('feedback');
+const continueBtn=$('continue');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let scene=null;
+let questions=[];
+let index=0;
+let score=0;
+let stage=1;
+let lineAnswered=false;
+let pointAnswered=false;
+let lineGroups=[];
+let pointGroups=[];
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function rad(deg){return deg*Math.PI/180}
+function add(a,b){return{x:a.x+b.x,y:a.y+b.y}}
+function mul(v,k){return{x:v.x*k,y:v.y*k}}
+function sub(a,b){return{x:a.x-b.x,y:a.y-b.y}}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function inside(p,margin=42){
+  return p.x>=margin&&p.x<=W-margin&&p.y>=margin&&p.y<=H-margin
+}
+function basis(angle){
+  const r=rad(angle);
+  const d={x:Math.cos(r),y:Math.sin(r)};
+  const n={x:-d.y,y:Math.cos(r)};
+  return{d,n}
+}
+function fromLocal(center,angle,u,v){
+  const {d,n}=basis(angle);
+  return{
+    x:center.x+d.x*u+n.x*v,
+    y:center.y+d.y*u+n.y*v
+  }
+}
+function reflectAcrossAxis(center,angle,p){
+  const {d,n}=basis(angle);
+  const q=sub(p,center);
+  const u=q.x*d.x+q.y*d.y;
+  const v=q.x*n.x+q.y*n.y;
+  return fromLocal(center,angle,u,-v);
+}
+function lineEndpoints(point,angle,L=1000){
+  const {d}=basis(angle);
+  return{
+    a:{x:point.x-d.x*L,y:point.y-d.y*L},
+    b:{x:point.x+d.x*L,y:point.y+d.y*L}
+  }
+}
+function spaced(points,min=52){
+  for(let i=0;i<points.length;i++){
+    for(let j=i+1;j<points.length;j++){
+      if(dist(points[i],points[j])<min)return false;
+    }
+  }
+  return true;
+}
+function makeSituation(){
+  let q=null;
+
+  for(let tries=0;tries<500&&!q;tries++){
+    const angle=pick([0,90,25,-25,40,-40,55,-55]);
+    const center={x:rand(380,480),y:rand(140,175)};
+    const u=rand(-48,48);
+    const side=pick([-1,1]);
+    const v=side*rand(70,94);
+
+    const M=fromLocal(center,angle,u,v);
+    const Mp=reflectAcrossAxis(center,angle,M);
+
+    // Candidats pour M'
+    const wrongDistance=fromLocal(
+      center,angle,u,-Math.sign(v)*rand(12,28)
+    );
+    const sameSide=fromLocal(
+      center,angle,u+pick([-1,1])*rand(58,78),v*.78
+    );
+    const wrongDirection=fromLocal(
+      center,angle,u+pick([-1,1])*rand(62,84),-v
+    );
+
+    const points=[Mp,wrongDistance,sameSide,wrongDirection];
+
+    if(
+      !inside(M)||points.some(p=>!inside(p))||
+      !spaced([M,...points],54)
+    )continue;
+
+    const correctPerpAngle=(angle+90)%180;
+
+    // Deux fausses droites : l'une passe par M mais n'est pas perpendiculaire,
+    // l'autre est perpendiculaire mais ne passe pas par M.
+    const falseThroughAngle=(angle+pick([30,45,60,120,135,150]))%180;
+    const {d}=basis(angle);
+    const shiftedPoint=add(M,mul(d,pick([-1,1])*rand(58,82)));
+
+    q={
+      angle,center,M,Mp,
+      lines:[
+        {point:M,angle:correctPerpAngle,correct:true},
+        {point:M,angle:falseThroughAngle,correct:false},
+        {point:shiftedPoint,angle:correctPerpAngle,correct:false}
+      ],
+      points
+    };
+  }
+
+  // Sécurité absolue : aucune situation vide.
+  if(!q){
+    const angle=0;
+    const center={x:430,y:158};
+    const M={x:380,y:238};
+    const Mp={x:380,y:78};
+    q={
+      angle,center,M,Mp,
+      lines:[
+        {point:M,angle:90,correct:true},
+        {point:M,angle:35,correct:false},
+        {point:{x:450,y:238},angle:90,correct:false}
+      ],
+      points:[
+        Mp,
+        {x:380,y:130},
+        {x:455,y:220},
+        {x:455,y:78}
+      ]
+    };
+  }
+
+  return q;
+}
+function balancedSequence(values,total){
+  const out=[];
+  while(out.length<total){
+    out.push(...shuffle(values));
+  }
+  return out.slice(0,total);
+}
+
+function buildQuestions(){
+  const qs=Array.from({length:TOTAL},makeSituation);
+
+  // Les bonnes étiquettes sont décidées une seule fois à la génération,
+  // avec une répartition équilibrée sur l'ensemble de la partie.
+  const pointCorrectNames=balancedSequence(POINT_NAMES,TOTAL);
+  const lineCorrectNames=balancedSequence(LINE_NAMES,TOTAL);
+
+  qs.forEach((q,i)=>{
+    q.correctPointName=pointCorrectNames[i];
+    q.correctLineName=lineCorrectNames[i];
+  });
+
+  return qs;
+}
+function svgEl(tag,attrs={}){
+  return GeoLib.Utils.createSvg(tag,attrs);
+}
+function drawAxis(q){
+  scene.add(new GeoLib.Line(
+    q.center,q.angle,{name:'(d)'}
+  ));
+}
+function drawM(q){
+  scene.add(new GeoLib.Point(
+    q.M.x,q.M.y,{name:'M',size:8,labelOffset:{x:11,y:-12}}
+  ));
+}
+function addLineCandidate(line,name){
+  const {a,b}=lineEndpoints(line.point,line.angle);
+  const g=svgEl('g',{class:'line-group'});
+  const visible=svgEl('line',{
+    x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'candidate-line-visible'
+  });
+  const hit=svgEl('line',{
+    x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'candidate-line-hit'
+  });
+
+  const tagPoint=lineEndpoints(line.point,line.angle,150).b;
+  const tx=Math.max(28,Math.min(W-60,tagPoint.x+8));
+  const ty=Math.max(26,Math.min(H-20,tagPoint.y-8));
+  const tag=svgEl('text',{x:tx,y:ty,class:'line-tag'});
+  tag.textContent=name;
+
+  g.append(visible,hit,tag);
+  scene.layers.drawings.appendChild(g);
+
+  hit.addEventListener('click',()=>chooseLine(line,g));
+  return g;
+}
+function renderStage1(){
+  stage=1;
+  lineAnswered=false;
+  pointAnswered=false;
+  continueBtn.hidden=true;
+  nextBtn.hidden=true;
+
+  instruction.innerHTML='Choisis la droite perpendiculaire à <em>(d)</em> qui passe par <em>M</em>.';
+  stagePill.textContent='Étape 1 sur 2 — choisir la bonne droite';
+  setFeedback('Une seule droite vérifie les deux conditions.');
+
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+  drawAxis(q);
+  drawM(q);
+
+  const correctLine=q.lines.find(l=>l.correct);
+  const wrongLines=shuffle(q.lines.filter(l=>!l.correct));
+  const remainingNames=shuffle(LINE_NAMES.filter(n=>n!==q.correctLineName));
+
+  const named=shuffle([
+    {line:correctLine,name:q.correctLineName},
+    ...wrongLines.map((line,i)=>({line,name:remainingNames[i]}))
+  ]);
+
+  lineGroups=named.map(item=>({
+    data:item.line,
+    group:addLineCandidate(item.line,item.name)
+  }));
+
+  updateTop();
+}
+function disableLineChoices(){
+  lineGroups.forEach(({group})=>{
+    group.style.pointerEvents='none';
+  });
+}
+function markCorrectLine(){
+  lineGroups.forEach(({data,group})=>{
+    if(data.correct)group.classList.add('correct');
+  });
+}
+function chooseLine(line,group){
+  if(lineAnswered)return;
+  lineAnswered=true;
+
+  const correct=line.correct;
+  if(correct){
+    score+=0.5;
+    group.classList.add('correct');
+    setFeedback(
+      'Correct : cette droite passe par M et elle est perpendiculaire à (d).',
+      'success'
+    );
+  }else{
+    group.classList.add('wrong');
+    markCorrectLine();
+    setFeedback(
+      'Cette droite ne vérifie pas les deux conditions. La bonne droite est affichée en vert.',
+      'error'
+    );
+  }
+
+  disableLineChoices();
+  updateTop();
+  continueBtn.hidden=false;
+}
+function addPointCandidate(point,name,isCorrect){
+  const g=svgEl('g',{class:'candidate-point'});
+  const s=8;
+  g.appendChild(svgEl('circle',{
+    cx:point.x,cy:point.y,r:26,class:'hit'
+  }));
+  g.appendChild(svgEl('line',{
+    x1:point.x-s,y1:point.y-s,x2:point.x+s,y2:point.y+s,class:'cross'
+  }));
+  g.appendChild(svgEl('line',{
+    x1:point.x-s,y1:point.y+s,x2:point.x+s,y2:point.y-s,class:'cross'
+  }));
+  const t=svgEl('text',{
+    x:point.x+11,y:point.y-12,class:'label'
+  });
+  t.textContent=name;
+  g.appendChild(t);
+
+  scene.layers.tools.appendChild(g);
+  g.addEventListener('click',()=>choosePoint({point,isCorrect},g));
+  return g;
+}
+function drawCorrectPerpendicular(q){
+  const correct=q.lines.find(l=>l.correct);
+  const {a,b}=lineEndpoints(correct.point,correct.angle);
+  scene.layers.drawings.appendChild(svgEl('line',{
+    x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'guide-line'
+  }));
+}
+function renderStage2(){
+  stage=2;
+  pointAnswered=false;
+  continueBtn.hidden=true;
+
+  instruction.innerHTML='Choisis maintenant le point qui est le symétrique de <em>M</em> par rapport à <em>(d)</em>.';
+  stagePill.textContent='Étape 2 sur 2 — choisir M′';
+  setFeedback('Le point recherché doit être sur la droite verte, de l’autre côté de (d), à la bonne distance.');
+
+  // On repart d'une figure propre : axe + M + bonne perpendiculaire.
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+  drawAxis(q);
+  drawM(q);
+  drawCorrectPerpendicular(q);
+
+  const correctPoint=q.points.find(p=>dist(p,q.Mp)<0.1);
+  const wrongPoints=shuffle(q.points.filter(p=>dist(p,q.Mp)>=0.1));
+  const remainingNames=shuffle(POINT_NAMES.filter(n=>n!==q.correctPointName));
+
+  const candidates=shuffle([
+    {point:correctPoint,isCorrect:true,name:q.correctPointName},
+    ...wrongPoints.map((point,i)=>({
+      point,
+      isCorrect:false,
+      name:remainingNames[i]
+    }))
+  ]);
+
+  pointGroups=candidates.map(c=>({
+    data:c,
+    group:addPointCandidate(c.point,c.name,c.isCorrect)
+  }));
+}
+function disablePointChoices(){
+  pointGroups.forEach(({group})=>group.style.pointerEvents='none');
+}
+function markCorrectPoint(){
+  pointGroups.forEach(({data,group})=>{
+    if(data.isCorrect)group.classList.add('correct');
+  });
+}
+function drawSynthesis(q){
+  const {d,n}=basis(q.angle);
+  const rel=sub(q.M,q.center);
+  const u=rel.x*d.x+rel.y*d.y;
+  const v=rel.x*n.x+rel.y*n.y;
+  const foot=fromLocal(q.center,q.angle,u,0);
+
+  scene.layers.drawings.appendChild(svgEl('line',{
+    x1:q.M.x,y1:q.M.y,x2:q.Mp.x,y2:q.Mp.y,class:'guide-line'
+  }));
+
+  // Milieu sur l'axe.
+  scene.layers.drawings.appendChild(svgEl('circle',{
+    cx:foot.x,cy:foot.y,r:4.2,class:'midpoint'
+  }));
+
+  // Marques d'égalité sur les deux demi-segments.
+  const m1={x:(q.M.x+foot.x)/2,y:(q.M.y+foot.y)/2};
+  const m2={x:(q.Mp.x+foot.x)/2,y:(q.Mp.y+foot.y)/2};
+  for(const p of [m1,m2]){
+    scene.layers.drawings.appendChild(svgEl('line',{
+      x1:p.x-d.x*8,y1:p.y-d.y*8,
+      x2:p.x+d.x*8,y2:p.y+d.y*8,
+      class:'equal-mark'
+    }));
+  }
+
+  // Angle droit au pied.
+  const sign=Math.sign(v)||1;
+  const s=15;
+  const p1=add(foot,mul(d,s));
+  const p2=add(p1,mul(n,sign*s));
+  const p3=add(foot,mul(n,sign*s));
+  scene.layers.drawings.appendChild(svgEl('path',{
+    d:`M ${foot.x} ${foot.y} L ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y}`,
+    class:'right-angle'
+  }));
+}
+function choosePoint(data,group){
+  if(pointAnswered)return;
+  pointAnswered=true;
+
+  if(data.isCorrect){
+    score+=0.5;
+    group.classList.add('correct');
+    setFeedback(
+      'Correct : M′ est sur la perpendiculaire à (d) et à la même distance de l’axe que M.',
+      'success'
+    );
+  }else{
+    group.classList.add('wrong');
+    markCorrectPoint();
+    setFeedback(
+      'Ce point n’est pas le symétrique de M. Le bon point est affiché en vert.',
+      'error'
+    );
+  }
+
+  disablePointChoices();
+  drawSynthesis(questions[index]);
+  updateTop();
+
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Situation suivante';
+  nextBtn.hidden=false;
+}
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+function updateTop(){
+  counter.textContent=`Situation ${index+1} / ${TOTAL}`;
+  const s=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  scoreBox.textContent=`Score : ${s} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  const s=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  finalScore.textContent=`Score : ${s} / ${TOTAL}`;
+
+  let msg;
+  if(score>=5.5){
+    msg="Excellent : tu identifies les deux conditions nécessaires pour construire le symétrique d’un point.";
+  }else if(score>=4.5){
+    msg="Très bien. Tu repères généralement la bonne perpendiculaire et la bonne distance à l’axe.";
+  }else if(score>=3){
+    msg="C’est en bonne voie. Rejoue pour consolider les deux étapes de la construction.";
+  }else{
+    msg="Rejoue : cherche d’abord la perpendiculaire passant par M, puis reporte la distance de l’autre côté de l’axe.";
+  }
+  finalMessage.textContent=msg;
+}
+function next(){
+  if(index===TOTAL-1){showFinal();return}
+  index++;
+  renderStage1();
+}
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderStage1();
+}
+
+continueBtn.addEventListener('click',renderStage2);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>

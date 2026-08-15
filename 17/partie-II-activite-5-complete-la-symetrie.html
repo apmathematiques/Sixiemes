@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;
+  --grid:#d9e4ec;--axis:#263442;--source:#1769aa;--placed:#7b4db3
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:14px 22px 8px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:20%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:120px;padding:8px 13px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:2px 16px 14px;
+  display:flex;flex-direction:column;gap:7px
+}
+.instruction{
+  min-height:44px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.2rem,2.25vw,1.55rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:278px;padding:5px 7px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px;
+  overflow:hidden
+}
+#scene{
+  width:100%;height:100%;min-height:265px;
+  position:relative;overflow:hidden;border-radius:13px
+}
+#scene svg{width:100%;height:100%;display:block;touch-action:none}
+.geolib-line{stroke:var(--axis);stroke-width:4}
+.geolib-line-label{fill:#17212b;font:700 22px Arial,Helvetica,sans-serif}
+.geolib-point-cross{stroke:var(--source);stroke-width:4;stroke-linecap:round}
+.geolib-point-label{fill:#17212b;font:800 19px Arial,Helvetica,sans-serif}
+.grid-line{stroke:var(--grid);stroke-width:1.2}
+.grid-dot{fill:#c7d5df}
+.grid-hit{
+  fill:transparent;
+  stroke:none;
+  cursor:crosshair;
+  pointer-events:all
+}
+.source-poly{
+  fill:rgba(23,105,170,.10);
+  stroke:var(--source);stroke-width:3.5;stroke-linejoin:round
+}
+.placed-poly{
+  fill:rgba(123,77,179,.08);
+  stroke:var(--placed);stroke-width:3.5;stroke-linejoin:round
+}
+.correct-poly{
+  fill:rgba(32,134,75,.08);
+  stroke:var(--g);stroke-width:4;stroke-dasharray:9 7;stroke-linejoin:round
+}
+.placed-cross{stroke:var(--placed);stroke-width:4.5;stroke-linecap:round}
+.placed-label{fill:var(--placed);font:800 19px Arial,Helvetica,sans-serif}
+.placed-hit{fill:transparent;cursor:grab}
+.placed-hit:active{cursor:grabbing}
+.toolbar{
+  min-height:42px;display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-wrap:wrap
+}
+.status{
+  min-width:205px;padding:8px 12px;border-radius:12px;
+  text-align:center;font-weight:750;color:var(--bd);background:var(--bs)
+}
+button.tool,button.action{
+  min-height:40px;padding:0 17px;font-size:.96rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:12px
+}
+button.tool{color:var(--bd);background:var(--bs)}
+button.validate{color:#fff;background:var(--b)}
+button:disabled{opacity:.48;cursor:default}
+.feedback{
+  min-height:58px;padding:8px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.92rem,1.62vw,1.03rem);
+  line-height:1.32;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.feedback.hint{color:#7a5a18;background:#fff8df;border:1px solid #ead79a}
+.controls{min-height:38px;display:flex;align-items:center;justify-content:center}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{padding:20px;color:#8f2727;font-weight:700;text-align:center}
+
+@media(max-width:720px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:8px 12px 4px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:0 8px 8px;gap:5px}
+  .instruction{min-height:34px;font-size:1rem}
+  .figure-zone{min-height:180px;padding:3px}
+  #scene{min-height:175px}
+  .toolbar{min-height:34px;gap:6px}
+  .status{min-width:150px;padding:6px 8px;font-size:.84rem}
+  button.tool,button.action{min-height:32px;height:32px;padding:0 11px;font-size:.82rem}
+  .feedback{min-height:44px;padding:5px 8px;font-size:.78rem}
+  .controls{min-height:30px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Construction 1 / 5</div>
+    <div class="pill" id="score">Score : 0 / 5</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Construis le symétrique de la figure par rapport à la droite <em>(d)</em>.
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Quadrillage, figure et axe de symétrie"></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="status" id="status">Place A′.</div>
+      <button class="tool" id="undo" type="button">Annuler le dernier point</button>
+      <button class="tool validate" id="validate" type="button">Valider</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Clique sur une intersection du quadrillage. Tu peux ensuite déplacer un point par glisser-déposer.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Construction suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=5;
+const COLS=14, ROWS=8;
+const STEP=48, OX=84, OY=40;
+const SCENE_W=840, SCENE_H=465;
+const LETTERS=['A','B','C','D','E','F'];
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const status=$('status');
+const undoBtn=$('undo');
+const validateBtn=$('validate');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let scene=null;
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+let placed=[];
+let placedGroups=[];
+let placedPolyline=null;
+let dragging=null;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function eq(a,b){return a.x===b.x&&a.y===b.y}
+function key(p){return `${p.x},${p.y}`}
+function px(p){return{x:OX+p.x*STEP,y:OY+p.y*STEP}}
+function gridFromPointer(e){
+  const r=scene.svg.getBoundingClientRect();
+  const sx=(e.clientX-r.left)*SCENE_W/r.width;
+  const sy=(e.clientY-r.top)*SCENE_H/r.height;
+  return {
+    x:Math.max(0,Math.min(COLS,Math.round((sx-OX)/STEP))),
+    y:Math.max(0,Math.min(ROWS,Math.round((sy-OY)/STEP)))
+  };
+}
+function svgEl(tag,attrs={}){
+  return GeoLib.Utils.createSvg(tag,attrs);
+}
+function polyArea(points){
+  let s=0;
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[(i+1)%points.length];
+    s+=a.x*b.y-b.x*a.y;
+  }
+  return Math.abs(s)/2;
+}
+function orient(a,b,c){
+  return Math.sign((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x));
+}
+function segmentsIntersect(a,b,c,d){
+  const o1=orient(a,b,c),o2=orient(a,b,d),o3=orient(c,d,a),o4=orient(c,d,b);
+  return o1*o2<0&&o3*o4<0;
+}
+function simplePolygon(points){
+  const n=points.length;
+  for(let i=0;i<n;i++){
+    const a=points[i],b=points[(i+1)%n];
+    for(let j=i+1;j<n;j++){
+      if(j===i||j===(i+1)%n||(i===0&&j===n-1))continue;
+      const c=points[j],d=points[(j+1)%n];
+      if(segmentsIntersect(a,b,c,d))return false;
+    }
+  }
+  return true;
+}
+function sortAroundCentroid(points){
+  const cx=points.reduce((s,p)=>s+p.x,0)/points.length;
+  const cy=points.reduce((s,p)=>s+p.y,0)/points.length;
+  return points.slice().sort((a,b)=>
+    Math.atan2(a.y-cy,a.x-cx)-Math.atan2(b.y-cy,b.x-cx)
+  );
+}
+function reflect(p,axis){
+  switch(axis.type){
+    case 'v': return{x:2*axis.k-p.x,y:p.y};
+    case 'h': return{x:p.x,y:2*axis.k-p.y};
+    case 'd1': return{x:p.y-axis.c,y:p.x+axis.c}; // y=x+c
+    case 'd2': return{x:axis.k-p.y,y:axis.k-p.x}; // x+y=k
+  }
+}
+function onAxis(p,axis){
+  switch(axis.type){
+    case 'v': return p.x===axis.k;
+    case 'h': return p.y===axis.k;
+    case 'd1': return p.y===p.x+axis.c;
+    case 'd2': return p.x+p.y===axis.k;
+  }
+}
+function sourceSide(p,axis){
+  switch(axis.type){
+    case 'v': return p.x<axis.k;
+    case 'h': return p.y<axis.k;
+    case 'd1': return p.y<p.x+axis.c;
+    case 'd2': return p.x+p.y<axis.k;
+  }
+}
+function validGridPoint(p){
+  return p.x>=0&&p.x<=COLS&&p.y>=0&&p.y<=ROWS;
+}
+function axisFor(kind){
+  if(kind==='v')return{type:'v',k:7};
+  if(kind==='h')return{type:'h',k:4};
+  if(kind==='d1')return{type:'d1',c:-3}; // y=x-3
+  return{type:'d2',k:11};               // x+y=11
+}
+function candidatesForAxis(axis,includeAxis=false){
+  const arr=[];
+  for(let y=0;y<=ROWS;y++){
+    for(let x=0;x<=COLS;x++){
+      const p={x,y};
+      const r=reflect(p,axis);
+      if(!validGridPoint(r))continue;
+      if(sourceSide(p,axis)||(includeAxis&&onAxis(p,axis)))arr.push(p);
+    }
+  }
+  return arr;
+}
+function makeFigure(kind,forceAxisPoint=false){
+  const axis=axisFor(kind);
+  const n=randInt(4,6);
+  const pool=candidatesForAxis(axis,forceAxisPoint);
+
+  for(let tries=0;tries<600;tries++){
+    let selected=[];
+    const axisPoints=pool.filter(p=>onAxis(p,axis));
+    const sidePoints=pool.filter(p=>sourceSide(p,axis));
+
+    if(forceAxisPoint&&axisPoints.length){
+      selected.push(pick(axisPoints));
+    }
+    const shuffled=shuffle(sidePoints);
+
+    for(const p of shuffled){
+      if(selected.length>=n)break;
+      if(selected.every(q=>Math.hypot(p.x-q.x,p.y-q.y)>=1.6)){
+        selected.push(p);
+      }
+    }
+    if(selected.length<n)continue;
+
+    selected=sortAroundCentroid(selected);
+
+    const unique=new Set(selected.map(key));
+    if(unique.size!==n)continue;
+    if(polyArea(selected)<7)continue;
+    if(!simplePolygon(selected))continue;
+
+    const target=selected.map(p=>reflect(p,axis));
+    if(target.some(p=>!validGridPoint(p)))continue;
+
+    // Évite les figures trop écrasées.
+    const xs=selected.map(p=>p.x),ys=selected.map(p=>p.y);
+    if(Math.max(...xs)-Math.min(...xs)<2)continue;
+    if(Math.max(...ys)-Math.min(...ys)<2)continue;
+
+    return{axis,source:selected,target};
+  }
+
+  // Sécurité : figures garanties si le générateur aléatoire échoue.
+  const fallback={
+    v:[{x:2,y:2},{x:5,y:1},{x:6,y:4},{x:4,y:6},{x:1,y:5}],
+    h:[{x:3,y:1},{x:7,y:0},{x:10,y:2},{x:9,y:3},{x:4,y:3}],
+    d1:[{x:4,y:0},{x:6,y:1},{x:8,y:3},{x:7,y:4},{x:5,y:2}],
+    d2:[{x:2,y:2},{x:5,y:1},{x:7,y:2},{x:8,y:2},{x:5,y:4}]
+  }[kind];
+  const src=fallback.slice(0,n);
+  if(forceAxisPoint){
+    const axisP=candidatesForAxis(axis,true).find(p=>onAxis(p,axis)&&validGridPoint(p));
+    if(axisP)src[0]=axisP;
+  }
+  const ordered=sortAroundCentroid(src);
+  return{axis,source:ordered,target:ordered.map(p=>reflect(p,axis))};
+}
+function buildQuestions(){
+  const first=pick(['v','h']);
+  const second=first==='v'?'h':'v';
+  const third=pick(['d1','d2']);
+  const fourth=third==='d1'?'d2':'d1';
+  const fifth=pick(['v','h','d1','d2']);
+  return[
+    makeFigure(first,false),
+    makeFigure(second,false),
+    makeFigure(third,false),
+    makeFigure(fourth,true),
+    makeFigure(fifth,Math.random()<.45)
+  ];
+}
+function drawGrid(){
+  const g=svgEl('g');
+  for(let x=0;x<=COLS;x++){
+    const p1=px({x,y:0}),p2=px({x,y:ROWS});
+    g.appendChild(svgEl('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,class:'grid-line'}));
+  }
+  for(let y=0;y<=ROWS;y++){
+    const p1=px({x:0,y}),p2=px({x:COLS,y});
+    g.appendChild(svgEl('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,class:'grid-line'}));
+  }
+  for(let y=0;y<=ROWS;y++){
+    for(let x=0;x<=COLS;x++){
+      const p=px({x,y});
+      g.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:2.2,class:'grid-dot'}));
+    }
+  }
+  scene.layers.lines.appendChild(g);
+}
+function axisLine(q){
+  const a=q.axis;
+  if(a.type==='v'){
+    return new GeoLib.Line(px({x:a.k,y:0}),90,{name:'(d)'});
+  }
+  if(a.type==='h'){
+    return new GeoLib.Line(px({x:0,y:a.k}),0,{name:'(d)'});
+  }
+  if(a.type==='d1'){
+    const p0=px({x:3,y:0});
+    return new GeoLib.Line(p0,45,{name:'(d)'});
+  }
+  const p0=px({x:3,y:8});
+  return new GeoLib.Line(p0,-45,{name:'(d)'});
+}
+function addGridHits(){
+  const g=svgEl('g',{'aria-hidden':'true'});
+
+  for(let y=0;y<=ROWS;y++){
+    for(let x=0;x<=COLS;x++){
+      const gp={x,y};
+      const p=px(gp);
+
+      const hit=svgEl('circle',{
+        cx:p.x,
+        cy:p.y,
+        r:18,
+        class:'grid-hit',
+        'data-x':x,
+        'data-y':y
+      });
+
+      hit.addEventListener('pointerdown',e=>{
+        if(locked||dragging)return;
+        if(placed.length>=questions[index].source.length)return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        placed.push({
+          x:Number(hit.dataset.x),
+          y:Number(hit.dataset.y)
+        });
+        renderPlaced();
+      });
+
+      g.appendChild(hit);
+    }
+  }
+
+  // Les zones de clic sont placées dans le calque des dessins,
+  // après la figure : elles restent donc accessibles même sur un segment.
+  scene.layers.drawings.appendChild(g);
+}
+
+function drawSource(q){
+  const points=q.source.map(px);
+  const poly=svgEl('polygon',{
+    points:points.map(p=>`${p.x},${p.y}`).join(' '),
+    class:'source-poly'
+  });
+  scene.layers.drawings.appendChild(poly);
+
+  q.source.forEach((gp,i)=>{
+    const p=px(gp);
+    const point=new GeoLib.Point(p.x,p.y,{
+      name:LETTERS[i],
+      size:7,
+      labelOffset:{x:10,y:-10}
+    });
+    scene.add(point);
+  });
+}
+function renderPlaced(){
+  if(placedPolyline)placedPolyline.remove();
+  placedGroups.forEach(g=>g.remove());
+  placedGroups=[];
+
+  if(placed.length>=2){
+    const p=placed.map(px);
+    placedPolyline=svgEl('polyline',{
+      points:p.map(v=>`${v.x},${v.y}`).join(' '),
+      class:'placed-poly'
+    });
+    scene.layers.drawings.appendChild(placedPolyline);
+  }else{
+    placedPolyline=null;
+  }
+
+  placed.forEach((gp,i)=>{
+    const p=px(gp);
+    const g=svgEl('g');
+    const s=8;
+    g.appendChild(svgEl('line',{
+      x1:p.x-s,y1:p.y-s,x2:p.x+s,y2:p.y+s,class:'placed-cross'
+    }));
+    g.appendChild(svgEl('line',{
+      x1:p.x-s,y1:p.y+s,x2:p.x+s,y2:p.y-s,class:'placed-cross'
+    }));
+    const label=svgEl('text',{
+      x:p.x+10,y:p.y-10,class:'placed-label'
+    });
+    label.textContent=LETTERS[i]+'′';
+    g.appendChild(label);
+    const hit=svgEl('circle',{
+      cx:p.x,cy:p.y,r:22,class:'placed-hit','data-index':i
+    });
+    g.appendChild(hit);
+    scene.layers.tools.appendChild(g);
+    placedGroups.push(g);
+  });
+
+  if(placed.length===questions[index].source.length){
+    status.textContent='Tous les sommets sont placés.';
+  }else{
+    status.textContent=`Place ${LETTERS[placed.length]}′.`;
+  }
+  undoBtn.disabled=locked||placed.length===0;
+}
+function drawCorrection(q){
+  const pts=q.target.map(px);
+  const poly=svgEl('polygon',{
+    points:pts.map(p=>`${p.x},${p.y}`).join(' '),
+    class:'correct-poly'
+  });
+  scene.layers.drawings.appendChild(poly);
+
+  q.target.forEach((gp,i)=>{
+    const p=px(gp);
+    const g=svgEl('g');
+    const s=9;
+    g.appendChild(svgEl('line',{
+      x1:p.x-s,y1:p.y-s,x2:p.x+s,y2:p.y+s,
+      stroke:'#20864b','stroke-width':4.5,'stroke-linecap':'round'
+    }));
+    g.appendChild(svgEl('line',{
+      x1:p.x-s,y1:p.y+s,x2:p.x+s,y2:p.y-s,
+      stroke:'#20864b','stroke-width':4.5,'stroke-linecap':'round'
+    }));
+    const t=svgEl('text',{
+      x:p.x+11,y:p.y+20,
+      fill:'#20864b',
+      style:'font:800 18px Arial,Helvetica,sans-serif'
+    });
+    t.textContent=LETTERS[i]+'′';
+    g.appendChild(t);
+    scene.layers.points.appendChild(g);
+  });
+}
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+function updateTop(){
+  counter.textContent=`Construction ${index+1} / ${TOTAL}`;
+  const s=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  scoreBox.textContent=`Score : ${s} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+function initScene(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:SCENE_W,height:SCENE_H,keyboard:false});
+  drawGrid();
+  scene.add(axisLine(q));
+  drawSource(q);
+  addGridHits();
+
+  placed=[];
+  placedGroups=[];
+  placedPolyline=null;
+  renderPlaced();
+
+  scene.svg.addEventListener('pointerdown',onPointerDown);
+  scene.svg.addEventListener('pointermove',onPointerMove);
+  scene.svg.addEventListener('pointerup',onPointerUp);
+  scene.svg.addEventListener('pointercancel',onPointerUp);
+}
+function onPointerDown(e){
+  if(locked)return;
+
+  const hit=e.target.closest&&e.target.closest('.placed-hit');
+  if(hit){
+    e.preventDefault();
+    e.stopPropagation();
+    const i=Number(hit.dataset.index);
+    dragging={index:i};
+    try{hit.setPointerCapture(e.pointerId)}catch(_){}
+  }
+}
+function onPointerMove(e){
+  if(locked||!dragging)return;
+  e.preventDefault();
+  const gp=gridFromPointer(e);
+  placed[dragging.index]=gp;
+  renderPlaced();
+}
+function onPointerUp(){
+  dragging=null;
+}
+function resetQuestion(){
+  attempts=0;
+  locked=false;
+  nextBtn.hidden=true;
+  validateBtn.disabled=false;
+  setFeedback(
+    'Clique sur une intersection du quadrillage. Tu peux ensuite déplacer un point par glisser-déposer.'
+  );
+  updateTop();
+  initScene();
+}
+function isCorrect(){
+  const q=questions[index];
+  if(placed.length!==q.target.length)return false;
+  return placed.every((p,i)=>eq(p,q.target[i]));
+}
+function validate(){
+  if(locked)return;
+  const q=questions[index];
+
+  if(placed.length<q.source.length){
+    setFeedback(
+      `Il reste ${q.source.length-placed.length} sommet${q.source.length-placed.length>1?'s':''} à placer.`,
+      'hint'
+    );
+    return;
+  }
+
+  if(isCorrect()){
+    locked=true;
+    score+=attempts===0?1:0.5;
+    validateBtn.disabled=true;
+    undoBtn.disabled=true;
+    setFeedback(
+      'Bravo ! Chaque sommet est à la bonne position par rapport à l’axe.',
+      'success'
+    );
+    updateTop();
+    nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Construction suivante';
+    nextBtn.hidden=false;
+    return;
+  }
+
+  if(attempts===0){
+    attempts=1;
+    setFeedback(
+      'Certains sommets ne sont pas à la bonne position. Vérifie leur distance à l’axe et la direction utilisée.',
+      'hint'
+    );
+  }else{
+    locked=true;
+    validateBtn.disabled=true;
+    undoBtn.disabled=true;
+    drawCorrection(q);
+    setFeedback(
+      'La construction correcte est affichée en vert. Compare surtout la direction et la distance de chaque sommet à l’axe.',
+      'error'
+    );
+    nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Construction suivante';
+    nextBtn.hidden=false;
+  }
+}
+function undo(){
+  if(locked||placed.length===0)return;
+  placed.pop();
+  renderPlaced();
+}
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  const s=Number.isInteger(score)?score:score.toFixed(1).replace('.',',');
+  finalScore.textContent=`Score : ${s} / ${TOTAL}`;
+
+  let msg;
+  if(score>=4.5){
+    msg="Excellent : tu construis correctement des symétriques sur quadrillage, y compris avec un axe oblique.";
+  }else if(score>=3.5){
+    msg="Très bien. Tu maîtrises l’essentiel de la construction sur quadrillage.";
+  }else if(score>=2.5){
+    msg="C’est en bonne voie. Rejoue pour travailler de nouvelles figures et de nouveaux axes.";
+  }else{
+    msg="Rejoue avec de nouvelles constructions : pour chaque sommet, vérifie la direction et la distance à l’axe.";
+  }
+  finalMessage.textContent=msg;
+}
+function next(){
+  if(index===TOTAL-1){showFinal();return}
+  index++;
+  resetQuestion();
+}
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;attempts=0;locked=false;
+  exercise.style.display='';
+  final.classList.remove('show');
+  resetQuestion();
+}
+
+undoBtn.addEventListener('click',undo);
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  validateBtn.disabled=true;
+  undoBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>
