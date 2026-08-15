@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-15
+
+- Ajout au chapitre 15 de l’activité de construction du cercle circonscrit à un triangle.
+- Validation pédagogique renforcée : deux médiatrices distinctes et le cercle correct sont désormais exigés.
+- Correction détaillée, annulation fiable des sélections d’instruments en attente et amélioration du format responsive 16:9.
+- Clarification de l’usage du compas GeoLib 1.4 comme extension du noyau stable GeoLib 1.3.
+
 ## 2026-07-19
 
 - Ajout de l'exercice 2 du chapitre 7 sur la lecture des abscisses décimales de points placés sur une demi-droite graduée.
