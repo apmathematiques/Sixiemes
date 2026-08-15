@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:14px 22px 8px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:16.67%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:112px;padding:8px 13px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 16px 16px;
+  display:flex;flex-direction:column;gap:8px
+}
+.instruction{
+  min-height:42px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 8px;
+  font-size:clamp(1.25rem,2.45vw,1.68rem);
+  font-weight:700;line-height:1.2;text-align:center
+}
+.problem-card{
+  padding:14px 18px;
+  background:#fff;border:1px solid #dce9f3;border-radius:16px;
+  font-size:clamp(1.05rem,2vw,1.28rem);
+  font-weight:650;line-height:1.45;text-align:center
+}
+.workspace{
+  flex:1;min-height:250px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);
+  gap:12px
+}
+.panel{
+  min-width:0;padding:13px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:16px
+}
+.panel-title{
+  color:var(--bd);font-weight:800;text-align:center;
+  font-size:clamp(.98rem,1.8vw,1.12rem)
+}
+.choice-list{
+  width:min(520px,100%);
+  display:grid;grid-template-columns:1fr;gap:8px
+}
+.choice-button{
+  min-height:54px;padding:8px 12px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--bd);background:var(--bs);
+  border:2px solid #b9d4e8;border-radius:13px;
+  font:800 clamp(1.05rem,2.2vw,1.38rem)/1.1 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.987)}
+.choice-button.selected{border-color:var(--b);background:#dceefb}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+
+.frac{
+  display:inline-grid;grid-template-rows:auto 2px auto;
+  min-width:1.25em;vertical-align:middle;align-items:center;
+  text-align:center;line-height:1
+}
+.frac .num{padding:0 .12em .07em}
+.frac .line{height:2px;background:currentColor;width:100%}
+.frac .den{padding:.07em .12em 0}
+.op{padding:0 .12em}
+
+.answer-line{
+  display:flex;align-items:center;justify-content:center;gap:.32em;
+  font-size:clamp(1.5rem,3.3vw,2.15rem);font-weight:800
+}
+.answer-frac{
+  display:inline-grid;grid-template-rows:auto 3px auto;
+  width:82px;align-items:center;text-align:center;line-height:1
+}
+.answer-frac .line{height:3px;background:var(--i);width:100%}
+.answer-frac input{
+  width:82px;height:50px;padding:3px 5px;
+  border:3px solid #b9d4e8;border-radius:10px;
+  color:var(--bd);background:#fff;
+  font:800 1.35rem/1 Arial,Helvetica,sans-serif;
+  text-align:center;outline:none
+}
+.answer-frac input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 3px rgba(23,105,170,.12)
+}
+.answer-frac input.correct{
+  border-color:#79c798;background:var(--gs);color:#165e36
+}
+.answer-frac input.wrong{
+  border-color:#df8585;background:var(--rs);color:#8f2727
+}
+.answer-frac .num-input{margin-bottom:6px}
+.answer-frac .den-input{margin-top:6px}
+
+.feedback{
+  min-height:72px;padding:9px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.93rem,1.65vw,1.05rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:13px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:42px;display:flex;align-items:center;justify-content:center;gap:9px
+}
+button.action{
+  min-height:42px;padding:0 20px;font-size:.98rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:12px
+}
+button.action:disabled{opacity:.45;cursor:default}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:5px}
+  .app{min-height:0;max-height:calc(100vh - 10px);border-radius:15px}
+  .top{grid-template-columns:1fr auto;padding:8px 10px 4px;gap:6px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:5px 8px;font-size:.82rem}
+  .main{padding:2px 7px 7px;gap:5px}
+  .instruction{min-height:32px;font-size:.96rem}
+  .problem-card{padding:8px 10px;font-size:.86rem;line-height:1.3}
+  .workspace{min-height:190px;gap:6px}
+  .panel{padding:7px;gap:7px}
+  .panel-title{font-size:.78rem}
+  .choice-list{gap:5px}
+  .choice-button{min-height:40px;padding:5px 6px;font-size:.9rem;border-radius:9px}
+  .answer-line{font-size:1.18rem}
+  .answer-frac{width:52px}
+  .answer-frac input{
+    width:52px;height:36px;font-size:1rem;border-radius:8px;border-width:2px
+  }
+  .answer-frac .num-input{margin-bottom:4px}
+  .answer-frac .den-input{margin-top:4px}
+  .feedback{min-height:50px;padding:6px 8px;font-size:.73rem}
+  .controls{min-height:34px}
+  button.action{min-height:34px;height:34px;padding:0 12px;font-size:.82rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Choisis le calcul, puis donne le résultat.</p>
+
+    <div class="problem-card" id="problem"></div>
+
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-title">Quel calcul correspond à la situation ?</div>
+        <div class="choice-list" id="choices"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Résultat</div>
+        <div class="answer-line">
+          <span id="chosenCalc">?</span>
+          <span class="op">=</span>
+          <span class="answer-frac">
+            <input id="resultNum" class="num-input" type="number" inputmode="numeric"
+              min="0" step="1" aria-label="Numérateur du résultat">
+            <span class="line"></span>
+            <input id="resultDen" class="den-input" type="number" inputmode="numeric"
+              min="1" step="1" aria-label="Dénominateur du résultat">
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux problèmes</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const $=id=>document.getElementById(id);
+
+const problem=$('problem');
+const choices=$('choices');
+const chosenCalc=$('chosenCalc');
+const resultNum=$('resultNum');
+const resultDen=$('resultDen');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+let selectedChoice=null;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function gcd(a,b){
+  while(b){ [a,b]=[b,a%b]; }
+  return a;
+}
+function fractionHTML(n,d){
+  return `<span class="frac" aria-label="${n} sur ${d}">
+    <span class="num">${n}</span><span class="line"></span><span class="den">${d}</span>
+  </span>`;
+}
+function expressionHTML(q,op){
+  return `${fractionHTML(q.aN,q.aD)}
+    <span class="op">${op}</span>
+    ${fractionHTML(q.bN,q.bD)}`;
+}
+function malformedHTML(q){
+  return fractionHTML(q.aN+q.bN,q.aD+q.bD);
+}
+function normalizeInputs(){
+  const n=Number(resultNum.value);
+  const d=Number(resultDen.value);
+  if(Number.isFinite(n)) resultNum.value=String(n);
+  if(Number.isFinite(d)) resultDen.value=String(d);
+}
+function quantityText(n,d,unit){
+  return `${n}/${d} ${unit}`;
+}
+
+// Contextes validés : le texte reste fixe, seules les données changent.
+const ADD_TEMPLATES=[
+  q=>`Lors d’une randonnée, Inès parcourt ${quantityText(q.aN,q.aD,'km')} le matin puis ${quantityText(q.bN,q.bD,'km')} l’après-midi. Quelle distance a-t-elle parcourue au total ?`,
+  q=>`Pour une recette, on verse ${quantityText(q.aN,q.aD,'L')} de jus puis encore ${quantityText(q.bN,q.bD,'L')}. Quelle quantité de jus a-t-on versée ?`,
+  q=>`Noah utilise ${quantityText(q.aN,q.aD,'m')} de ruban rouge et ${quantityText(q.bN,q.bD,'m')} de ruban bleu. Quelle longueur de ruban utilise-t-il au total ?`,
+  q=>`Lina lit pendant ${quantityText(q.aN,q.aD,'h')} puis travaille pendant ${quantityText(q.bN,q.bD,'h')}. Quelle durée ces deux activités représentent-elles ensemble ?`,
+  q=>`Un récipient reçoit d’abord ${quantityText(q.aN,q.aD,'L')} d’eau, puis ${quantityText(q.bN,q.bD,'L')} supplémentaires. Quelle quantité d’eau contient-il après ces deux ajouts ?`
+];
+
+const SUB_TEMPLATES=[
+  q=>`Une bouteille contient ${quantityText(q.aN,q.aD,'L')} de boisson. On en utilise ${quantityText(q.bN,q.bD,'L')}. Quelle quantité reste-t-il ?`,
+  q=>`Un ruban mesure ${quantityText(q.aN,q.aD,'m')}. On découpe un morceau de ${quantityText(q.bN,q.bD,'m')}. Quelle longueur de ruban reste-t-il ?`,
+  q=>`Maya devait parcourir ${quantityText(q.aN,q.aD,'km')}. Elle a déjà parcouru ${quantityText(q.bN,q.bD,'km')}. Quelle distance lui reste-t-il à parcourir ?`,
+  q=>`Un récipient contient ${quantityText(q.aN,q.aD,'L')} d’eau. On retire ${quantityText(q.bN,q.bD,'L')}. Quelle quantité d’eau reste-t-il ?`,
+  q=>`Un travail demande ${quantityText(q.aN,q.aD,'h')}. Sam a déjà travaillé pendant ${quantityText(q.bN,q.bD,'h')}. Quelle durée de travail lui reste-t-il ?`
+];
+
+function makeSameDen(op){
+  const d=pick([4,5,6,7,8,9,10,12]);
+  let aN,bN;
+
+  if(op==='+'){
+    aN=randInt(1,d-1);
+    bN=randInt(1,d-1);
+  }else{
+    bN=randInt(1,d-2);
+    aN=randInt(bN+1,d+3);
+  }
+
+  const resultN=op==='+' ? aN+bN : aN-bN;
+
+  return{
+    aN,aD:d,bN,bD:d,op,
+    resultN,resultD:d,
+    type:'same'
+  };
+}
+
+function makeMultipleDen(op){
+  for(let tries=0;tries<200;tries++){
+    const small=pick([2,3,4,5,6,7,8]);
+    const factor=pick([2,3,4]);
+    const big=small*factor;
+    const smallFirst=Math.random()<.5;
+
+    // On construit les valeurs en unités du grand dénominateur.
+    let smallNum=randInt(1,small+1);
+    let bigNum=randInt(1,big+2);
+
+    const smallAsBig=smallNum*factor;
+    let firstUnits=smallFirst?smallAsBig:bigNum;
+    let secondUnits=smallFirst?bigNum:smallAsBig;
+
+    if(op==='−' && firstUnits<=secondUnits) continue;
+
+    const aN=smallFirst?smallNum:bigNum;
+    const aD=smallFirst?small:big;
+    const bN=smallFirst?bigNum:smallNum;
+    const bD=smallFirst?big:small;
+
+    const resultN=op==='+' ? firstUnits+secondUnits : firstUnits-secondUnits;
+
+    return{
+      aN,aD,bN,bD,op,
+      resultN,resultD:big,
+      type:'multiple'
+    };
+  }
+
+  // Sécurité
+  return{
+    aN:3,aD:4,bN:2,bD:8,op:'+',
+    resultN:8,resultD:8,type:'multiple'
+  };
+}
+
+function makeQuestion(op,type){
+  const q=type==='same' ? makeSameDen(op) : makeMultipleDen(op);
+  const template=pick(op==='+'?ADD_TEMPLATES:SUB_TEMPLATES);
+  q.text=template(q);
+  return q;
+}
+
+function buildQuestions(){
+  // Répartition équilibrée :
+  // 3 additions, 3 soustractions ; 3 mêmes dénominateurs, 3 multiples.
+  return shuffle([
+    makeQuestion('+','same'),
+    makeQuestion('+','multiple'),
+    makeQuestion('+',Math.random()<.5?'same':'multiple'),
+    makeQuestion('−','same'),
+    makeQuestion('−','multiple'),
+    makeQuestion('−',Math.random()<.5?'same':'multiple')
+  ]);
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderChoices(q){
+  choices.innerHTML='';
+
+  const options=shuffle([
+    {id:'correct',html:expressionHTML(q,q.op)},
+    {id:'opposite',html:expressionHTML(q,q.op==='+'?'−':'+')},
+    {id:'malformed',html:malformedHTML(q)}
+  ]);
+
+  options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='choice-button';
+    btn.dataset.id=opt.id;
+    btn.innerHTML=opt.html;
+    btn.addEventListener('click',()=>selectChoice(btn,opt,q));
+    choices.appendChild(btn);
+  });
+}
+
+function selectChoice(btn,opt,q){
+  if(locked) return;
+
+  selectedChoice=opt.id;
+
+  [...choices.querySelectorAll('.choice-button')].forEach(b=>{
+    b.classList.remove('selected');
+  });
+  btn.classList.add('selected');
+
+  if(opt.id==='correct'){
+    chosenCalc.innerHTML=expressionHTML(q,q.op);
+  }else if(opt.id==='opposite'){
+    chosenCalc.innerHTML=expressionHTML(q,q.op==='+'?'−':'+');
+  }else{
+    chosenCalc.innerHTML=malformedHTML(q);
+  }
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  locked=false;
+  selectedChoice=null;
+
+  problem.textContent=q.text;
+  renderChoices(q);
+
+  chosenCalc.textContent='?';
+  resultNum.value='';
+  resultDen.value='';
+  resultNum.disabled=false;
+  resultDen.disabled=false;
+  resultNum.className='num-input';
+  resultDen.className='den-input';
+
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+
+  updateTop();
+
+  [resultNum,resultDen].forEach(input=>{
+    input.addEventListener('input',()=>input.classList.remove('correct','wrong'),{once:false});
+  });
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  const q=questions[index];
+
+  if(!selectedChoice){
+    setFeedback('Choisis d’abord le calcul correspondant à la situation.','error');
+    return;
+  }
+  if(resultNum.value==='' || resultDen.value===''){
+    setFeedback('Complète le numérateur et le dénominateur du résultat.','error');
+    return;
+  }
+
+  const n=Number(resultNum.value);
+  const d=Number(resultDen.value);
+
+  if(!Number.isInteger(n) || !Number.isInteger(d) || n<0 || d<=0){
+    setFeedback('Entre deux nombres entiers, avec un dénominateur strictement positif.','error');
+    return;
+  }
+
+  normalizeInputs();
+  locked=true;
+
+  const operationOK=selectedChoice==='correct';
+
+  // Accepte toute fraction équivalente au résultat attendu :
+  // par exemple 1/8 est accepté si le résultat généré est 4/32.
+  const resultOK=(n*q.resultD===q.resultN*d);
+
+  const buttons=[...choices.querySelectorAll('.choice-button')];
+  buttons.forEach(btn=>{
+    btn.disabled=true;
+    if(btn.dataset.id==='correct') btn.classList.add('correct');
+    if(btn.dataset.id===selectedChoice && selectedChoice!=='correct') btn.classList.add('wrong');
+  });
+
+  resultNum.disabled=true;
+  resultDen.disabled=true;
+  resultNum.classList.add(resultOK?'correct':'wrong');
+  resultDen.classList.add(resultOK?'correct':'wrong');
+
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+
+  const symbol=q.op==='+'?'+':'−';
+  const action=q.op==='+'?'additionner':'soustraire';
+
+  if(operationOK && resultOK){
+    score++;
+    const exactForm=(n===q.resultN && d===q.resultD);
+    setFeedback(
+      exactForm
+        ? `Bravo ! Il fallait ${action} les deux quantités. Le résultat est ${q.resultN}/${q.resultD}.`
+        : `Bravo ! ${n}/${d} est une fraction équivalente à ${q.resultN}/${q.resultD} : ta réponse est correcte.`,
+      'success'
+    );
+  }else if(!operationOK && resultOK){
+    setFeedback(
+      `La fraction donnée est équivalente au bon résultat, mais le calcul choisi ne correspond pas à la situation. Il fallait utiliser ${q.aN}/${q.aD} ${symbol} ${q.bN}/${q.bD}.`,
+      'error'
+    );
+  }else if(operationOK && !resultOK){
+    if(q.type==='same'){
+      setFeedback(
+        `Le calcul choisi est correct. Les dénominateurs sont déjà identiques : on agit sur les numérateurs et on conserve ${q.resultD}. Le résultat est ${q.resultN}/${q.resultD}.`,
+        'error'
+      );
+    }else{
+      setFeedback(
+        `Le calcul choisi est correct. Il faut d’abord écrire les deux fractions avec le même dénominateur, puis ${action} les numérateurs. Le résultat attendu est ${q.resultN}/${q.resultD}.`,
+        'error'
+      );
+    }
+  }else{
+    setFeedback(
+      `Il fallait d’abord choisir ${q.aN}/${q.aD} ${symbol} ${q.bN}/${q.bD}, puis effectuer ce calcul. Le résultat attendu est ${q.resultN}/${q.resultD}.`,
+      'error'
+    );
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===6){
+    finalMessage.textContent='Excellent ! Tu sais choisir l’opération adaptée et calculer avec des fractions.';
+  }else if(score>=4){
+    finalMessage.textContent='Très bien ! Tu comprends la plupart des situations. Rejoue pour rencontrer de nouveaux problèmes.';
+  }else if(score>=2){
+    finalMessage.textContent='C’est en bonne voie. Lis bien la situation avant de choisir l’opération, puis vérifie les dénominateurs.';
+  }else{
+    finalMessage.textContent='Rejoue avec une nouvelle série : commence par déterminer ce que l’on cherche avant de choisir l’opération.';
+  }
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  locked=false;
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validateAnswer);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>
