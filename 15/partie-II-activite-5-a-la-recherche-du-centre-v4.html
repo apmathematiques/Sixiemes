@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:16.67%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:58px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.45rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:290px;padding:12px 18px 14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.figure-wrap{
+  width:min(820px,100%);height:min(330px,39vh);
+  min-height:245px;display:grid;place-items:center
+}
+#figure{width:100%;height:100%;display:block}
+.feedback{
+  min-height:72px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.75vw,1.1rem);
+  line-height:1.38;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback:empty{visibility:hidden}
+.feedback.success{visibility:visible;color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{visibility:visible;color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{min-height:48px;display:flex;align-items:center;justify-content:center}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+.triangle{fill:none;stroke:var(--line);stroke-width:5;stroke-linejoin:round}
+.bisector{stroke:var(--b);stroke-width:3.5;stroke-linecap:round}
+.mid-mark{stroke:var(--line);stroke-width:3.5;stroke-linecap:round}
+.right-mark{fill:none;stroke:var(--line);stroke-width:3}
+.vertex-mark{stroke:var(--line);stroke-width:4;stroke-linecap:round}
+.vertex-label{
+  fill:var(--i);font-family:Arial,Helvetica,sans-serif;
+  font-size:25px;font-weight:800
+}
+.candidate circle{
+  fill:#fff;stroke:#9db5c8;stroke-width:3;
+  transition:fill .15s ease,stroke .15s ease
+}
+.candidate text{
+  fill:var(--i);font-family:Arial,Helvetica,sans-serif;
+  font-size:21px;font-weight:800;pointer-events:none;
+  dominant-baseline:middle;text-anchor:middle
+}
+.candidate{cursor:pointer}
+.candidate:hover circle{fill:var(--bs);stroke:#6f9dc0}
+.candidate.correct circle{fill:var(--gs);stroke:#58ad77}
+.candidate.wrong circle{fill:var(--rs);stroke:#d56b6b}
+.note{
+  fill:#7b8791;font-family:Arial,Helvetica,sans-serif;
+  font-size:16px;font-style:italic
+}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:44px;font-size:1.08rem}
+  .question-zone{min-height:180px;padding:8px 10px 10px}
+  .figure-wrap{min-height:165px;height:min(230px,34vh)}
+  .feedback{min-height:54px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:42px}
+  button.action{min-height:40px;height:40px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Quel point est le centre du cercle circonscrit au triangle ABC ?</p>
+
+    <div class="question-zone">
+      <div class="figure-wrap">
+        <svg id="figure" viewBox="0 0 820 340" role="img"
+             aria-label="Triangle avec deux médiatrices et plusieurs points candidats"></svg>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Recommencer avec de nouveaux triangles
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+
+const figure=$('figure');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[],index=0,score=0,locked=false;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){
+  const c=a.slice();
+  for(let i=c.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [c[i],c[j]]=[c[j],c[i]];
+  }
+  return c;
+}
+function add(name,attrs={},text='',parent=figure){
+  const el=document.createElementNS(NS,name);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  if(text) el.textContent=text;
+  parent.appendChild(el);
+  return el;
+}
+function dist(P,Q){return Math.hypot(Q.x-P.x,Q.y-P.y)}
+function midpoint(P,Q){return{x:(P.x+Q.x)/2,y:(P.y+Q.y)/2}}
+function unit(P,Q){
+  const dx=Q.x-P.x,dy=Q.y-P.y,l=Math.hypot(dx,dy);
+  return{x:dx/l,y:dy/l};
+}
+function perp(u){return{x:-u.y,y:u.x}}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function near(P,Q,d=20){return dist(P,Q)<d}
+
+function circumcenter(A,B,C){
+  const d=2*(A.x*(B.y-C.y)+B.x*(C.y-A.y)+C.x*(A.y-B.y));
+  if(Math.abs(d)<1e-6) return null;
+
+  const a2=A.x*A.x+A.y*A.y;
+  const b2=B.x*B.x+B.y*B.y;
+  const c2=C.x*C.x+C.y*C.y;
+
+  return{
+    x:(a2*(B.y-C.y)+b2*(C.y-A.y)+c2*(A.y-B.y))/d,
+    y:(a2*(C.x-B.x)+b2*(A.x-C.x)+c2*(B.x-A.x))/d
+  };
+}
+
+function lineBoxPoints(P,u){
+  const pts=[];
+  const xmin=35,xmax=785,ymin=20,ymax=320;
+
+  if(Math.abs(u.x)>1e-8){
+    [xmin,xmax].forEach(x=>{
+      const t=(x-P.x)/u.x;
+      const y=P.y+t*u.y;
+      if(y>=ymin && y<=ymax) pts.push({x,y});
+    });
+  }
+  if(Math.abs(u.y)>1e-8){
+    [ymin,ymax].forEach(y=>{
+      const t=(y-P.y)/u.y;
+      const x=P.x+t*u.x;
+      if(x>=xmin && x<=xmax) pts.push({x,y});
+    });
+  }
+
+  if(pts.length<2) return null;
+
+  let best=[pts[0],pts[1]],bestD=dist(pts[0],pts[1]);
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dd=dist(pts[i],pts[j]);
+      if(dd>bestD){best=[pts[i],pts[j]];bestD=dd}
+    }
+  }
+  return best;
+}
+
+function polar(O,r,a){
+  return{
+    x:O.x+r*Math.cos(a),
+    y:O.y+r*Math.sin(a)
+  };
+}
+
+function safeVertex(P){
+  return P.x>=80 && P.x<=740 && P.y>=45 && P.y<=295;
+}
+
+function safeTriangle(A,B,C){
+  if(!safeVertex(A) || !safeVertex(B) || !safeVertex(C)) return false;
+
+  const sides=[dist(A,B),dist(B,C),dist(C,A)];
+  if(Math.min(...sides)<115) return false;
+  if(Math.max(...sides)>430) return false;
+
+  return true;
+}
+
+function randomPermutation(points){
+  return shuffle(points).map(P=>({x:P.x,y:P.y}));
+}
+
+function makeAcute(){
+  for(let tries=0;tries<400;tries++){
+    const O={x:rand(245,575),y:rand(115,225)};
+    const r=rand(115,170);
+    const rot=rand(0,Math.PI*2);
+
+    // Trois arcs tous inférieurs à 180° : le triangle est aigu.
+    const g1=rand(1.75,2.35);
+    const g2=rand(1.75,2.35);
+    const g3=Math.PI*2-g1-g2;
+    if(g3<1.75 || g3>2.35) continue;
+
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+g1),
+      polar(O,r,rot+g1+g2)
+    ];
+
+    const [A,B,C]=randomPermutation(pts);
+    if(!safeTriangle(A,B,C)) continue;
+
+    return{type:'acute',A,B,C,O,radius:r};
+  }
+  return null;
+}
+
+function makeRight(){
+  for(let tries=0;tries<400;tries++){
+    const O={x:rand(245,575),y:rand(115,225)};
+    const r=rand(120,168);
+    const rot=rand(0,Math.PI*2);
+
+    // Deux sommets sont diamétralement opposés :
+    // le troisième angle est donc droit.
+    const theta=rand(0.85,2.30);
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+Math.PI),
+      polar(O,r,rot+theta)
+    ];
+
+    const [A,B,C]=randomPermutation(pts);
+    if(!safeTriangle(A,B,C)) continue;
+
+    return{type:'right',A,B,C,O,radius:r};
+  }
+  return null;
+}
+
+function makeObtuse(){
+  for(let tries=0;tries<500;tries++){
+    const O={x:rand(245,575),y:rand(115,225)};
+    const r=rand(120,168);
+    const rot=rand(0,Math.PI*2);
+
+    // Un arc supérieur à 180° produit un angle inscrit obtus.
+    const largeGap=rand(3.35,4.05);
+    const smallGap=rand(0.90,1.65);
+    const lastGap=Math.PI*2-largeGap-smallGap;
+    if(lastGap<0.65 || lastGap>1.75) continue;
+
+    const pts=[
+      polar(O,r,rot),
+      polar(O,r,rot+largeGap),
+      polar(O,r,rot+largeGap+smallGap)
+    ];
+
+    const [A,B,C]=randomPermutation(pts);
+    if(!safeTriangle(A,B,C)) continue;
+
+    return{type:'obtuse',A,B,C,O,radius:r};
+  }
+  return null;
+}
+
+function angleModuloPi(a){
+  a%=Math.PI;
+  if(a<0) a+=Math.PI;
+  return a;
+}
+
+function orientationOf(q){
+  return angleModuloPi(Math.atan2(q.B.y-q.A.y,q.B.x-q.A.x));
+}
+
+function orientationDifference(a,b){
+  let d=Math.abs(a-b);
+  d=Math.min(d,Math.PI-d);
+  return d;
+}
+
+function sideRatio(q){
+  const sides=[
+    dist(q.A,q.B),
+    dist(q.B,q.C),
+    dist(q.C,q.A)
+  ].sort((a,b)=>a-b);
+  return sides[2]/sides[0];
+}
+
+function tooSimilar(q,previous){
+  return previous.some(p=>{
+    if(p.type!==q.type) return false;
+
+    const centerDistance=dist(q.O,p.O);
+    const angleDistance=orientationDifference(
+      orientationOf(q),
+      orientationOf(p)
+    );
+    const radiusDistance=Math.abs(q.radius-p.radius);
+    const ratioDistance=Math.abs(sideRatio(q)-sideRatio(p));
+
+    // Deux figures d'un même type sont rejetées si elles sont proches
+    // à la fois par leur position, leur orientation et leur forme.
+    return (
+      centerDistance<115 &&
+      angleDistance<0.55 &&
+      radiusDistance<32 &&
+      ratioDistance<0.20
+    );
+  });
+}
+
+function makeQuestion(type,previous=[]){
+  for(let tries=0;tries<900;tries++){
+    const q=
+      type==='acute' ? makeAcute() :
+      type==='right' ? makeRight() :
+      makeObtuse();
+
+    if(!q) continue;
+
+    // On recalcule volontairement le centre à partir des sommets :
+    // c'est ce résultat qui commande les médiatrices et la réponse.
+    q.O=circumcenter(q.A,q.B,q.C);
+    if(!q.O) continue;
+    if(q.O.x<55 || q.O.x>765 || q.O.y<35 || q.O.y>305) continue;
+    if(tooSimilar(q,previous)) continue;
+
+    q.candidates=makeCandidates(q);
+    return q;
+  }
+
+  // Sécurité : dans le cas extrêmement improbable où toutes les
+  // générations seraient refusées, on retente sans filtre de ressemblance.
+  for(let tries=0;tries<500;tries++){
+    const q=
+      type==='acute' ? makeAcute() :
+      type==='right' ? makeRight() :
+      makeObtuse();
+
+    if(!q) continue;
+    q.O=circumcenter(q.A,q.B,q.C);
+    if(!q.O) continue;
+    if(q.O.x<55 || q.O.x>765 || q.O.y<35 || q.O.y>305) continue;
+
+    q.candidates=makeCandidates(q);
+    return q;
+  }
+
+  throw new Error('Impossible de générer un triangle valide.');
+}
+
+function makeCandidates(q){
+  const names=shuffle(['P','Q','R','S']);
+  const O={x:q.O.x,y:q.O.y,name:names[0],correct:true};
+
+  const centroid={
+    x:(q.A.x+q.B.x+q.C.x)/3,
+    y:(q.A.y+q.B.y+q.C.y)/3,
+    name:names[1],correct:false
+  };
+
+  const mAB=midpoint(q.A,q.B);
+  const mAC=midpoint(q.A,q.C);
+
+  const false1={
+    x:clamp(mAB.x+rand(-28,28),65,755),
+    y:clamp(mAB.y+rand(-28,28),45,295),
+    name:names[2],correct:false
+  };
+
+  const false2={
+    x:clamp(mAC.x+rand(-28,28),65,755),
+    y:clamp(mAC.y+rand(-28,28),45,295),
+    name:names[3],correct:false
+  };
+
+  const arr=[O,centroid,false1,false2];
+
+  // Éviter les candidats presque superposés.
+  for(let i=1;i<arr.length;i++){
+    for(let j=0;j<i;j++){
+      if(near(arr[i],arr[j],38)){
+        const angle=rand(0,Math.PI*2);
+        arr[i].x=clamp(arr[i].x+65*Math.cos(angle),65,755);
+        arr[i].y=clamp(arr[i].y+65*Math.sin(angle),45,295);
+      }
+    }
+  }
+
+  return shuffle(arr);
+}
+
+function buildQuestions(){
+  const generated=[];
+
+  // Chaque question est générée indépendamment.
+  // Le second triangle d'un même type est rejeté s'il ressemble trop au premier.
+  ['acute','acute','right','right','obtuse','obtuse'].forEach(type=>{
+    generated.push(makeQuestion(type,generated));
+  });
+
+  return shuffle(generated);
+}
+
+function vertexMark(P,dir){
+  const v=perp(dir),h=8;
+  add('line',{
+    x1:P.x-v.x*h,y1:P.y-v.y*h,
+    x2:P.x+v.x*h,y2:P.y+v.y*h,
+    class:'vertex-mark'
+  });
+}
+
+function labelVertex(P,text,dx,dy){
+  add('text',{
+    x:P.x+dx,y:P.y+dy,
+    class:'vertex-label','text-anchor':'middle'
+  },text);
+}
+
+function drawMidMark(P,Q,at,count){
+  const u=unit(P,Q);
+  const v=perp(u);
+  const C={
+    x:P.x+(Q.x-P.x)*at,
+    y:P.y+(Q.y-P.y)*at
+  };
+
+  const offsets=count===1 ? [0] : [-5,5];
+  offsets.forEach(o=>{
+    const c={x:C.x+u.x*o,y:C.y+u.y*o};
+    const h=8;
+    add('line',{
+      x1:c.x-v.x*h,y1:c.y-v.y*h,
+      x2:c.x+v.x*h,y2:c.y+v.y*h,
+      class:'mid-mark'
+    });
+  });
+}
+
+function drawRightMark(P,Q){
+  const M=midpoint(P,Q);
+  const u=unit(P,Q);
+  const v=perp(u);
+  const s=16;
+
+  const p1={x:M.x+u.x*s,y:M.y+u.y*s};
+  const p2={x:p1.x+v.x*s,y:p1.y+v.y*s};
+  const p3={x:M.x+v.x*s,y:M.y+v.y*s};
+
+  add('polyline',{
+    points:`${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`,
+    class:'right-mark'
+  });
+}
+
+function drawBisector(P,Q,tickCount){
+  const M=midpoint(P,Q);
+  const u=unit(P,Q);
+  const v=perp(u);
+  const endpoints=lineBoxPoints(M,v);
+  if(!endpoints) return;
+
+  add('line',{
+    x1:endpoints[0].x,y1:endpoints[0].y,
+    x2:endpoints[1].x,y2:endpoints[1].y,
+    class:'bisector'
+  });
+
+  // Codages montrant que la droite bleue est bien la médiatrice :
+  // milieu du segment + perpendicularité.
+  drawMidMark(P,Q,0.25,tickCount);
+  drawMidMark(P,Q,0.75,tickCount);
+  drawRightMark(P,Q);
+}
+
+function drawCandidate(c){
+  const g=add('g',{class:'candidate','data-name':c.name});
+  add('circle',{cx:c.x,cy:c.y,r:18},'',g);
+  add('text',{x:c.x,y:c.y+1},c.name,g);
+  g.addEventListener('click',()=>chooseCandidate(g,c));
+}
+
+function drawQuestion(q){
+  figure.innerHTML='';
+
+  // Deux médiatrices seulement, suffisantes pour trouver leur intersection.
+  drawBisector(q.A,q.B,1);
+  drawBisector(q.A,q.C,2);
+
+  add('polygon',{
+    points:`${q.A.x},${q.A.y} ${q.B.x},${q.B.y} ${q.C.x},${q.C.y}`,
+    class:'triangle'
+  });
+
+  vertexMark(q.A,unit(q.A,q.B));
+  vertexMark(q.B,unit(q.B,q.A));
+  vertexMark(q.C,unit(q.C,q.A));
+
+  labelVertex(q.A,'A',-18,26);
+  labelVertex(q.B,'B',18,26);
+  labelVertex(q.C,'C',0,-18);
+
+  q.candidates.forEach(drawCandidate);
+
+  add('text',{
+    x:800,y:330,class:'note','text-anchor':'end'
+  },'Figure non à l’échelle');
+}
+
+function render(){
+  const q=questions[index];
+  locked=false;
+
+  feedback.className='feedback';
+  feedback.textContent='';
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${(index+1)/TOTAL*100}%`;
+
+  drawQuestion(q);
+}
+
+function chooseCandidate(group,candidate){
+  if(locked) return;
+  locked=true;
+
+  const q=questions[index];
+  const groups=[...figure.querySelectorAll('.candidate')];
+  const correctGroup=groups.find(g=>{
+    const name=g.getAttribute('data-name');
+    const c=q.candidates.find(x=>x.name===name);
+    return c && c.correct;
+  });
+
+  groups.forEach(g=>g.style.pointerEvents='none');
+
+  const ok=candidate.correct;
+  if(ok) score++;
+
+  if(correctGroup) correctGroup.classList.add('correct');
+  if(!ok) group.classList.add('wrong');
+
+  feedback.className='feedback '+(ok?'success':'error');
+  feedback.textContent=
+    `${ok?'Bravo ! ':''}Le centre du cercle circonscrit est le point d’intersection des médiatrices.`;
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===6){
+    finalMessage.textContent='Excellent ! Tu sais repérer le centre du cercle circonscrit, même lorsqu’il est sur un côté ou à l’extérieur du triangle.';
+  }else if(score>=5){
+    finalMessage.textContent='Très bien. Cherche toujours l’intersection des médiatrices, pas le milieu visuel du triangle.';
+  }else if(score>=3){
+    finalMessage.textContent='Tu progresses. Le centre du cercle circonscrit est l’intersection des médiatrices.';
+  }else{
+    finalMessage.textContent='À revoir : repère les médiatrices puis cherche leur point d’intersection.';
+  }
+}
+
+nextBtn.addEventListener('click',()=>{
+  index++;
+  if(index>=TOTAL) showFinal();
+  else render();
+});
+
+restartBtn.addEventListener('click',()=>{
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  final.classList.remove('show');
+  exercise.style.display='';
+  render();
+});
+
+questions=buildQuestions();
+render();
+})();
+</script>
+</body>
+</html>
