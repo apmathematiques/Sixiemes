@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Construis le tableau</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:10px}
+.app{
+  width:min(100%,1000px);aspect-ratio:16/9;min-height:500px;
+  max-height:calc(100vh - 20px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:12px;padding:14px 22px 8px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:20%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:8px 13px;color:var(--bd);
+  font-weight:800;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:3px 16px 15px;
+  display:flex;flex-direction:column;gap:8px
+}
+.instruction{
+  min-height:48px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.18rem,2.2vw,1.55rem);
+  font-weight:800;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:330px;padding:10px 14px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.situation{
+  width:100%;min-height:62px;padding:8px 16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.08rem,2vw,1.4rem);
+  font-weight:750;line-height:1.3;text-align:center;
+  background:#fff;border:2px solid #dce9f3;border-radius:15px
+}
+.situation-text{width:100%;text-align:center}
+.value{color:var(--bd);font-weight:900;white-space:nowrap}
+.workspace{
+  width:min(880px,100%);flex:1;min-height:0;
+  display:grid;grid-template-columns:minmax(360px,1.2fr) minmax(260px,.8fr);
+  align-items:center;gap:16px
+}
+.table-wrap{display:flex;align-items:center;justify-content:center}
+.prop-table{
+  width:min(100%,560px);border-collapse:separate;border-spacing:0;
+  table-layout:fixed;background:#fff;border:2px solid #8da8bb;
+  border-radius:14px;overflow:hidden
+}
+.prop-table td{
+  height:82px;border-right:2px solid #8da8bb;border-bottom:2px solid #8da8bb;
+  padding:6px;text-align:center;vertical-align:middle
+}
+.prop-table tr:last-child td{border-bottom:0}
+.prop-table td:last-child{border-right:0}
+.prop-table td.label-cell{width:44%;background:#f3f7fa}
+.drop-cell{
+  position:relative;cursor:pointer;transition:background .15s ease,box-shadow .15s ease
+}
+.drop-cell::after{
+  content:"";position:absolute;inset:6px;border:2px dashed #c7d7e3;border-radius:9px;
+  pointer-events:none
+}
+.drop-cell.filled::after{display:none}
+.drop-cell.active-target{background:var(--bs);box-shadow:inset 0 0 0 3px #70a7cf}
+.drop-cell.correct{background:var(--gs)}
+.drop-cell.wrong{background:var(--rs)}
+.cell-item{
+  position:relative;z-index:1;width:100%;min-height:56px;padding:8px 9px;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #b9d4e8;border-radius:10px;background:#fff;
+  color:var(--bd);font-weight:850;font-size:clamp(.9rem,1.55vw,1.08rem);
+  line-height:1.15;text-align:center;word-break:normal
+}
+.bank{
+  align-self:stretch;display:flex;flex-direction:column;justify-content:center;
+  gap:9px;padding:12px;background:#f4f8fb;border:1px solid #d6e4ee;border-radius:15px
+}
+.bank-title{margin:0;text-align:center;color:var(--m);font-weight:800;font-size:.98rem}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{
+  min-height:54px;padding:7px 8px;display:flex;align-items:center;justify-content:center;
+  background:#fff;color:var(--bd);border:2px solid #b9d4e8;border-radius:11px;
+  font:850 clamp(.88rem,1.45vw,1.02rem)/1.15 Arial,Helvetica,sans-serif;
+  text-align:center;cursor:pointer;touch-action:manipulation;user-select:none;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.tile:hover{border-color:#75a8cd}
+.tile:active{transform:scale(.985)}
+.tile.selected{background:var(--bs);border-color:var(--b);box-shadow:0 0 0 2px rgba(23,105,170,.12)}
+.tile[hidden]{display:none}
+.help{
+  min-height:22px;margin:0;color:var(--m);font-size:.86rem;line-height:1.3;text-align:center
+}
+.feedback{
+  min-height:60px;padding:8px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:700;
+  font-size:clamp(.88rem,1.55vw,1.03rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:13px;visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:43px;display:flex;align-items:center;justify-content:center;gap:10px
+}
+button.action{
+  min-height:41px;padding:0 20px;font-size:1rem;font-weight:850;
+  cursor:pointer;border:0;border-radius:12px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.primary:disabled{opacity:.45;cursor:default}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:850}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:5px}
+  .app{min-height:0;max-height:calc(100vh - 10px);border-radius:15px}
+  .top{grid-template-columns:1fr auto;padding:8px 11px 5px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px;font-size:.84rem}
+  .main{padding:1px 8px 8px;gap:5px}
+  .instruction{min-height:34px;font-size:.98rem}
+  .question-zone{min-height:250px;padding:6px 8px;gap:6px}
+  .situation{min-height:46px;padding:6px 9px;font-size:.95rem}
+  .workspace{grid-template-columns:1.15fr .85fr;gap:8px}
+  .prop-table td{height:64px;padding:4px}
+  .cell-item{min-height:44px;padding:5px;font-size:.78rem}
+  .bank{gap:5px;padding:7px}
+  .bank-title{font-size:.78rem}
+  .tiles{gap:5px}
+  .tile{min-height:42px;padding:5px;font-size:.74rem}
+  .help{font-size:.7rem;min-height:16px}
+  .feedback{min-height:47px;padding:5px 8px;font-size:.75rem}
+  .controls{min-height:35px}
+  button.action{min-height:33px;height:33px;padding:0 13px;font-size:.86rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 5</div>
+    <div class="pill" id="score">Score : 0 / 5</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Construis le tableau en plaçant les grandeurs et les valeurs au bon endroit.</p>
+
+    <div class="question-zone">
+      <div class="situation" id="situation"></div>
+
+      <div class="workspace">
+        <div class="table-wrap">
+          <table class="prop-table" aria-label="Tableau à compléter">
+            <tbody>
+              <tr>
+                <td class="drop-cell label-cell" data-cell="r0c0"></td>
+                <td class="drop-cell" data-cell="r0c1"></td>
+                <td class="drop-cell" data-cell="r0c2"></td>
+              </tr>
+              <tr>
+                <td class="drop-cell label-cell" data-cell="r1c0"></td>
+                <td class="drop-cell" data-cell="r1c1"></td>
+                <td class="drop-cell" data-cell="r1c2"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bank">
+          <p class="bank-title">Étiquettes à placer</p>
+          <div class="tiles" id="tiles"></div>
+          <p class="help">Clique sur une étiquette puis sur une case. Tu peux aussi déplacer une étiquette déjà placée.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" disabled>Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles situations</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=5;
+const $=id=>document.getElementById(id);
+const situation=$('situation');
+const tilesBox=$('tiles');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+const cells=[...document.querySelectorAll('.drop-cell')];
+
+let questions=[];
+let index=0;
+let score=0;
+let resolved=false;
+let selectedId=null;
+let placements={};
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(arr){return arr[randInt(0,arr.length-1)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fr(n){
+  return Number.isInteger(n) ? String(n) : String(Math.round(n*100)/100).replace('.',',');
+}
+
+const scenarioBuilders=[
+  ()=>{
+    const unit=pick([1.5,2,2.5,3,3.5]);
+    const a=randInt(2,5), b=randInt(6,9);
+    return makeQuestion(
+      `Dans une papeterie, <span class="value">${a} cahiers</span> coûtent <span class="value">${fr(a*unit)} €</span> et <span class="value">${b} cahiers</span> coûtent <span class="value">${fr(b*unit)} €</span>.`,
+      'Nombre de cahiers','Prix (en €)',fr(a),fr(a*unit),fr(b),fr(b*unit)
+    );
+  },
+  ()=>{
+    const unit=pick([4,5,6,7.5,8]);
+    const a=pick([1,2,3]), b=pick([4,5,6]);
+    return makeQuestion(
+      `Chez un marchand, <span class="value">${a} kg de pommes</span> coûtent <span class="value">${fr(a*unit)} €</span> et <span class="value">${b} kg</span> coûtent <span class="value">${fr(b*unit)} €</span>.`,
+      'Masse (en kg)','Prix (en €)',fr(a),fr(a*unit),fr(b),fr(b*unit)
+    );
+  },
+  ()=>{
+    const per=pick([0.25,0.3,0.4,0.5]);
+    const a=pick([2,4,6]), b=pick([8,10,12]);
+    return makeQuestion(
+      `Une recette utilise <span class="value">${fr(a*per)} kg de farine</span> pour <span class="value">${a} personnes</span> et <span class="value">${fr(b*per)} kg</span> pour <span class="value">${b} personnes</span>.`,
+      'Nombre de personnes','Farine (en kg)',fr(a),fr(a*per),fr(b),fr(b*per)
+    );
+  },
+  ()=>{
+    const speed=pick([40,50,60,70,80]);
+    const a=pick([1,2,3]), b=pick([4,5]);
+    return makeQuestion(
+      `À vitesse constante, un véhicule parcourt <span class="value">${a*speed} km</span> en <span class="value">${a} h</span> et <span class="value">${b*speed} km</span> en <span class="value">${b} h</span>.`,
+      'Durée (en h)','Distance (en km)',fr(a),fr(a*speed),fr(b),fr(b*speed)
+    );
+  },
+  ()=>{
+    const per=pick([0.5,0.75,1,1.25,1.5]);
+    const a=pick([2,4,6]), b=pick([8,10]);
+    return makeQuestion(
+      `<span class="value">${a} bouteilles</span> contiennent au total <span class="value">${fr(a*per)} L</span> et <span class="value">${b} bouteilles</span> contiennent <span class="value">${fr(b*per)} L</span>.`,
+      'Nombre de bouteilles','Volume total (en L)',fr(a),fr(a*per),fr(b),fr(b*per)
+    );
+  },
+  ()=>{
+    const per=pick([2,2.5,3,4]);
+    const a=pick([2,3,4]), b=pick([5,6,7]);
+    return makeQuestion(
+      `Pour une même longueur de ruban, <span class="value">${a} rouleaux</span> représentent <span class="value">${fr(a*per)} m</span> et <span class="value">${b} rouleaux</span> représentent <span class="value">${fr(b*per)} m</span>.`,
+      'Nombre de rouleaux','Longueur (en m)',fr(a),fr(a*per),fr(b),fr(b*per)
+    );
+  }
+];
+
+function makeQuestion(html,labelA,labelB,a1,b1,a2,b2){
+  const items=[
+    {id:'la',text:labelA,kind:'label',row:'A'},
+    {id:'lb',text:labelB,kind:'label',row:'B'},
+    {id:'a1',text:a1,kind:'value',row:'A',pair:1},
+    {id:'b1',text:b1,kind:'value',row:'B',pair:1},
+    {id:'a2',text:a2,kind:'value',row:'A',pair:2},
+    {id:'b2',text:b2,kind:'value',row:'B',pair:2}
+  ];
+  return {html,labelA,labelB,items};
+}
+
+function buildQuestions(){
+  const builders=shuffle(scenarioBuilders).slice(0,TOTAL);
+  return builders.map(fn=>fn());
+}
+
+function getItem(id){return questions[index].items.find(x=>x.id===id)}
+
+function renderQuestion(){
+  resolved=false;
+  selectedId=null;
+  placements={};
+  situation.innerHTML=`<div class="situation-text">${questions[index].html}</div>`;
+  feedback.textContent='';
+  feedback.className='feedback';
+  nextBtn.hidden=true;
+  validateBtn.hidden=false;
+  validateBtn.disabled=true;
+
+  cells.forEach(cell=>{
+    cell.innerHTML='';
+    cell.classList.remove('filled','active-target','correct','wrong');
+  });
+
+  tilesBox.innerHTML='';
+  shuffle(questions[index].items).forEach(item=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='tile';
+    btn.dataset.id=item.id;
+    btn.textContent=item.text;
+    btn.draggable=true;
+    btn.addEventListener('click',()=>selectTile(item.id));
+    btn.addEventListener('dragstart',e=>{
+      selectedId=item.id;
+      e.dataTransfer.setData('text/plain',item.id);
+      e.dataTransfer.effectAllowed='move';
+      refreshSelection();
+    });
+    tilesBox.appendChild(btn);
+  });
+
+  updateTop();
+}
+
+function selectTile(id){
+  if(resolved)return;
+  selectedId=(selectedId===id)?null:id;
+  refreshSelection();
+}
+
+function refreshSelection(){
+  document.querySelectorAll('.tile').forEach(t=>t.classList.toggle('selected',t.dataset.id===selectedId));
+  cells.forEach(c=>c.classList.toggle('active-target',!!selectedId));
+}
+
+function placeItem(id,cellKey){
+  if(resolved||!id)return;
+
+  const oldCell=Object.keys(placements).find(k=>placements[k]===id);
+  if(oldCell) delete placements[oldCell];
+
+  if(placements[cellKey]){
+    const displaced=placements[cellKey];
+    delete placements[cellKey];
+    showTile(displaced,true);
+  }
+
+  placements[cellKey]=id;
+  showTile(id,false);
+  selectedId=null;
+  renderPlacements();
+  refreshSelection();
+  validateBtn.disabled=Object.keys(placements).length!==6;
+}
+
+function removeFromCell(cellKey){
+  if(resolved||!placements[cellKey])return;
+  const id=placements[cellKey];
+  delete placements[cellKey];
+  showTile(id,true);
+  selectedId=id;
+  renderPlacements();
+  refreshSelection();
+  validateBtn.disabled=true;
+}
+
+function showTile(id,show){
+  const tile=tilesBox.querySelector(`[data-id="${id}"]`);
+  if(tile)tile.hidden=!show;
+}
+
+function renderPlacements(){
+  cells.forEach(cell=>{
+    const key=cell.dataset.cell;
+    const id=placements[key];
+    cell.innerHTML='';
+    cell.classList.toggle('filled',!!id);
+    cell.classList.remove('correct','wrong');
+    if(id){
+      const item=getItem(id);
+      const div=document.createElement('div');
+      div.className='cell-item';
+      div.textContent=item.text;
+      div.title='Cliquer pour déplacer cette étiquette';
+      cell.appendChild(div);
+    }
+  });
+}
+
+cells.forEach(cell=>{
+  cell.addEventListener('click',()=>{
+    if(resolved)return;
+    const key=cell.dataset.cell;
+    if(selectedId) placeItem(selectedId,key);
+    else if(placements[key]) removeFromCell(key);
+  });
+  cell.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move'});
+  cell.addEventListener('drop',e=>{
+    e.preventDefault();
+    const id=e.dataTransfer.getData('text/plain')||selectedId;
+    placeItem(id,cell.dataset.cell);
+  });
+});
+
+function isCorrect(){
+  const r0=[placements.r0c0,placements.r0c1,placements.r0c2].map(getItem);
+  const r1=[placements.r1c0,placements.r1c1,placements.r1c2].map(getItem);
+  if(r0.some(x=>!x)||r1.some(x=>!x))return false;
+
+  if(r0[0].kind!=='label'||r1[0].kind!=='label')return false;
+  if(r0[1].kind!=='value'||r0[2].kind!=='value'||r1[1].kind!=='value'||r1[2].kind!=='value')return false;
+
+  const row0=r0[0].row;
+  const row1=r1[0].row;
+  if(row0===row1)return false;
+  if(r0[1].row!==row0||r0[2].row!==row0)return false;
+  if(r1[1].row!==row1||r1[2].row!==row1)return false;
+
+  return r0[1].pair===r1[1].pair && r0[2].pair===r1[2].pair && r0[1].pair!==r0[2].pair;
+}
+
+function markCells(){
+  // Marquage global discret : on évite d'afficher la correction complète.
+  cells.forEach(c=>c.classList.add(isCorrect()?'correct':'wrong'));
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function validate(){
+  if(resolved||Object.keys(placements).length!==6)return;
+  resolved=true;
+  validateBtn.disabled=true;
+  markCells();
+
+  if(isCorrect()){
+    score++;
+    setFeedback('Bravo ! Chaque ligne correspond à une grandeur et, dans chaque colonne, les deux valeurs se correspondent.','success');
+  }else{
+    setFeedback('Vérifie les correspondances : une ligne doit contenir une seule grandeur, et les deux valeurs d’une même colonne doivent décrire la même situation.','error');
+  }
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.hidden=false;
+  nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function next(){
+  if(index<TOTAL-1){index++;renderQuestion();return}
+  showFinal();
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+  if(score===TOTAL)finalMessage.textContent='Excellent ! Tu sais organiser une situation de proportionnalité dans un tableau.';
+  else if(score>=3)finalMessage.textContent='Bien joué ! Pense toujours aux deux idées : une grandeur par ligne et des valeurs correspondantes dans chaque colonne.';
+  else finalMessage.textContent='À retravailler : commence par identifier les deux grandeurs, puis associe les valeurs qui vont ensemble.';
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;resolved=false;selectedId=null;placements={};
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+})();
+</script>
+</body>
+</html>
