@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Le mot « de » se transforme</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --o:#9a5b16;--os:#fff6e9;
+  --i:#17212b;--m:#5f6d79;--line:#dce9f3;
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:8px}
+.app{
+  width:min(100%,1000px);
+  height:min(560px,calc(100vh - 8px));
+  min-height:0;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:#fff;
+  border:1px solid rgba(23,105,170,.16);
+  border-radius:22px;
+  box-shadow:0 14px 34px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  gap:12px;align-items:center;padding:14px 20px 8px
+}
+.track{height:12px;border-radius:999px;overflow:hidden;background:#dceaf5}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  transition:width .25s ease
+}
+.pill{
+  padding:8px 13px;border-radius:999px;
+  background:var(--bs);color:var(--bd);
+  font-weight:800;white-space:nowrap
+}
+.main{
+  flex:1;min-height:0;padding:4px 16px 10px;
+  display:flex;flex-direction:column;gap:8px;overflow:hidden
+}
+.instruction{
+  margin:0;text-align:center;
+  font-size:clamp(1.4rem,2.6vw,1.95rem);
+  font-weight:850;line-height:1.2
+}
+.card{
+  flex:1;min-height:0;
+  border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:11px;padding:11px 18px;overflow:hidden
+}
+.card.resolved{
+  justify-content:flex-start;gap:7px;padding-top:8px;padding-bottom:8px
+}
+.card.resolved .level{display:none}
+.level{
+  font-size:1rem;font-weight:800;color:var(--bd);
+  background:var(--bs);border-radius:999px;padding:6px 11px
+}
+.situation{
+  width:min(820px,100%);
+  min-height:76px;padding:13px 24px;
+  display:block;
+  background:#fff;border:2px solid var(--line);border-radius:15px;
+  text-align:center;
+  font-size:clamp(1.18rem,2.15vw,1.48rem);
+  font-weight:760;line-height:1.5
+}
+.situation strong{
+  white-space:nowrap;
+}
+.situation .frac{
+  margin:0 .12em;
+  font-size:1.02em;
+  transform:translateY(.08em);
+}
+.build{
+  display:flex;align-items:center;justify-content:center;
+  gap:10px;flex-wrap:wrap
+}
+select{
+  min-width:155px;height:58px;padding:0 36px 0 13px;
+  border:3px solid #86b5d6;border-radius:12px;
+  background:#fff;color:var(--bd);
+  outline:none;text-align:center;
+  font:850 clamp(1.2rem,2.4vw,1.55rem)/1 Arial,Helvetica,sans-serif;
+  cursor:pointer
+}
+select.operator{min-width:92px}
+select:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 3px rgba(23,105,170,.12)
+}
+select.wrong{border-color:#d76d6d;background:var(--rs);color:#8f2727}
+select.correct{border-color:#62b883;background:var(--gs);color:#165e36}
+select.revealed{border-color:#e0a35c;background:var(--os);color:#75420e}
+.attempt{
+  min-height:22px;margin:0;color:var(--m);
+  font-size:1.02rem;font-weight:750;text-align:center
+}
+.feedback{
+  width:min(760px,100%);min-height:48px;padding:7px 12px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:12px;text-align:center;
+  font-size:clamp(.96rem,1.6vw,1.08rem);
+  font-weight:750;visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.error{
+  color:#8f2727;background:var(--rs);border:1px solid #efbcbc
+}
+.correction{
+  width:min(820px,100%);
+  min-height:0;padding:8px 12px;
+  border:2px solid #e3ad6e;border-radius:14px;
+  background:var(--os);color:#6d3d0b;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;text-align:center
+}
+.correction.show{display:flex}
+.correction-title{
+  font-size:.98rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:.03em
+}
+.correction-calc{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  gap:8px;font-size:clamp(1.25rem,2.5vw,1.75rem);
+  font-weight:900;line-height:1.08
+}
+.correction-note{
+  font-size:clamp(.88rem,1.55vw,1.02rem);
+  font-weight:750;line-height:1.18
+}
+.frac{
+  display:inline-flex;min-width:1.5em;
+  flex-direction:column;align-items:center;justify-content:center;
+  vertical-align:middle;line-height:1.02
+}
+.frac .num{
+  width:100%;padding:0 .12em .08em;
+  border-bottom:.08em solid currentColor;text-align:center
+}
+.frac .den{
+  width:100%;padding:.08em .12em 0;text-align:center
+}
+.controls{
+  flex:0 0 42px;min-height:42px;
+  display:flex;align-items:center;justify-content:center;gap:10px
+}
+button{
+  min-height:42px;padding:0 22px;
+  border:0;border-radius:12px;
+  font-size:1rem;font-weight:850;cursor:pointer
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+button:disabled{opacity:.45;cursor:default}
+.final{
+  flex:1;display:none;place-items:center;
+  padding:24px;text-align:center
+}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;
+  border:1px solid var(--line);border-radius:20px;background:#fff;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-card h2{
+  margin:0 0 10px;color:var(--bd);
+  font-size:clamp(1.5rem,3vw,1.9rem)
+}
+.final-score{margin:8px 0;font-size:1.35rem;font-weight:900}
+.final-message{
+  margin:8px 0 20px;color:var(--m);
+  font-size:1.08rem;line-height:1.45
+}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:4px}
+  .app{
+    height:calc(100vh - 8px);min-height:0;max-height:none;border-radius:14px
+  }
+  .top{
+    grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px
+  }
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.84rem}
+  .main{padding:2px 8px 8px;gap:5px}
+  .instruction{font-size:1.2rem}
+  .card{padding:7px 9px;gap:7px}
+  .card.resolved{padding:6px 9px;gap:5px}
+  .level{font-size:.84rem;padding:4px 8px}
+  .situation{
+    min-height:60px;padding:9px 14px;
+    font-size:1rem;line-height:1.42
+  }
+  .build{gap:6px}
+  select{
+    min-width:128px;height:46px;padding-left:8px;
+    border-width:2px;font-size:1.05rem
+  }
+  select.operator{min-width:76px}
+  .attempt{min-height:18px;font-size:.86rem}
+  .feedback{min-height:38px;padding:5px 8px;font-size:.86rem}
+  .correction{padding:6px 9px;gap:3px}
+  .correction-title{font-size:.86rem}
+  .correction-calc{font-size:1.14rem;gap:5px}
+  .correction-note{font-size:.82rem}
+  .controls{flex:0 0 36px;min-height:36px}
+  button{min-height:36px;height:36px;padding:0 15px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Écris le calcul correspondant.</p>
+
+    <div class="card" id="card">
+      <div class="level" id="level"></div>
+
+      <div class="situation" id="situation"></div>
+
+      <div class="build" aria-label="Construction du calcul">
+        <select id="left" aria-label="Premier élément du calcul">
+          <option value="">Choisir</option>
+        </select>
+
+        <select id="operator" class="operator" aria-label="Opération">
+          <option value="">?</option>
+          <option value="+">+</option>
+          <option value="-">−</option>
+          <option value="x">×</option>
+          <option value="/">÷</option>
+        </select>
+
+        <select id="right" aria-label="Deuxième élément du calcul">
+          <option value="">Choisir</option>
+        </select>
+      </div>
+
+      <p class="attempt" id="attempt">Tu as 2 essais.</p>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="correction" id="correction">
+        <div class="correction-title">Correction</div>
+        <div class="correction-calc" id="correctionCalc"></div>
+        <div class="correction-note">
+          L'ordre inverse des deux facteurs est également correct.
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouvelles questions</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const card=$('card');
+const situation=$('situation');
+const left=$('left');
+const operator=$('operator');
+const right=$('right');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const correction=$('correction');
+const correctionCalc=$('correctionCalc');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const level=$('level');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let resolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function fracHTML(n,d){
+  return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`;
+}
+function fracText(n,d){
+  return `${n}/${d}`;
+}
+function makeBase(){
+  const d=randInt(3,10);
+  const n=randInt(1,d-1);
+  const k=randInt(2,9);
+  const q=d*k;
+  return {n,d,q};
+}
+function irrelevantNumber(q,d){
+  const choices=[2,3,4,5,6,7,8,9,10,12].filter(v=>v!==q && v!==d);
+  return pick(choices);
+}
+function directQuestion(type){
+  const b=makeBase();
+  const phrase = type===0
+    ? `${fracHTML(b.n,b.d)} de ${b.q}`
+    : `Prendre ${fracHTML(b.n,b.d)} de ${b.q}.`;
+  return {
+    ...b,
+    html:phrase,
+    distractors:[String(b.d)]
+  };
+}
+const simpleContexts=[
+  b=>`On veut prendre ${fracHTML(b.n,b.d)} de ${b.q}. Écris le calcul correspondant.`,
+  b=>`Il faut déterminer ${fracHTML(b.n,b.d)} de ${b.q}. Quel calcul faut-il effectuer ?`,
+  b=>`${fracHTML(b.n,b.d)} d'une quantité égale à ${b.q} sont recherchés. Écris le calcul.`
+];
+const storyContexts=[
+  b=>`Une boîte contient <strong>${b.q} perles</strong>. Lina utilise ${fracHTML(b.n,b.d)} des perles. Écris le calcul permettant de déterminer le nombre de perles utilisées.`,
+  b=>`Noé possède <strong>${b.q} cartes</strong>. Il donne ${fracHTML(b.n,b.d)} de ses cartes. Écris le calcul permettant de déterminer le nombre de cartes données.`,
+  b=>`Une bibliothèque possède <strong>${b.q} livres</strong>. ${fracHTML(b.n,b.d)} des livres sont des bandes dessinées. Écris le calcul permettant de déterminer leur nombre.`,
+  b=>`Mila a <strong>${b.q} €</strong>. Elle dépense ${fracHTML(b.n,b.d)} de cette somme. Écris le calcul permettant de déterminer la somme dépensée.`,
+  b=>`Un ruban mesure <strong>${b.q} cm</strong>. On utilise ${fracHTML(b.n,b.d)} de sa longueur. Écris le calcul permettant de déterminer la longueur utilisée.`
+];
+const distractorContexts=[
+  (b,u)=>`Un club possède <strong>${b.q} ballons</strong>, rangés dans <strong>${u} filets</strong>. ${fracHTML(b.n,b.d)} des ballons sont neufs. Écris le calcul permettant de déterminer le nombre de ballons neufs.`,
+  (b,u)=>`Une bibliothèque possède <strong>${b.q} romans</strong>, répartis sur <strong>${u} étagères</strong>. ${fracHTML(b.n,b.d)} des romans sont des romans d'aventure. Écris le calcul permettant de déterminer leur nombre.`,
+  (b,u)=>`Une association a reçu <strong>${b.q} cahiers</strong> dans <strong>${u} cartons</strong>. Elle distribue ${fracHTML(b.n,b.d)} des cahiers. Écris le calcul permettant de déterminer le nombre de cahiers distribués.`,
+  (b,u)=>`Une collection contient <strong>${b.q} images</strong> rangées dans <strong>${u} pochettes</strong>. ${fracHTML(b.n,b.d)} des images représentent des animaux. Écris le calcul permettant de déterminer leur nombre.`
+];
+
+function makeQuestion(position){
+  if(position===0 || position===1){
+    return directQuestion(position);
+  }
+
+  const b=makeBase();
+
+  if(position===2 || position===3){
+    return {
+      ...b,
+      html:pick(simpleContexts)(b),
+      distractors:[String(b.d)]
+    };
+  }
+
+  if(position===4 || position===5){
+    return {
+      ...b,
+      html:pick(storyContexts)(b),
+      distractors:[String(b.d)]
+    };
+  }
+
+  const u=irrelevantNumber(b.q,b.d);
+  return {
+    ...b,
+    html:pick(distractorContexts)(b,u),
+    distractors:[String(u),String(b.d)]
+  };
+}
+
+function signature(q){
+  return `${q.n}|${q.d}|${q.q}|${q.html.replace(/<[^>]+>/g,'')}`;
+}
+function buildQuestions(){
+  const arr=[];
+  const seen=new Set();
+
+  for(let i=0;i<TOTAL;i++){
+    let q,guard=0;
+    do{
+      q=makeQuestion(i);
+      guard++;
+    }while(seen.has(signature(q)) && guard<100);
+
+    seen.add(signature(q));
+    arr.push(q);
+  }
+  return arr;
+}
+function levelText(i){
+  if(i<2) return 'Niveau 1 — Écriture directe';
+  if(i<4) return 'Niveau 2 — Je traduis une phrase';
+  if(i<6) return 'Niveau 3 — Je lis une situation';
+  return 'Niveau 4 — Je sélectionne les bonnes informations';
+}
+function optionLabel(value,q){
+  if(value==='Q') return String(q.q);
+  if(value==='F') return fracText(q.n,q.d);
+  return value;
+}
+function buildOperandOptions(select,q){
+  const values=[
+    {value:'Q',label:String(q.q)},
+    {value:'F',label:fracText(q.n,q.d)}
+  ];
+
+  q.distractors.forEach(v=>{
+    if(!values.some(x=>x.label===String(v))){
+      values.push({value:`D:${v}`,label:String(v)});
+    }
+  });
+
+  const mixed=shuffle(values);
+  select.innerHTML='<option value="">Choisir</option>';
+  mixed.forEach(item=>{
+    const opt=document.createElement('option');
+    opt.value=item.value;
+    opt.textContent=item.label;
+    select.appendChild(opt);
+  });
+}
+function clearStates(){
+  [left,operator,right].forEach(el=>{
+    el.classList.remove('wrong','correct','revealed');
+  });
+}
+function hideFeedback(){
+  feedback.className='feedback';
+  feedback.textContent='';
+}
+function hideCorrection(){
+  correction.classList.remove('show');
+  correctionCalc.innerHTML='';
+}
+function updateValidate(){
+  validateBtn.disabled=
+    resolved ||
+    !left.value ||
+    !operator.value ||
+    !right.value;
+}
+function isCorrect(){
+  if(operator.value!=='x') return false;
+  return (
+    (left.value==='Q' && right.value==='F') ||
+    (left.value==='F' && right.value==='Q')
+  );
+}
+function showCorrection(q){
+  correctionCalc.innerHTML=
+    `${fracHTML(q.n,q.d)}
+     <span>de</span>
+     <span>${q.q}</span>
+     <span>=</span>
+     <span>${q.q}</span>
+     <span>×</span>
+     ${fracHTML(q.n,q.d)}`;
+
+  correction.classList.add('show');
+}
+function revealReference(q){
+  left.value='Q';
+  operator.value='x';
+  right.value='F';
+  clearStates();
+  [left,operator,right].forEach(el=>el.classList.add('revealed'));
+}
+function resolveQuestion(wasCorrect){
+  const q=questions[index];
+  resolved=true;
+  left.disabled=true;
+  operator.disabled=true;
+  right.disabled=true;
+
+  card.classList.add('resolved');
+  hideFeedback();
+  showCorrection(q);
+
+  attempt.textContent=wasCorrect
+    ? 'Réponse validée.'
+    : 'Les 2 essais sont terminés.';
+
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+}
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;
+  resolved=false;
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+  level.textContent=levelText(index);
+  situation.innerHTML=q.html;
+
+  buildOperandOptions(left,q);
+  buildOperandOptions(right,q);
+  operator.value='';
+
+  left.disabled=false;
+  operator.disabled=false;
+  right.disabled=false;
+
+  clearStates();
+  hideFeedback();
+  hideCorrection();
+  card.classList.remove('resolved');
+
+  attempt.textContent='Tu as 2 essais.';
+  validateBtn.hidden=false;
+  validateBtn.disabled=true;
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1 ? 'Voir le résultat' : 'Question suivante';
+}
+function validate(){
+  if(resolved) return;
+
+  attempts++;
+
+  if(isCorrect()){
+    score += (attempts === 1 ? 1 : 0.5);
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    clearStates();
+    [left,operator,right].forEach(el=>el.classList.add('correct'));
+    resolveQuestion(true);
+    return;
+  }
+
+  clearStates();
+  [left,operator,right].forEach(el=>el.classList.add('wrong'));
+
+  if(attempts<MAX_ATTEMPTS){
+    feedback.textContent='Relis la situation et vérifie les trois éléments de ton calcul.';
+    feedback.className='feedback show error';
+    attempt.textContent='Il te reste 1 essai.';
+    return;
+  }
+
+  revealReference(questions[index]);
+  resolveQuestion(false);
+}
+function next(){
+  if(!resolved) return;
+
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  finalMessage.textContent=
+    score===TOTAL
+      ? 'Excellent : tu traduis correctement « une fraction de » par une multiplication.'
+      : score>=6
+        ? 'Très bon travail. Tu peux rejouer pour consolider les dernières situations.'
+        : score>=4
+          ? 'Tu progresses. Rejoue avec de nouvelles situations pour t’entraîner.'
+          : 'Reprends les corrections puis rejoue avec une nouvelle série.';
+}
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='flex';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+[left,operator,right].forEach(el=>{
+  el.addEventListener('change',()=>{
+    el.classList.remove('wrong');
+    updateValidate();
+  });
+});
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>
