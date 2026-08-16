@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fraction Express</title>
+<style>
+:root{
+  --blue:#1769aa;--blue-dark:#0d4778;--blue-soft:#eaf4fc;
+  --green:#1f7a45;--green-soft:#eaf7ef;
+  --red:#b93434;--red-soft:#fff0f0;
+  --orange:#9a5b16;--orange-soft:#fff6e9;
+  --ink:#17212b;--muted:#5e6b76;--line:#d9e6ef;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;background:transparent;font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+body{display:grid;place-items:center;padding:8px}
+.app{
+  width:min(100%,1000px);height:min(560px,calc(100vh - 8px));min-height:0;
+  overflow:hidden;display:flex;flex-direction:column;background:#fff;
+  border:1px solid rgba(23,105,170,.16);border-radius:22px;box-shadow:0 14px 34px rgba(17,63,103,.14)
+}
+.top{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 20px 8px}
+.track{height:12px;border-radius:999px;overflow:hidden;background:#dceaf5}
+.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--blue),#4f9ed8);transition:width .25s ease}
+.pill{padding:8px 13px;border-radius:999px;background:var(--blue-soft);color:var(--blue-dark);font-weight:800;white-space:nowrap}
+.main{flex:1;min-height:0;padding:4px 16px 10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.instruction{margin:0;text-align:center;font-size:clamp(1.45rem,2.7vw,2rem);font-weight:850;line-height:1.2}
+.card{
+  flex:1;min-height:0;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbfe);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px 18px;overflow:hidden
+}
+.card.resolved{justify-content:flex-start;gap:8px;padding-top:9px;padding-bottom:9px}
+.card.resolved .level{display:none}
+.level{font-size:1rem;font-weight:800;color:var(--blue-dark);background:var(--blue-soft);border-radius:999px;padding:6px 11px}
+.calc{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(2rem,5vw,3.7rem);font-weight:850;line-height:1;white-space:nowrap}
+.frac{display:inline-flex;min-width:1.45em;flex-direction:column;align-items:center;justify-content:center;vertical-align:middle;line-height:1.05}
+.frac .num{width:100%;padding:0 .12em .08em;border-bottom:.08em solid currentColor;text-align:center}
+.frac .den{width:100%;padding:.08em .12em 0;text-align:center}
+.answer-fraction{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:126px}
+.answer-fraction input{
+  width:100%;height:58px;border:3px solid #86b5d6;border-radius:11px;background:#fff;color:var(--blue-dark);
+  outline:none;text-align:center;font-size:1.75rem;font-weight:850
+}
+.answer-fraction .fraction-line{width:100%;height:3px;margin:6px 0;border-radius:2px;background:var(--ink)}
+.answer-fraction input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,105,170,.12)}
+.answer-fraction input.wrong{border-color:#d76d6d;background:var(--red-soft)}
+.answer-fraction input.correct{border-color:#62b883;background:var(--green-soft);color:#165e36}
+.answer-fraction input.revealed{border-color:#e0a35c;background:var(--orange-soft);color:#75420e}
+.attempt{min-height:24px;margin:0;color:var(--muted);text-align:center;font-size:1.05rem;font-weight:750}
+.feedback{
+  width:min(760px,100%);min-height:56px;padding:9px 14px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  text-align:center;font-size:clamp(1rem,1.7vw,1.15rem);font-weight:750;visibility:hidden
+}
+.feedback.show{visibility:visible}.feedback.error{color:#8f2727;background:var(--red-soft);border:1px solid #efbcbc}
+.correction{
+  width:min(820px,100%);min-height:0;padding:9px 12px;border:2px solid #e3ad6e;border-radius:14px;
+  background:var(--orange-soft);color:#6d3d0b;display:none;align-items:center;justify-content:center;flex-direction:column;
+  gap:4px;text-align:center
+}
+.correction.show{display:flex}
+.correction-title{font-size:1rem;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.correction-calc{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;font-size:clamp(1.25rem,2.5vw,1.75rem);font-weight:900;line-height:1.08}
+.simplified{font-size:clamp(.92rem,1.65vw,1.12rem);font-weight:800;line-height:1.15}
+.controls{flex:0 0 42px;min-height:42px;display:flex;justify-content:center;align-items:center;gap:10px}
+button{min-height:42px;padding:0 22px;border:0;border-radius:12px;font-size:1rem;font-weight:850;cursor:pointer}
+.primary{color:#fff;background:var(--blue)}.secondary{color:var(--blue-dark);background:var(--blue-soft)}
+button:disabled{opacity:.45;cursor:default}
+.final{flex:1;display:none;place-items:center;padding:24px;text-align:center}.final.show{display:grid}
+.final-card{width:min(650px,100%);padding:28px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-card h2{margin:0 0 10px;color:var(--blue-dark);font-size:1.9rem}
+.final-score{margin:8px 0;font-size:1.35rem;font-weight:900}
+.final-message{margin:8px 0 20px;color:var(--muted);font-size:1.08rem;line-height:1.45}
+@media(max-width:760px),(max-height:650px){
+  body{padding:4px}.app{height:calc(100vh - 8px);min-height:0;max-height:none;border-radius:14px}
+  .top{grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px}.track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.84rem}.main{padding:2px 8px 8px;gap:6px}.instruction{font-size:1.25rem}
+  .card{padding:7px 9px;gap:7px}.card.resolved{padding:6px 9px;gap:5px}.level{font-size:.88rem;padding:4px 8px}.calc{font-size:1.9rem;gap:8px}
+  .answer-fraction{width:96px}.answer-fraction input{height:44px;font-size:1.35rem;border-width:2px}
+  .answer-fraction .fraction-line{height:2px;margin:4px 0}.attempt{min-height:18px;font-size:.88rem}
+  .feedback{min-height:40px;padding:5px 8px;font-size:.88rem}.correction{min-height:0;padding:6px 9px;border-width:2px;gap:3px}
+  .correction-title{font-size:.88rem}.correction-calc{font-size:1.18rem;gap:5px}.simplified{font-size:.86rem}
+  .controls{flex:0 0 36px;min-height:36px}button{min-height:36px;height:36px;padding:0 15px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Calcule le produit.</p>
+
+    <div class="card" id="card">
+      <div class="level" id="level"></div>
+
+      <div class="calc">
+        <span id="integer"></span>
+        <span>×</span>
+        <span class="frac">
+          <span class="num" id="givenNum"></span>
+          <span class="den" id="givenDen"></span>
+        </span>
+        <span>=</span>
+        <span class="answer-fraction">
+          <input id="answerNum" inputmode="numeric" autocomplete="off" aria-label="Numérateur de la réponse">
+          <span class="fraction-line"></span>
+          <input id="answerDen" inputmode="numeric" autocomplete="off" aria-label="Dénominateur de la réponse">
+        </span>
+      </div>
+
+      <p class="attempt" id="attempt">Tu as 2 essais.</p>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="correction" id="correction">
+        <div class="correction-title">Correction</div>
+        <div class="correction-calc" id="correctionCalc"></div>
+        <div class="simplified" id="simplified"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Fraction Express terminé !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8, MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const integerEl=$('integer'), givenNumEl=$('givenNum'), givenDenEl=$('givenDen');
+const answerNum=$('answerNum'), answerDen=$('answerDen');
+const attemptEl=$('attempt'), feedbackEl=$('feedback'), cardEl=$('card');
+const correctionEl=$('correction'), correctionCalcEl=$('correctionCalc'), simplifiedEl=$('simplified');
+const validateBtn=$('validate'), nextBtn=$('next');
+const counterEl=$('counter'), scoreEl=$('score'), barEl=$('bar'), levelEl=$('level');
+const exerciseEl=$('exercise'), finalEl=$('final'), finalScoreEl=$('finalScore'), finalMessageEl=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[], index=0, score=0, attempts=0, resolved=false;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=b;b=a%b;a=t}return a||1}
+function fracHTML(n,d){
+  return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`;
+}
+function parseInteger(v){
+  const s=String(v).trim().replace(/\s/g,'');
+  if(!/^-?\d+$/.test(s)) return null;
+  return Number(s);
+}
+function makeQuestion(qNumber){
+  let a,n,d;
+  if(qNumber<=2){
+    a=randInt(2,5); n=randInt(1,5); d=randInt(Math.max(2,n+1),9);
+  }else if(qNumber<=4){
+    a=randInt(4,9); n=randInt(2,8); d=randInt(Math.max(3,n+1),12);
+  }else if(qNumber<=6){
+    a=randInt(6,12); n=randInt(3,10); d=randInt(4,14);
+    while(d===n) d=randInt(4,14);
+  }else{
+    a=randInt(8,15); n=randInt(4,12); d=randInt(5,16);
+    while(d===n) d=randInt(5,16);
+  }
+  if(n===d) d++;
+  return {a,n,d,resultNum:a*n,resultDen:d};
+}
+function buildQuestions(){
+  const arr=[], seen=new Set();
+  for(let q=1;q<=TOTAL;q++){
+    let item,guard=0;
+    do{item=makeQuestion(q);guard++}while(seen.has(`${item.a}|${item.n}|${item.d}`)&&guard<100);
+    seen.add(`${item.a}|${item.n}|${item.d}`);
+    arr.push(item);
+  }
+  return arr;
+}
+function levelText(i){
+  if(i<2) return 'Niveau 1 — Je prends mes repères';
+  if(i<4) return 'Niveau 2 — Je consolide';
+  if(i<6) return 'Niveau 3 — Je gagne en aisance';
+  return 'Niveau 4 — Défi';
+}
+function clearStates(){[answerNum,answerDen].forEach(e=>e.classList.remove('wrong','correct','revealed'))}
+function hideFeedback(){feedbackEl.className='feedback';feedbackEl.textContent=''}
+function hideCorrection(){correctionEl.classList.remove('show');correctionCalcEl.innerHTML='';simplifiedEl.textContent=''}
+function updateValidateState(){
+  validateBtn.disabled=resolved||answerNum.value.trim()===''||answerDen.value.trim()==='';
+}
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;resolved=false;
+  counterEl.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreEl.textContent=`Score : ${score} / ${TOTAL}`;
+  barEl.style.width=`${((index+1)/TOTAL)*100}%`;
+  levelEl.textContent=levelText(index);
+  integerEl.textContent=q.a;givenNumEl.textContent=q.n;givenDenEl.textContent=q.d;
+  answerNum.value='';answerDen.value='';answerNum.disabled=false;answerDen.disabled=false;
+  clearStates();cardEl.classList.remove('resolved');attemptEl.textContent='Tu as 2 essais.';hideFeedback();hideCorrection();
+  validateBtn.hidden=false;validateBtn.disabled=true;nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  setTimeout(()=>answerNum.focus(),0);
+}
+function equivalentToExpected(uNum,uDen,q){
+  return uDen!==0 && uNum*q.resultDen===uDen*q.resultNum;
+}
+function showCorrection(q,wasCorrect){
+  correctionCalcEl.innerHTML=
+    `<span>${q.a}</span><span>×</span>${fracHTML(q.n,q.d)}
+     <span>=</span>${fracHTML(`${q.a} × ${q.n}`,q.d)}
+     <span>=</span>${fracHTML(q.resultNum,q.resultDen)}`;
+
+  const g=gcd(q.resultNum,q.resultDen);
+  if(g>1){
+    simplifiedEl.innerHTML=
+      `On pouvait aussi simplifier : ${fracHTML(q.resultNum,q.resultDen)} = ${fracHTML(q.resultNum/g,q.resultDen/g)}.`;
+  }else{
+    simplifiedEl.textContent='La fraction obtenue ne se simplifie pas.';
+  }
+  correctionEl.classList.add('show');
+  attemptEl.textContent=wasCorrect?'Réponse validée.':'Les 2 essais sont terminés.';
+}
+function resolveQuestion(wasCorrect){
+  resolved=true;
+  cardEl.classList.add('resolved');
+  answerNum.disabled=true;answerDen.disabled=true;
+  validateBtn.hidden=true;nextBtn.hidden=false;
+  showCorrection(questions[index],wasCorrect);
+}
+function validate(){
+  if(resolved)return;
+  const q=questions[index];
+  const uNum=parseInteger(answerNum.value),uDen=parseInteger(answerDen.value);
+
+  if(uNum===null||uDen===null||uDen===0){
+    feedbackEl.textContent=uDen===0?'Le dénominateur ne peut pas être égal à 0.':'Écris un nombre entier dans chaque case.';
+    feedbackEl.className='feedback show error';
+    return;
+  }
+
+  attempts++;
+
+  if(equivalentToExpected(uNum,uDen,q)){
+    score++;
+    scoreEl.textContent=`Score : ${score} / ${TOTAL}`;
+    clearStates();answerNum.classList.add('correct');answerDen.classList.add('correct');
+    hideFeedback();resolveQuestion(true);return;
+  }
+
+  clearStates();answerNum.classList.add('wrong');answerDen.classList.add('wrong');
+
+  if(attempts<MAX_ATTEMPTS){
+    feedbackEl.textContent='Vérifie séparément le numérateur et le dénominateur.';
+    feedbackEl.className='feedback show error';
+    attemptEl.textContent='Il te reste 1 essai.';
+    answerNum.select();
+    return;
+  }
+
+  answerNum.value=q.resultNum;answerDen.value=q.resultDen;
+  clearStates();answerNum.classList.add('revealed');answerDen.classList.add('revealed');
+  hideFeedback();resolveQuestion(false);
+}
+function next(){
+  if(!resolved)return;
+  if(index<TOTAL-1){index++;renderQuestion()}else{showFinal()}
+}
+function showFinal(){
+  exerciseEl.style.display='none';finalEl.classList.add('show');
+  finalScoreEl.textContent=`Score : ${score} / ${TOTAL}`;
+  finalMessageEl.textContent=
+    score===TOTAL?'Excellent : les 8 produits sont maîtrisés.':
+    score>=6?'Très bon travail. Tu peux rejouer pour consolider les derniers calculs.':
+    score>=4?'Tu progresses. Rejoue avec de nouveaux nombres pour t’entraîner.':
+    'Reprends les corrections puis rejoue : la méthode est toujours la même.';
+}
+function restart(){
+  questions=buildQuestions();index=0;score=0;
+  exerciseEl.style.display='flex';finalEl.classList.remove('show');renderQuestion();
+}
+
+answerNum.addEventListener('input',()=>{answerNum.classList.remove('wrong');updateValidateState()});
+answerDen.addEventListener('input',()=>{answerDen.classList.remove('wrong');updateValidateState()});
+[answerNum,answerDen].forEach(el=>el.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validateBtn.disabled&&!resolved)validate();
+}));
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+})();
+</script>
+</body>
+</html>
