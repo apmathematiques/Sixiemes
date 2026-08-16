@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie I – Activité 4 – Quelle relation ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --o:#b96b16;--os:#fff6ea;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:500px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:800;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 16px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  flex:0 0 auto;min-height:48px;margin:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:2px 10px;
+  font-size:clamp(1.3rem,2.35vw,1.68rem);
+  font-weight:800;line-height:1.2;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:0;padding:8px 12px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+#scene{
+  width:100%;height:100%;min-height:235px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.geom-line{
+  stroke:var(--line);stroke-width:4.2;stroke-linecap:round
+}
+.geom-ray{
+  stroke:var(--line);stroke-width:4;stroke-linecap:round
+}
+.geom-vertex{fill:var(--line)}
+.geom-label{
+  fill:var(--i);font:700 21px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.angle-a{
+  fill:rgba(23,105,170,.18);
+  stroke:var(--b);stroke-width:3.5
+}
+.angle-b{
+  fill:rgba(185,107,22,.16);
+  stroke:var(--o);stroke-width:3.5
+}
+.measure-a{
+  fill:var(--bd);font:800 22px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.measure-b{
+  fill:#8d5317;font:800 22px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.choices{
+  width:min(900px,100%);margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:9px 12px
+}
+.choice{
+  min-height:52px;padding:8px 12px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--i);background:#fff;
+  border:3px solid #bfd7e9;border-radius:15px;
+  font:800 clamp(.98rem,1.8vw,1.18rem)/1.2 Arial,Helvetica,sans-serif;
+  text-align:center;cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice:hover:not(:disabled){border-color:#74a9cf}
+.choice:active:not(:disabled){transform:scale(.985)}
+.choice.selected{color:var(--bd);background:var(--bs);border-color:var(--b)}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice.missed{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice:disabled{cursor:default}
+.feedback{
+  min-height:64px;padding:9px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:700;
+  font-size:clamp(.94rem,1.65vw,1.05rem);
+  line-height:1.33;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:42px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:42px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.primary:disabled{opacity:.45;cursor:default}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.5rem,3vw,2rem)}
+.final-score{margin:8px 0;font-size:1.35rem;font-weight:900}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{padding:20px;color:#8f2727;font-weight:700;text-align:center}
+
+@media(max-width:700px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 9px 9px;gap:6px}
+  .instruction{min-height:36px;padding:1px 8px;font-size:1.04rem}
+  .figure-zone{min-height:175px;padding:5px 7px}
+  #scene{min-height:170px}
+  .choices{gap:6px 7px}
+  .choice{min-height:42px;padding:6px 8px;font-size:.86rem;border-width:2px}
+  .feedback{min-height:48px;padding:6px 9px;font-size:.8rem}
+  .controls{min-height:35px}
+  button.action{min-height:35px;height:35px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Observe les deux angles colorés. Sélectionne toutes les affirmations vraies.
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Deux angles colorés"></div>
+    </div>
+
+    <div class="choices" id="choices">
+      <button class="choice" type="button" data-key="adjacent">Ils sont adjacents</button>
+      <button class="choice" type="button" data-key="supplementary">Ils sont supplémentaires</button>
+      <button class="choice" type="button" data-key="vertical">Ils sont opposés par le sommet</button>
+      <button class="choice" type="button" data-key="none">Aucune de ces relations</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Plusieurs réponses peuvent être correctes.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" disabled>Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=860;
+const H=275;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const choicesBox=$('choices');
+const choiceBtns=[...document.querySelectorAll('.choice')];
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let selected=new Set();
+let resolved=false;
+let scene=null;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+
+function polar(cx,cy,r,deg){
+  const a=degToRad(deg);
+  return {x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};
+}
+function sectorPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let d=a2-a1;
+  while(d<0)d+=360;
+  const large=d>180?1:0;
+  return `M ${cx} ${cy} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
+}
+function labelSet(n,exclude=[]){
+  const pool=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T']
+    .filter(x=>!exclude.includes(x));
+  return shuffle(pool).slice(0,n);
+}
+function vertexName(){return pick(['O','I','J','K','M','N'])}
+
+function addSvg(tag,attrs,parent){
+  const node=GeoLib.Utils.createSvg(tag,attrs);
+  (parent||scene.layers.drawings).appendChild(node);
+  return node;
+}
+function drawRay(cx,cy,a,len=150){
+  const p=polar(cx,cy,len,a);
+  addSvg('line',{x1:cx,y1:cy,x2:p.x,y2:p.y,class:'geom-ray'});
+}
+function drawLine(cx,cy,a,len=175){
+  const p1=polar(cx,cy,len,a);
+  const p2=polar(cx,cy,len,a+180);
+  addSvg('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,class:'geom-line'});
+}
+function drawVertex(cx,cy,label){
+  addSvg('circle',{cx,cy,r:5.3,class:'geom-vertex'});
+  const t=addSvg('text',{
+    x:cx-18,y:cy+30,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=label;
+}
+function drawLabel(cx,cy,a,text,len=180){
+  const p=polar(cx,cy,len,a);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+7,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function drawAngle(cx,cy,a1,a2,cls,r=78){
+  addSvg('path',{d:sectorPath(cx,cy,r,a1,a2),class:cls});
+}
+function drawMeasure(cx,cy,a1,a2,text,cls,r=54){
+  let mid=(a1+a2)/2;
+  const p=polar(cx,cy,r,mid);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+7,class:cls,'text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function centerForAngles(angles,targetX,targetY,len=195){
+  const pts=[{x:0,y:0}];
+  angles.forEach(a=>pts.push(polar(0,0,len,a)));
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  return {
+    x:targetX-(Math.min(...xs)+Math.max(...xs))/2,
+    y:targetY-(Math.min(...ys)+Math.max(...ys))/2
+  };
+}
+
+function makeAdjacentOnly(){
+  const a=randInt(28,72);
+  let b=randInt(34,86);
+  if(a+b===180) b-=7;
+  return {type:'adjacentOnly',a,b,answers:['adjacent']};
+}
+function makeSupplementaryOnly(){
+  const a=randInt(25,155);
+  return {type:'suppOnly',a,b:180-a,answers:['supplementary']};
+}
+function makeVerticalOnly(){
+  const a=pick([34,41,48,57,63,71,76]);
+  return {type:'verticalOnly',a,b:a,answers:['vertical']};
+}
+function makeAdjacentSupplementary(){
+  const a=randInt(28,152);
+  return {type:'adjSupp',a,b:180-a,answers:['adjacent','supplementary']};
+}
+function makeNone(){
+  const a=randInt(28,92);
+  let b=randInt(36,132);
+  if(a+b===180) b-=9;
+  return {type:'none',a,b,answers:['none']};
+}
+function makeEqualNotVertical(){
+  const a=pick([32,38,44,52,58,66,74]);
+  return {type:'equalNotVertical',a,b:a,answers:['none']};
+}
+function makeSameVertexNotAdjacent(){
+  const inner=randInt(28,52);
+  const outer=inner+randInt(28,48);
+  return {type:'sameVertexNotAdjacent',a:inner,b:outer,answers:['none']};
+}
+function makeBusy(){
+  const a=randInt(32,70);
+  let b=randInt(38,82);
+  if(a+b===180) b-=11;
+  return {type:'busy',a,b,answers:['adjacent']};
+}
+function buildQuestions(){
+  return shuffle([
+    makeAdjacentOnly(),
+    makeSupplementaryOnly(),
+    makeVerticalOnly(),
+    makeAdjacentSupplementary(),
+    makeNone(),
+    makeEqualNotVertical(),
+    makeSameVertexNotAdjacent(),
+    makeBusy()
+  ]);
+}
+
+function drawAdjacent(q,busy=false){
+  const base=randInt(10,80);
+  const a0=base;
+  const a1=a0+q.a;
+  const a2=a1+q.b;
+  const rays=busy?[a0,a1,a2,a2+randInt(18,35),a0-randInt(18,30)]:[a0,a1,a2];
+  const origin=centerForAngles(rays,W/2,H/2,190);
+  const cx=origin.x,cy=origin.y;
+  const v=vertexName();
+  const L=labelSet(rays.length,[v]);
+
+  drawAngle(cx,cy,a0,a1,'angle-a',76);
+  drawAngle(cx,cy,a1,a2,'angle-b',92);
+
+  rays.forEach((ang,i)=>{
+    drawRay(cx,cy,ang,busy&&i>2?120:150);
+    drawLabel(cx,cy,ang,L[i],busy&&i>2?146:180);
+  });
+
+  drawMeasure(cx,cy,a0,a1,`${q.a}°`,'measure-a',50);
+  drawMeasure(cx,cy,a1,a2,`${q.b}°`,'measure-b',64);
+  drawVertex(cx,cy,v);
+}
+
+function drawAdjacentSupplementary(q){
+  const base=randInt(5,175);
+  const split=base+q.a;
+  const opposite=base+180;
+  const origin=centerForAngles([base,split,opposite],W/2,H/2,205);
+  const cx=origin.x,cy=origin.y;
+  const v=vertexName();
+  const L=labelSet(3,[v]);
+
+  drawAngle(cx,cy,base,split,'angle-a',78);
+  drawAngle(cx,cy,split,opposite,'angle-b',94);
+
+  drawLine(cx,cy,base,180);
+  drawRay(cx,cy,split,150);
+
+  drawLabel(cx,cy,base,L[0],205);
+  drawLabel(cx,cy,split,L[1],180);
+  drawLabel(cx,cy,opposite,L[2],205);
+
+  drawMeasure(cx,cy,base,split,`${q.a}°`,'measure-a',50);
+  drawMeasure(cx,cy,split,opposite,`${q.b}°`,'measure-b',65);
+  drawVertex(cx,cy,v);
+}
+
+function drawSeparate(q,equalCase=false){
+  const v1=vertexName();
+  let v2=vertexName();
+  while(v2===v1) v2=vertexName();
+  const L=labelSet(4,[v1,v2]);
+
+  const x1=W*.29,y1=H*.56;
+  const x2=W*.71,y2=H*.56;
+  const base1=randInt(25,95);
+  const base2=randInt(45,120);
+
+  drawAngle(x1,y1,base1,base1+q.a,'angle-a',68);
+  drawRay(x1,y1,base1,116); drawRay(x1,y1,base1+q.a,116);
+  drawLabel(x1,y1,base1,L[0],142); drawLabel(x1,y1,base1+q.a,L[1],142);
+  drawMeasure(x1,y1,base1,base1+q.a,`${q.a}°`,'measure-a',46);
+  drawVertex(x1,y1,v1);
+
+  drawAngle(x2,y2,base2,base2+q.b,'angle-b',68);
+  drawRay(x2,y2,base2,116); drawRay(x2,y2,base2+q.b,116);
+  drawLabel(x2,y2,base2,L[2],142); drawLabel(x2,y2,base2+q.b,L[3],142);
+  drawMeasure(x2,y2,base2,base2+q.b,`${q.b}°`,'measure-b',46);
+  drawVertex(x2,y2,v2);
+}
+
+function drawVertical(q){
+  const gap=q.a;
+  const base=randInt(0,179);
+  const rays=[base,base+gap,base+180,base+180+gap];
+  const origin=centerForAngles(rays,W/2,H/2,205);
+  const cx=origin.x,cy=origin.y;
+  const v=vertexName();
+  const L=labelSet(4,[v]);
+
+  drawAngle(cx,cy,rays[0],rays[1],'angle-a',78);
+  drawAngle(cx,cy,rays[2],rays[3],'angle-b',78);
+
+  drawLine(cx,cy,base,180);
+  drawLine(cx,cy,base+gap,180);
+
+  rays.forEach((a,i)=>drawLabel(cx,cy,a,L[i],207));
+  drawMeasure(cx,cy,rays[0],rays[1],`${q.a}°`,'measure-a',50);
+  drawMeasure(cx,cy,rays[2],rays[3],`${q.b}°`,'measure-b',50);
+  drawVertex(cx,cy,v);
+}
+
+function drawNested(q){
+  const base=randInt(15,80);
+  const a0=base;
+  const a1=a0+q.a;
+  const a2=a0+q.b;
+  const origin=centerForAngles([a0,a1,a2],W/2,H/2,190);
+  const cx=origin.x,cy=origin.y;
+  const v=vertexName();
+  const L=labelSet(3,[v]);
+
+  drawAngle(cx,cy,a0,a1,'angle-a',72);
+  drawAngle(cx,cy,a0,a2,'angle-b',106);
+
+  [a0,a1,a2].forEach((ang,i)=>{
+    drawRay(cx,cy,ang,150);
+    drawLabel(cx,cy,ang,L[i],180);
+  });
+
+  drawMeasure(cx,cy,a0,a1,`${q.a}°`,'measure-a',45);
+  drawMeasure(cx,cy,a0,a2,`${q.b}°`,'measure-b',80);
+  drawVertex(cx,cy,v);
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+
+  switch(q.type){
+    case 'adjacentOnly': drawAdjacent(q,false); break;
+    case 'suppOnly': drawSeparate(q,false); break;
+    case 'verticalOnly': drawVertical(q); break;
+    case 'adjSupp': drawAdjacentSupplementary(q); break;
+    case 'none': drawSeparate(q,false); break;
+    case 'equalNotVertical': drawSeparate(q,true); break;
+    case 'sameVertexNotAdjacent': drawNested(q); break;
+    case 'busy': drawAdjacent(q,true); break;
+  }
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Deux angles colorés, question ${index+1}`
+  );
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+function resetChoices(){
+  selected=new Set();
+  resolved=false;
+  choiceBtns.forEach(btn=>{
+    btn.disabled=false;
+    btn.className='choice';
+  });
+  validateBtn.disabled=true;
+  nextBtn.hidden=true;
+  setFeedback("Plusieurs réponses peuvent être correctes.");
+}
+function renderQuestion(){
+  resetChoices();
+  updateTop();
+  renderFigure();
+}
+
+function sameSet(a,b){
+  if(a.size!==b.size) return false;
+  for(const x of a) if(!b.has(x)) return false;
+  return true;
+}
+
+function explanation(q){
+  const sum=q.a+q.b;
+
+  if(q.answers.length===1 && q.answers[0]==='adjacent'){
+    return `Ils sont adjacents : même sommet, un côté commun et de part et d’autre de ce côté commun. Ici ${q.a}° + ${q.b}° = ${sum}°, donc ils ne sont pas supplémentaires.`;
+  }
+  if(q.answers.length===1 && q.answers[0]==='supplementary'){
+    return `Ils sont supplémentaires car ${q.a}° + ${q.b}° = 180°. Ils n’ont pas le même sommet : ils ne sont donc ni adjacents ni opposés par le sommet.`;
+  }
+  if(q.answers.length===1 && q.answers[0]==='vertical'){
+    return `Ils sont opposés par le sommet : leurs côtés sont dans le prolongement les uns des autres. Ils mesurent tous les deux ${q.a}°, mais leur somme vaut ${sum}° et non 180°.`;
+  }
+  if(q.answers.includes('adjacent') && q.answers.includes('supplementary')){
+    return `Ils sont adjacents. De plus, ${q.a}° + ${q.b}° = 180° : ils sont aussi supplémentaires.`;
+  }
+  if(q.type==='equalNotVertical'){
+    return `Ils ont la même mesure (${q.a}°), mais cela ne suffit pas pour être opposés par le sommet. Ils n’ont pas le même sommet et leur somme vaut ${sum}°.`;
+  }
+  if(q.type==='sameVertexNotAdjacent'){
+    return `Ils ont le même sommet et un côté commun, mais ils sont du même côté de ce côté commun : ils ne sont pas adjacents.`;
+  }
+  return `Aucune de ces relations n’est vraie. Leur somme vaut ${sum}° et la disposition des côtés ne correspond ni à des angles adjacents ni à des angles opposés par le sommet.`;
+}
+
+choiceBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(resolved) return;
+
+    const key=btn.dataset.key;
+
+    if(key==='none'){
+      selected.clear();
+      choiceBtns.forEach(b=>b.classList.remove('selected'));
+      selected.add('none');
+      btn.classList.add('selected');
+    }else{
+      if(selected.has('none')){
+        selected.delete('none');
+        choiceBtns.find(b=>b.dataset.key==='none')?.classList.remove('selected');
+      }
+
+      if(selected.has(key)){
+        selected.delete(key);
+        btn.classList.remove('selected');
+      }else{
+        selected.add(key);
+        btn.classList.add('selected');
+      }
+    }
+
+    validateBtn.disabled=selected.size===0;
+  });
+});
+
+function validate(){
+  if(resolved || selected.size===0) return;
+  resolved=true;
+
+  const q=questions[index];
+  const expected=new Set(q.answers);
+  const correct=sameSet(selected,expected);
+
+  choiceBtns.forEach(btn=>{
+    btn.disabled=true;
+    const key=btn.dataset.key;
+    const chosen=selected.has(key);
+    const should=expected.has(key);
+
+    btn.classList.remove('selected');
+
+    if(should){
+      btn.classList.add(chosen?'correct':'missed');
+    }else if(chosen){
+      btn.classList.add('wrong');
+    }
+  });
+
+  if(correct){
+    score++;
+    setFeedback(explanation(q),'success');
+  }else{
+    setFeedback(explanation(q),'error');
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  validateBtn.disabled=true;
+  validateBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu distingues correctement les trois relations entre angles.";
+  }else if(score>=6){
+    message="Très bien. Pense qu’une même paire d’angles peut vérifier plusieurs relations.";
+  }else if(score>=4){
+    message="C’est en bonne voie. Vérifie séparément la position des angles et la somme de leurs mesures.";
+  }else{
+    message="Rejoue l’activité en vérifiant une relation à la fois : adjacents, supplémentaires, puis opposés par le sommet.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  validateBtn.hidden=false;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  validateBtn.hidden=false;
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  choiceBtns.forEach(b=>b.disabled=true);
+  validateBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>
