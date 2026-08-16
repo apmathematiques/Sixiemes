@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Complète le tableau</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:10px}
+.app{
+  width:min(100%,1000px);aspect-ratio:16/9;min-height:500px;
+  max-height:calc(100vh - 20px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:12px;padding:14px 22px 8px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:8px 13px;color:var(--bd);
+  font-weight:800;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:3px 16px 15px;
+  display:flex;flex-direction:column;gap:8px
+}
+.instruction{
+  min-height:48px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.55rem,2.8vw,2rem);
+  font-weight:800;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:330px;padding:14px 18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.situation{
+  width:min(820px,100%);min-height:64px;padding:10px 18px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.25rem,2.3vw,1.6rem);
+  font-weight:750;line-height:1.3;text-align:center;
+  background:#fff;border:2px solid #dce9f3;border-radius:15px
+}
+.table-wrap{width:min(820px,100%);display:flex;justify-content:center}
+.prop-table{
+  width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;
+  background:#fff;border:2px solid #8da8bb;border-radius:14px;overflow:hidden
+}
+.prop-table th,.prop-table td{
+  height:82px;padding:8px 10px;text-align:center;vertical-align:middle;
+  border-right:2px solid #8da8bb;border-bottom:2px solid #8da8bb
+}
+.prop-table tr:last-child th,.prop-table tr:last-child td{border-bottom:0}
+.prop-table th:last-child,.prop-table td:last-child{border-right:0}
+.prop-table th{
+  width:34%;background:#f3f7fa;color:var(--bd);
+  font-size:clamp(1.16rem,2vw,1.45rem);font-weight:850;line-height:1.2
+}
+.prop-table td{
+  font-size:clamp(1.5rem,2.8vw,2rem);font-weight:850
+}
+.answer-cell{background:#f8fbfe}
+.answer-input{
+  width:min(150px,86%);height:54px;padding:5px 10px;
+  color:var(--bd);background:#fff;border:3px solid #86b5d6;
+  border-radius:11px;outline:none;text-align:center;
+  font:850 clamp(1.35rem,2.6vw,1.8rem)/1 Arial,Helvetica,sans-serif;
+  transition:border-color .15s ease,background .15s ease,box-shadow .15s ease
+}
+.answer-input:focus{border-color:var(--b);box-shadow:0 0 0 3px rgba(23,105,170,.12)}
+.answer-input.wrong{border-color:#d76d6d;background:var(--rs)}
+.answer-input.correct{border-color:#62b883;background:var(--gs);color:#165e36}
+.answer-input.revealed{border-color:#d99a52;background:#fff7ec;color:#804a10}
+.attempt-note{min-height:22px;margin:0;color:var(--m);font-size:1.05rem;font-weight:700;text-align:center}
+.feedback{
+  min-height:66px;padding:9px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:700;
+  font-size:clamp(1.02rem,1.8vw,1.18rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:13px;visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.feedback.correction{color:#75420e;background:#fff7ec;border:1px solid #eccb9d}
+.controls{
+  min-height:43px;display:flex;align-items:center;justify-content:center;gap:10px
+}
+button.action{
+  min-height:41px;padding:0 20px;font-size:1rem;font-weight:850;
+  cursor:pointer;border:0;border-radius:12px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.primary:disabled{opacity:.45;cursor:default}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:850}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:760px),(max-height:650px){
+  body{padding:5px}
+  .app{min-height:0;max-height:calc(100vh - 10px);border-radius:15px}
+  .top{grid-template-columns:1fr auto;padding:8px 11px 5px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px;font-size:.84rem}
+  .main{padding:1px 8px 8px;gap:5px}
+  .instruction{min-height:40px;font-size:1.25rem}
+  .question-zone{min-height:250px;padding:8px 9px;gap:10px}
+  .situation{min-height:54px;padding:7px 10px;font-size:1.08rem}
+  .prop-table th,.prop-table td{height:62px;padding:5px}
+  .prop-table th{width:38%;font-size:1rem}
+  .prop-table td{font-size:1.38rem}
+  .answer-input{height:46px;font-size:1.3rem;border-width:2px}
+  .attempt-note{font-size:.88rem;min-height:18px}
+  .feedback{min-height:54px;padding:7px 9px;font-size:.9rem}
+  .controls{min-height:35px}
+  button.action{min-height:38px;height:38px;padding:0 15px;font-size:1rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Complète la case manquante du tableau de proportionnalité.</p>
+
+    <div class="question-zone">
+      <div class="situation" id="situation"></div>
+      <div class="table-wrap" id="tableWrap"></div>
+      <p class="attempt-note" id="attemptNote">Tu as 2 essais.</p>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" disabled>Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+const situation=$('situation');
+const tableWrap=$('tableWrap');
+const attemptNote=$('attemptNote');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let resolved=false;
+let input=null;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(arr){return arr[randInt(0,arr.length-1)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function round2(n){return Math.round((n+Number.EPSILON)*100)/100}
+function fr(n){
+  const r=round2(n);
+  return Number.isInteger(r) ? String(r) : String(r).replace('.',',');
+}
+function parseAnswer(raw){
+  const cleaned=String(raw).trim().replace(/\s/g,'').replace(',','.');
+  if(!cleaned || !/^[-+]?\d+(?:\.\d+)?$/.test(cleaned)) return NaN;
+  return Number(cleaned);
+}
+function sameNumber(a,b){return Number.isFinite(a) && Math.abs(a-b)<1e-8}
+
+const contexts=[
+  {intro:'Le prix est proportionnel au nombre de cahiers.',a:'Nombre de cahiers',b:'Prix (en €)',rates:[1.5,2,2.5,3,4]},
+  {intro:'Le prix est proportionnel à la masse de pommes.',a:'Masse (en kg)',b:'Prix (en €)',rates:[2,2.5,3,4]},
+  {intro:'La quantité de farine est proportionnelle au nombre de personnes.',a:'Nombre de personnes',b:'Farine (en kg)',rates:[0.1,0.15,0.2,0.25]},
+  {intro:'À vitesse constante, la distance parcourue est proportionnelle à la durée.',a:'Durée (en h)',b:'Distance (en km)',rates:[40,50,60,70,80]},
+  {intro:'Le volume total est proportionnel au nombre de bouteilles.',a:'Nombre de bouteilles',b:'Volume total (en L)',rates:[0.5,0.75,1,1.5]},
+  {intro:'Le prix est proportionnel à la longueur de ruban.',a:'Longueur (en m)',b:'Prix (en €)',rates:[1.5,2,2.5,3]}
+];
+
+function makeQuestion(ctx,columns,missingRow,missingCol,answer,hint,method){
+  const safeColumns=columns.map(col=>col.slice());
+  safeColumns[missingCol][missingRow]=null;
+  return {ctx,columns:safeColumns,missingRow,missingCol,answer:round2(answer),hint,method};
+}
+
+function buildMultiplyForward(){
+  const ctx=pick(contexts.filter(c=>!c.a.includes('personnes')));
+  const rate=pick(ctx.rates);
+  const a=pick([2,3,4]);
+  const k=pick([2,3,4]);
+  const y=round2(a*rate);
+  const target=a*k;
+  const ans=round2(y*k);
+  return makeQuestion(ctx,[[a,y],[target,ans]],1,1,ans,
+    `Observe la première ligne : ${fr(target)} est ${k} fois ${fr(a)}. Fais le même calcul sur l'autre ligne.`,
+    `${fr(target)} = ${fr(a)} × ${k}, donc ${fr(y)} × ${k} = ${fr(ans)}.`);
+}
+
+function buildMultiplyReverse(){
+  const ctx=pick(contexts);
+  const rate=pick(ctx.rates);
+  const a=pick([2,3,4]);
+  const k=pick([2,3]);
+  const b=round2(a*rate);
+  const targetB=round2(b*k);
+  const ans=a*k;
+  return makeQuestion(ctx,[[a,b],[ans,targetB]],0,1,ans,
+    `Sur la deuxième ligne, ${fr(targetB)} est ${k} fois ${fr(b)}. La première ligne doit être multipliée par le même nombre.`,
+    `${fr(targetB)} = ${fr(b)} × ${k}, donc ${fr(a)} × ${k} = ${fr(ans)}.`);
+}
+
+function buildAdditive(){
+  const ctx=pick(contexts);
+  const rate=pick(ctx.rates);
+  const a=pick([2,3,4]);
+  let b=pick([1,2,5]);
+  while(b===a) b=pick([1,2,5]);
+  const aB=round2(a*rate), bB=round2(b*rate);
+  const sumA=a+b, sumB=round2(aB+bB);
+  const missingRow=pick([0,1]);
+  const ans=missingRow===0?sumA:sumB;
+  return makeQuestion(ctx,[[a,aB],[b,bB],[sumA,sumB]],missingRow,2,ans,
+    `La troisième colonne peut être obtenue en additionnant les deux premières colonnes.`,
+    missingRow===0
+      ? `Comme ${fr(aB)} + ${fr(bB)} = ${fr(sumB)}, on peut additionner les valeurs correspondantes : ${fr(a)} + ${fr(b)} = ${fr(sumA)}.`
+      : `Comme ${fr(a)} + ${fr(b)} = ${fr(sumA)}, on peut additionner les valeurs correspondantes : ${fr(aB)} + ${fr(bB)} = ${fr(sumB)}.`);
+}
+
+function buildSubtractive(){
+  const ctx=pick(contexts);
+  const rate=pick(ctx.rates);
+  const small=pick([1,2,3]);
+  let diff=pick([2,3,4]);
+  while(diff===small) diff=pick([2,3,4]);
+  const large=small+diff;
+  const sB=round2(small*rate), lB=round2(large*rate), dB=round2(diff*rate);
+  const missingRow=pick([0,1]);
+  const ans=missingRow===0?diff:dB;
+  return makeQuestion(ctx,[[large,lB],[small,sB],[diff,dB]],missingRow,2,ans,
+    `La troisième colonne correspond à la différence entre la première et la deuxième.`,
+    missingRow===0
+      ? `${fr(large)} − ${fr(small)} = ${fr(diff)}.`
+      : `${fr(lB)} − ${fr(sB)} = ${fr(dB)}.`);
+}
+
+function buildUnitForward(){
+  const ctx=pick(contexts);
+  const rate=pick(ctx.rates);
+  const n=pick([3,4,5]);
+  let t=pick([2,5,7,8]);
+  while(t===n || t%n===0 || n%t===0) t=pick([2,5,7,8]);
+  const known=round2(n*rate), ans=round2(t*rate);
+  return makeQuestion(ctx,[[n,known],[t,ans]],1,1,ans,
+    `Cherche d'abord la valeur correspondant à 1 unité, puis utilise-la pour ${fr(t)} unités.`,
+    `${fr(known)} ÷ ${fr(n)} = ${fr(rate)} pour 1 unité, puis ${fr(rate)} × ${fr(t)} = ${fr(ans)}.`);
+}
+
+function buildUnitReverse(){
+  const ctx=pick(contexts.filter(c=>!c.a.includes('Durée')));
+  const rate=pick(ctx.rates);
+  const n=pick([3,4,5]);
+  let t=pick([2,5,7,8]);
+  while(t===n || t%n===0 || n%t===0) t=pick([2,5,7,8]);
+  const known=round2(n*rate), targetB=round2(t*rate);
+  return makeQuestion(ctx,[[n,known],[t,targetB]],0,1,t,
+    `Commence par trouver la valeur de la deuxième ligne correspondant à 1 unité de la première ligne.`,
+    `${fr(known)} ÷ ${fr(n)} = ${fr(rate)} pour 1 unité, puis ${fr(targetB)} ÷ ${fr(rate)} = ${fr(t)}.`);
+}
+
+function buildDivision(){
+  const ctx=pick(contexts);
+  const rate=pick(ctx.rates);
+  const k=pick([2,3,4]);
+  const target=pick([1,2,3]);
+  const large=target*k;
+  const largeB=round2(large*rate), targetB=round2(target*rate);
+  return makeQuestion(ctx,[[large,largeB],[target,targetB]],1,1,targetB,
+    `Sur la première ligne, on passe de ${fr(large)} à ${fr(target)} en divisant par ${k}. Fais de même sur la deuxième ligne.`,
+    `${fr(large)} ÷ ${k} = ${fr(target)}, donc ${fr(largeB)} ÷ ${k} = ${fr(targetB)}.`);
+}
+
+function buildDecimalAdditive(){
+  const ctx={intro:'Le prix est proportionnel à la masse achetée.',a:'Masse (en kg)',b:'Prix (en €)',rates:[2,3,4]};
+  const rate=pick(ctx.rates);
+  const a=pick([1.5,2.5,3.5]);
+  let b=pick([0.5,1.5]);
+  while(b===a) b=pick([0.5,1.5]);
+  const aB=round2(a*rate), bB=round2(b*rate);
+  const sumA=round2(a+b), sumB=round2(aB+bB);
+  return makeQuestion(ctx,[[a,aB],[b,bB],[sumA,sumB]],1,2,sumB,
+    `La masse de la troisième colonne est la somme des deux premières masses. Additionne aussi les prix correspondants.`,
+    `Comme ${fr(a)} + ${fr(b)} = ${fr(sumA)}, on peut additionner les valeurs correspondantes : ${fr(aB)} + ${fr(bB)} = ${fr(sumB)}.`);
+}
+
+const builders=[
+  buildMultiplyForward,
+  buildMultiplyReverse,
+  buildAdditive,
+  buildSubtractive,
+  buildUnitForward,
+  buildUnitReverse,
+  buildDivision,
+  buildDecimalAdditive
+];
+
+function buildQuestions(){return shuffle(builders.map(fn=>fn()))}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function renderQuestion(){
+  attempts=0;
+  resolved=false;
+  const q=questions[index];
+  situation.textContent=q.ctx.intro;
+  feedback.textContent='';
+  feedback.className='feedback';
+  attemptNote.textContent='Tu as 2 essais.';
+  nextBtn.hidden=true;
+  validateBtn.hidden=false;
+  validateBtn.disabled=true;
+
+  const table=document.createElement('table');
+  table.className='prop-table';
+  const tbody=document.createElement('tbody');
+
+  for(let r=0;r<2;r++){
+    const tr=document.createElement('tr');
+    const th=document.createElement('th');
+    th.scope='row';
+    th.textContent=r===0?q.ctx.a:q.ctx.b;
+    tr.appendChild(th);
+
+    q.columns.forEach((col,c)=>{
+      const td=document.createElement('td');
+      if(r===q.missingRow && c===q.missingCol){
+        td.className='answer-cell';
+        input=document.createElement('input');
+        input.className='answer-input';
+        input.type='text';
+        input.inputMode='decimal';
+        input.autocomplete='off';
+        input.spellcheck=false;
+        input.setAttribute('aria-label','Valeur manquante');
+        input.addEventListener('input',()=>{
+          input.classList.remove('wrong');
+          validateBtn.disabled=!Number.isFinite(parseAnswer(input.value));
+        });
+        input.addEventListener('keydown',e=>{
+          if(e.key==='Enter' && !validateBtn.disabled && !resolved) validate();
+        });
+        td.appendChild(input);
+      }else{
+        td.textContent=fr(col[r]);
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+  tableWrap.innerHTML='';
+  tableWrap.appendChild(table);
+  updateTop();
+  setTimeout(()=>input && input.focus(),50);
+}
+
+function validate(){
+  if(resolved || !input)return;
+  const q=questions[index];
+  const userValue=parseAnswer(input.value);
+  if(!Number.isFinite(userValue))return;
+  attempts++;
+
+  if(sameNumber(userValue,q.answer)){
+    resolved=true;
+    score++;
+    input.disabled=true;
+    input.classList.remove('wrong');
+    input.classList.add('correct');
+    setFeedback(`Bravo ! ${q.method}`,'success');
+    finishQuestion();
+    return;
+  }
+
+  input.classList.add('wrong');
+
+  if(attempts<MAX_ATTEMPTS){
+    attemptNote.textContent='Il te reste 1 essai.';
+    setFeedback("Ce n'est pas la bonne valeur. Réessaie.",'error');
+    input.select();
+    return;
+  }
+
+  resolved=true;
+  input.disabled=true;
+  input.value=fr(q.answer);
+  input.classList.remove('wrong');
+  input.classList.add('revealed');
+  setFeedback(`La réponse était ${fr(q.answer)}. ${q.method}`,'correction');
+  finishQuestion();
+}
+
+function finishQuestion(){
+  validateBtn.disabled=true;
+  nextBtn.hidden=false;
+  nextBtn.textContent=index===TOTAL-1?'Voir le résultat':'Question suivante';
+  attemptNote.textContent=attempts===1?'Réussi au 1er essai.':(scoreBox.textContent,'Question terminée.');
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function next(){
+  if(index<TOTAL-1){index++;renderQuestion();return}
+  showFinal();
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+  if(score===TOTAL)finalMessage.textContent='Excellent ! Tu sais compléter un tableau en choisissant une méthode adaptée.';
+  else if(score>=6)finalMessage.textContent='Très bien ! Tu sais mobiliser la linéarité ou le retour à l’unité dans un tableau.';
+  else if(score>=4)finalMessage.textContent='Bien joué. Pense à comparer les colonnes avant de choisir ton calcul.';
+  else finalMessage.textContent='À retravailler : cherche d’abord la relation entre les colonnes ou reviens à l’unité.';
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;attempts=0;resolved=false;input=null;
+  final.classList.remove('show');
+  exercise.style.display='flex';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+})();
+</script>
+</body>
+</html>
