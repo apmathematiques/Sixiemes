@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Durées décimales</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:280px;padding:28px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-evenly;gap:22px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.prompt{
+  color:var(--m);font-size:clamp(1.25rem,2.5vw,1.55rem);
+  font-weight:700;line-height:1.3;text-align:center
+}
+.conversion{
+  width:100%;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:.28em;font-size:clamp(2.25rem,5.3vw,3.8rem);
+  font-weight:800;line-height:1.2;text-align:center
+}
+.source,.unit,.equals{white-space:nowrap}
+.answer-group{
+  display:inline-flex;align-items:center;justify-content:center;gap:.16em;
+  white-space:nowrap
+}
+.answer{
+  width:clamp(110px,14vw,150px);height:1.42em;
+  padding:0 .15em;border:3px solid #b9d4e8;border-radius:14px;
+  color:var(--bd);background:#fff;text-align:center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(1.65rem,3.4vw,2.3rem);
+  font-weight:800;line-height:1;
+  outline:none
+}
+.answer.decimal{width:clamp(140px,18vw,190px)}
+.answer:focus{border-color:#74a9cf;box-shadow:0 0 0 4px rgba(23,105,170,.08)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.feedback{
+  min-height:72px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.13rem);
+  line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.13rem}
+  .question-zone{min-height:200px;padding:14px 10px;gap:12px}
+  .prompt{font-size:1.05rem}
+  .conversion{font-size:1.8rem}
+  .answer{width:82px;font-size:1.45rem}
+  .answer.decimal{width:112px}
+  .feedback{min-height:58px;padding:8px 10px;font-size:.86rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Passe d’une écriture décimale à une écriture en heures et minutes, ou inversement.</p>
+
+    <div class="question-zone">
+      <div class="prompt" id="prompt">Complète la conversion.</div>
+      <div class="conversion" id="conversion"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles durées</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+
+const promptBox=$('prompt');
+const conversion=$('conversion');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let resolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function decimalText(value){
+  let s=String(value);
+  if(s.includes('e')) s=value.toFixed(2);
+  s=s.replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
+  return s.replace('.',',');
+}
+
+const fractionalHours=[
+  {d:0.1,m:6},{d:0.2,m:12},{d:0.25,m:15},{d:0.3,m:18},
+  {d:0.4,m:24},{d:0.5,m:30},{d:0.6,m:36},{d:0.7,m:42},
+  {d:0.75,m:45},{d:0.8,m:48},{d:0.9,m:54}
+];
+
+function makeDecimalToMinutes(){
+  const f=pick(fractionalHours);
+  return{
+    kind:'one',
+    source:`${decimalText(f.d)} h`,
+    parts:[{value:f.m,unit:'min',decimal:false}],
+    explanation:`${decimalText(f.d)} × 60 = ${f.m}. Donc ${decimalText(f.d)} h = ${f.m} min.`
+  };
+}
+
+function makeDecimalToHM(){
+  const whole=randInt(1,4);
+  const f=pick(fractionalHours);
+  const value=Number((whole+f.d).toFixed(2));
+  return{
+    kind:'hm',
+    source:`${decimalText(value)} h`,
+    parts:[
+      {value:whole,unit:'h',decimal:false},
+      {value:f.m,unit:'min',decimal:false}
+    ],
+    explanation:`La partie entière donne ${whole} h et ${decimalText(f.d)} h = ${f.m} min. Donc ${decimalText(value)} h = ${whole} h ${f.m} min.`
+  };
+}
+
+function makeHMToDecimal(){
+  const whole=randInt(1,4);
+  const f=pick(fractionalHours);
+  const value=Number((whole+f.d).toFixed(2));
+  return{
+    kind:'decimal',
+    source:`${whole} h ${f.m} min`,
+    parts:[{value:value,unit:'h',decimal:true}],
+    explanation:`${f.m} min = ${decimalText(f.d)} h. Donc ${whole} h ${f.m} min = ${decimalText(value)} h.`
+  };
+}
+
+function buildQuestions(){
+  return shuffle([
+    makeDecimalToMinutes(),
+    makeDecimalToMinutes(),
+    makeDecimalToMinutes(),
+    makeDecimalToMinutes(),
+    makeDecimalToHM(),
+    makeDecimalToHM(),
+    makeDecimalToHM(),
+    makeHMToDecimal(),
+    makeHMToDecimal(),
+    makeHMToDecimal()
+  ]);
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  resolved=false;
+
+  promptBox.textContent=q.kind==='decimal'
+    ? 'Écris la durée en heures décimales.'
+    : 'Complète la conversion.';
+
+  const partsHTML=q.parts.map((part,i)=>`
+    <span class="answer-group">
+      <input class="answer ${part.decimal?'decimal':''}" id="answer${i}"
+        type="text" inputmode="decimal" autocomplete="off"
+        aria-label="${part.unit}">
+      <span class="unit">${part.unit}</span>
+    </span>
+  `).join('');
+
+  conversion.innerHTML=`
+    <span class="source">${q.source}</span>
+    <span class="equals">=</span>
+    ${partsHTML}
+  `;
+
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+  updateTop();
+
+  const inputs=getInputs();
+  setTimeout(()=>inputs[0]?.focus(),0);
+
+  inputs.forEach((input,i)=>{
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        if(i<inputs.length-1 && input.value.trim()!==''){
+          inputs[i+1].focus();
+        }else{
+          validateAnswer();
+        }
+      }
+    });
+  });
+}
+
+function getInputs(){
+  return [...conversion.querySelectorAll('.answer')];
+}
+
+function readNumber(input){
+  const raw=input.value.trim().replace(/\s+/g,'').replace(',','.');
+  if(raw==='') return null;
+  const value=Number(raw);
+  return Number.isFinite(value) ? value : null;
+}
+
+function sameNumber(a,b){
+  return Math.abs(a-b)<1e-9;
+}
+
+function validateAnswer(){
+  if(resolved) return;
+
+  const q=questions[index];
+  const inputs=getInputs();
+  const values=inputs.map(readNumber);
+
+  if(values.some(v=>v===null)){
+    setFeedback('Complète toutes les cases avant de valider.','error');
+    return;
+  }
+
+  resolved=true;
+  const allCorrect=values.every((v,i)=>sameNumber(v,q.parts[i].value));
+
+  inputs.forEach((input,i)=>{
+    input.disabled=true;
+    input.classList.add(sameNumber(values[i],q.parts[i].value)?'correct':'wrong');
+  });
+
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+
+  if(allCorrect){
+    score++;
+    const result=q.parts.map(p=>`${p.decimal?decimalText(p.value):p.value} ${p.unit}`).join(' ');
+    setFeedback(`Bravo ! ${q.source} = ${result}.`,'success');
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  }else{
+    const correct=q.parts.map(p=>`${p.decimal?decimalText(p.value):p.value} ${p.unit}`).join(' ');
+    setFeedback(`La bonne réponse est ${correct}. ${q.explanation}`,'error');
+  }
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+  counter.textContent=`Question ${TOTAL} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalMessage.textContent='Excellent ! Tu maîtrises les écritures décimales des durées.';
+  }else if(score>=8){
+    finalMessage.textContent='Très bien ! Les conversions entre heures décimales et heures-minutes sont bien maîtrisées.';
+  }else if(score>=6){
+    finalMessage.textContent='Bien ! Rejoue pour consolider les durées décimales.';
+  }else{
+    finalMessage.textContent='Rejoue pour t’entraîner à relier les décimaux aux minutes.';
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  resolved=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+  renderQuestion();
+}
+
+validateBtn.addEventListener('click',validateAnswer);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>

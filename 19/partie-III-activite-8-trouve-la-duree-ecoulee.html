@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Trouve la durée écoulée</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:280px;padding:24px 28px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-evenly;gap:20px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.problem{
+  width:min(810px,100%);
+  padding:18px 22px;
+  font-size:clamp(1.35rem,2.8vw,1.9rem);
+  font-weight:700;line-height:1.38;text-align:center;
+  background:#fff;border:2px solid #dce9f3;border-radius:16px
+}
+.problem strong{color:var(--bd)}
+.answer-line{
+  width:100%;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:center;
+  gap:.28em;
+  font-size:clamp(2rem,4.8vw,3.2rem);
+  font-weight:800;line-height:1.2
+}
+.answer-group{
+  display:inline-flex;align-items:center;gap:.14em;white-space:nowrap
+}
+.answer{
+  width:clamp(100px,13vw,140px);height:1.42em;
+  padding:0 .15em;border:3px solid #b9d4e8;border-radius:14px;
+  color:var(--bd);background:#fff;text-align:center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(1.7rem,3.6vw,2.4rem);
+  font-weight:800;line-height:1;
+  outline:none
+}
+.answer:focus{border-color:#74a9cf;box-shadow:0 0 0 4px rgba(23,105,170,.08)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.unit{white-space:nowrap}
+.feedback{
+  min-height:76px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(1rem,1.9vw,1.15rem);
+  line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+button.action:disabled{opacity:.55;cursor:default}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.13rem}
+  .question-zone{min-height:200px;padding:12px 8px;gap:10px}
+  .problem{padding:12px;font-size:1.12rem}
+  .answer-line{font-size:1.7rem}
+  .answer{width:78px;font-size:1.4rem}
+  .feedback{min-height:58px;padding:8px 10px;font-size:.86rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Trouve la durée écoulée entre l’horaire de départ et l’horaire d’arrivée.</p>
+
+    <div class="question-zone">
+      <div class="problem" id="problem"></div>
+      <div class="answer-line">
+        <span class="answer-group">
+          <input class="answer" id="hour" type="text" inputmode="numeric" autocomplete="off" aria-label="Heures">
+          <span class="unit">h</span>
+        </span>
+        <span class="answer-group">
+          <input class="answer" id="minute" type="text" inputmode="numeric" autocomplete="off" aria-label="Minutes">
+          <span class="unit">min</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux horaires</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+
+const problem=$('problem');
+const hourInput=$('hour');
+const minuteInput=$('minute');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let resolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+function pad2(n){
+  return String(n).padStart(2,'0');
+}
+function timeText(h,m){
+  return m===0 ? `${h} h` : `${h} h ${pad2(m)}`;
+}
+function elapsed(startH,startM,endH,endM,nextDay){
+  const start=startH*60+startM;
+  let end=endH*60+endM;
+  if(nextDay) end+=1440;
+  const d=end-start;
+  return {h:Math.floor(d/60),m:d%60};
+}
+
+const contexts=[
+  'Un train effectue un trajet.',
+  'Un film est projeté au cinéma.',
+  'Une randonnée est organisée.',
+  'Une visite de musée est prévue.',
+  'Un trajet en car est effectué.',
+  'Une activité sportive est organisée.',
+  'Un spectacle est programmé.',
+  'Un voyage en avion est effectué.'
+];
+
+function buildQuestion(level){
+  let sh,sm,eh,em,nextDay=false;
+
+  if(level===1){
+    sh=randInt(8,18); sm=pick([0,5,10,15,20,25,30]);
+    const d=randInt(5,Math.max(8,55-sm));
+    eh=sh; em=sm+d;
+  }else if(level===2){
+    sh=randInt(8,18); sm=pick([35,40,45,50,55]);
+    const d=randInt(10,35);
+    const total=sh*60+sm+d; eh=Math.floor(total/60); em=total%60;
+  }else if(level===3){
+    sh=randInt(7,17); sm=pick([0,10,15,20,30,40,45,50]);
+    const dh=randInt(1,3), dm=pick([0,5,10,15,20,25,30]);
+    const total=sh*60+sm+dh*60+dm; eh=Math.floor(total/60); em=total%60;
+  }else if(level===4){
+    sh=randInt(7,16); sm=pick([35,40,45,50,55]);
+    const total=sh*60+sm+randInt(1,4)*60+randInt(15,45);
+    eh=Math.floor(total/60); em=total%60;
+  }else if(level===5){
+    sh=randInt(8,17); sm=pick([5,10,15,20,25,30,35,40,45,50,55]);
+    eh=randInt(sh+1,Math.min(22,sh+5)); em=sm;
+  }else if(level===6){
+    sh=randInt(8,18); sm=randInt(25,58);
+    const total=sh*60+sm+randInt(35,150);
+    eh=Math.floor(total/60); em=total%60;
+  }else if(level===7){
+    sh=randInt(13,17); sm=pick([10,20,30,40,50]);
+    const total=sh*60+sm+randInt(2,5)*60+randInt(10,50);
+    eh=Math.floor(total/60); em=total%60;
+  }else if(level===8){
+    sh=randInt(18,20); sm=pick([10,20,30,40,50]);
+    const total=sh*60+sm+randInt(1,3)*60+randInt(10,50);
+    eh=Math.floor(total/60); em=total%60;
+  }else if(level===9){
+    nextDay=true;
+    sh=randInt(22,23); sm=pick([10,20,30,40,50]);
+    const total=sh*60+sm+randInt(1,3)*60+randInt(20,55);
+    eh=Math.floor((total%1440)/60); em=total%60;
+  }else{
+    nextDay=true;
+    sh=randInt(20,23); sm=pick([5,15,25,35,45,55]);
+    const total=sh*60+sm+randInt(3,8)*60+randInt(10,55);
+    eh=Math.floor((total%1440)/60); em=total%60;
+  }
+
+  const d=elapsed(sh,sm,eh,em,nextDay);
+  const arrival=`${timeText(eh,em)}${nextDay?' le lendemain':''}`;
+
+  return{
+    html:`${pick(contexts)}<br><br>Départ : <strong>${timeText(sh,sm)}</strong><br>Arrivée : <strong>${arrival}</strong><br><br>Quelle est la durée écoulée ?`,
+    startH:sh,startM:sm,endH:eh,endM:em,nextDay,
+    answerH:d.h,answerM:d.m
+  };
+}
+
+function buildQuestions(){
+  return Array.from({length:10},(_,i)=>buildQuestion(i+1));
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetInputs(){
+  [hourInput,minuteInput].forEach(input=>{
+    input.value='';
+    input.disabled=false;
+    input.classList.remove('correct','wrong');
+  });
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;
+  resolved=false;
+  resetInputs();
+
+  problem.innerHTML=q.html;
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+  updateTop();
+
+  setTimeout(()=>hourInput.focus(),0);
+}
+
+function readInt(input){
+  const raw=input.value.trim().replace(/\s+/g,'');
+  if(raw==='') return null;
+  const value=Number(raw);
+  return Number.isInteger(value) ? value : null;
+}
+
+function validateAnswer(){
+  if(resolved) return;
+
+  const q=questions[index];
+  const h=readInt(hourInput);
+  const m=readInt(minuteInput);
+
+  if(h===null || m===null){
+    setFeedback('Complète les deux cases avant de valider.','error');
+    return;
+  }
+
+  attempts++;
+  const correct=(h===q.answerH && m===q.answerM);
+
+  if(correct){
+    resolved=true;
+    score++;
+    hourInput.classList.add('correct');
+    minuteInput.classList.add('correct');
+    hourInput.disabled=true;
+    minuteInput.disabled=true;
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    setFeedback(`Bravo ! La durée écoulée est ${q.answerH} h ${q.answerM} min.`,'success');
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    return;
+  }
+
+  if(attempts===1){
+    hourInput.classList.add('wrong');
+    minuteInput.classList.add('wrong');
+    setFeedback(
+      q.nextDay
+        ? 'Ce n’est pas encore juste. Pense au temps écoulé jusqu’à minuit, puis continue jusqu’à l’heure d’arrivée.'
+        : 'Ce n’est pas encore juste. Pense au temps écoulé jusqu’à l’heure suivante, puis continue jusqu’à l’heure d’arrivée.',
+      'error'
+    );
+    setTimeout(()=>{
+      hourInput.classList.remove('wrong');
+      minuteInput.classList.remove('wrong');
+      hourInput.focus();
+      hourInput.select();
+    },300);
+    return;
+  }
+
+  resolved=true;
+  hourInput.disabled=true;
+  minuteInput.disabled=true;
+  hourInput.classList.add(h===q.answerH?'correct':'wrong');
+  minuteInput.classList.add(m===q.answerM?'correct':'wrong');
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+
+  const arrival=`${timeText(q.endH,q.endM)}${q.nextDay?' le lendemain':''}`;
+  setFeedback(
+    `La bonne réponse est ${q.answerH} h ${q.answerM} min. De ${timeText(q.startH,q.startM)} à ${arrival}, il s’écoule ${q.answerH} h ${q.answerM} min.`,
+    'error'
+  );
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+  counter.textContent=`Question ${TOTAL} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalMessage.textContent='Excellent ! Tu sais très bien déterminer une durée écoulée.';
+  }else if(score>=8){
+    finalMessage.textContent='Très bien ! Les calculs de durées écoulées sont bien maîtrisés.';
+  }else if(score>=6){
+    finalMessage.textContent='Bien ! Rejoue pour consolider les passages d’une heure à l’autre et de minuit.';
+  }else{
+    finalMessage.textContent='Rejoue avec de nouveaux horaires pour t’entraîner à calculer une durée écoulée.';
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  resolved=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+  renderQuestion();
+}
+
+hourInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && hourInput.value.trim()!=='') minuteInput.focus();
+});
+minuteInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter') validateAnswer();
+});
+validateBtn.addEventListener('click',validateAnswer);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>
