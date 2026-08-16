@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Problèmes d’addition de durées</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:280px;padding:24px 28px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-evenly;gap:20px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.problem{
+  width:min(810px,100%);
+  padding:18px 22px;
+  font-size:clamp(1.35rem,2.8vw,1.9rem);
+  font-weight:700;line-height:1.38;text-align:center;
+  background:#fff;border:2px solid #dce9f3;border-radius:16px
+}
+.problem strong{color:var(--bd)}
+.answer-line{
+  width:100%;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:center;
+  gap:.28em;
+  font-size:clamp(2rem,4.8vw,3.2rem);
+  font-weight:800;line-height:1.2
+}
+.answer-group{
+  display:inline-flex;align-items:center;gap:.14em;white-space:nowrap
+}
+.answer{
+  width:clamp(100px,13vw,140px);height:1.42em;
+  padding:0 .15em;border:3px solid #b9d4e8;border-radius:14px;
+  color:var(--bd);background:#fff;text-align:center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(1.7rem,3.6vw,2.4rem);
+  font-weight:800;line-height:1;
+  outline:none
+}
+.answer:focus{border-color:#74a9cf;box-shadow:0 0 0 4px rgba(23,105,170,.08)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.unit{white-space:nowrap}
+.feedback{
+  min-height:76px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(1rem,1.9vw,1.15rem);
+  line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+button.action:disabled{opacity:.55;cursor:default}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.13rem}
+  .question-zone{min-height:200px;padding:12px 8px;gap:10px}
+  .problem{padding:12px;font-size:1.12rem}
+  .answer-line{font-size:1.7rem}
+  .answer{width:78px;font-size:1.4rem}
+  .feedback{min-height:58px;padding:8px 10px;font-size:.86rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Lis le problème et trouve l’horaire de fin ou d’arrivée.</p>
+
+    <div class="question-zone">
+      <div class="problem" id="problem"></div>
+      <div class="answer-line">
+        <span class="answer-group">
+          <input class="answer" id="hour" type="text" inputmode="numeric" autocomplete="off" aria-label="Heures">
+          <span class="unit">h</span>
+        </span>
+        <span class="answer-group">
+          <input class="answer" id="minute" type="text" inputmode="numeric" autocomplete="off" aria-label="Minutes">
+          <span class="unit">min</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate">Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux problèmes</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+
+const problem=$('problem');
+const hourInput=$('hour');
+const minuteInput=$('minute');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let resolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+function pad2(n){
+  return String(n).padStart(2,'0');
+}
+function timeText(h,m){
+  return m===0 ? `${h} h` : `${h} h ${pad2(m)}`;
+}
+function addDuration(h,m,dh,dm){
+  const total=(h*60+m)+(dh*60+dm);
+  const dayShift=Math.floor(total/1440);
+  const local=total%1440;
+  return{
+    h:Math.floor(local/60),
+    m:local%60,
+    dayShift
+  };
+}
+
+const contexts=[
+  (start,dur)=>`Un film commence à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure se termine-t-il ?`,
+  (start,dur)=>`Un train part à <strong>${start}</strong> et le trajet dure <strong>${dur}</strong>. À quelle heure arrive-t-il ?`,
+  (start,dur)=>`Une randonnée débute à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure se termine-t-elle ?`,
+  (start,dur)=>`Un spectacle commence à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure se termine-t-il ?`,
+  (start,dur)=>`Une activité sportive commence à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure se termine-t-elle ?`,
+  (start,dur)=>`Un car part à <strong>${start}</strong> et roule pendant <strong>${dur}</strong>. À quelle heure arrive-t-il ?`,
+  (start,dur)=>`Une visite commence à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure se termine-t-elle ?`,
+  (start,dur)=>`Un vol décolle à <strong>${start}</strong> et dure <strong>${dur}</strong>. À quelle heure atterrit-il ?`
+];
+
+function buildQuestion(level){
+  let h,m,dh,dm;
+
+  if(level===1){
+    h=randInt(8,18); m=pick([5,10,15,20,25,30,35,40]);
+    dh=0; dm=randInt(5,Math.max(8,55-m));
+  }else if(level===2){
+    h=randInt(8,18); m=pick([35,40,45,50,55]);
+    dh=0; dm=randInt(10,35);
+  }else if(level===3){
+    h=randInt(7,18); m=pick([0,10,20,30,40,50]);
+    dh=randInt(1,4); dm=0;
+  }else if(level===4){
+    h=randInt(7,17); m=pick([5,10,15,20]);
+    dh=randInt(1,3); dm=randInt(5,25);
+    if(m+dm>=60) dm=randInt(5,59-m);
+  }else if(level===5){
+    h=randInt(7,17); m=pick([35,40,45,50,55]);
+    dh=randInt(1,3); dm=randInt(10,40);
+  }else if(level===6){
+    h=randInt(8,18); m=pick([52,55,57,58]);
+    dh=randInt(0,2); dm=randInt(7,28);
+  }else if(level===7){
+    h=randInt(15,18); m=pick([20,30,40,45,50]);
+    dh=randInt(2,4); dm=randInt(15,45);
+  }else if(level===8){
+    h=randInt(18,21); m=pick([10,20,30,40,50]);
+    dh=randInt(1,3); dm=randInt(15,50);
+  }else if(level===9){
+    h=randInt(22,23); m=pick([10,20,30,40,50]);
+    dh=randInt(1,3); dm=randInt(20,55);
+  }else{
+    h=randInt(21,23); m=pick([15,25,35,45,55]);
+    dh=randInt(3,7); dm=randInt(15,55);
+  }
+
+  const result=addDuration(h,m,dh,dm);
+  const durationText=dh===0 ? `${dm} min` :
+    dm===0 ? `${dh} h` :
+    `${dh} h ${dm} min`;
+
+  return{
+    html:pick(contexts)(timeText(h,m),durationText),
+    startH:h,startM:m,durH:dh,durM:dm,
+    answerH:result.h,answerM:result.m,
+    nextDay:result.dayShift>0
+  };
+}
+
+function buildQuestions(){
+  return Array.from({length:10},(_,i)=>buildQuestion(i+1));
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetInputs(){
+  [hourInput,minuteInput].forEach(input=>{
+    input.value='';
+    input.disabled=false;
+    input.classList.remove('correct','wrong');
+  });
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;
+  resolved=false;
+  resetInputs();
+
+  problem.innerHTML=q.html;
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+  updateTop();
+
+  setTimeout(()=>hourInput.focus(),0);
+}
+
+function readInt(input){
+  const raw=input.value.trim().replace(/\s+/g,'');
+  if(raw==='') return null;
+  const value=Number(raw);
+  return Number.isInteger(value) ? value : null;
+}
+
+function validateAnswer(){
+  if(resolved) return;
+
+  const q=questions[index];
+  const h=readInt(hourInput);
+  const m=readInt(minuteInput);
+
+  if(h===null || m===null){
+    setFeedback('Complète les deux cases avant de valider.','error');
+    return;
+  }
+
+  attempts++;
+  const correct=(h===q.answerH && m===q.answerM);
+
+  if(correct){
+    resolved=true;
+    score++;
+    hourInput.classList.add('correct');
+    minuteInput.classList.add('correct');
+    hourInput.disabled=true;
+    minuteInput.disabled=true;
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+
+    const suffix=q.nextDay ? ' le lendemain' : '';
+    setFeedback(`Bravo ! L’horaire obtenu est ${timeText(q.answerH,q.answerM)}${suffix}.`,'success');
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    return;
+  }
+
+  if(attempts===1){
+    hourInput.classList.add('wrong');
+    minuteInput.classList.add('wrong');
+    setFeedback('Ce n’est pas encore juste. Vérifie l’addition des minutes et pense à changer d’heure si nécessaire.','error');
+    setTimeout(()=>{
+      hourInput.classList.remove('wrong');
+      minuteInput.classList.remove('wrong');
+      hourInput.focus();
+      hourInput.select();
+    },300);
+    return;
+  }
+
+  resolved=true;
+  hourInput.disabled=true;
+  minuteInput.disabled=true;
+  hourInput.classList.add(h===q.answerH?'correct':'wrong');
+  minuteInput.classList.add(m===q.answerM?'correct':'wrong');
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+
+  const suffix=q.nextDay ? ' le lendemain' : '';
+  const durText=q.durH===0 ? `${q.durM} min` :
+    q.durM===0 ? `${q.durH} h` :
+    `${q.durH} h ${q.durM} min`;
+
+  setFeedback(
+    `La bonne réponse est ${timeText(q.answerH,q.answerM)}${suffix}. ` +
+    `${timeText(q.startH,q.startM)} + ${durText} = ${timeText(q.answerH,q.answerM)}${suffix}.`,
+    'error'
+  );
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+  counter.textContent=`Question ${TOTAL} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalMessage.textContent='Excellent ! Tu sais déterminer un horaire de fin ou d’arrivée.';
+  }else if(score>=8){
+    finalMessage.textContent='Très bien ! Les problèmes d’horaires sont bien maîtrisés.';
+  }else if(score>=6){
+    finalMessage.textContent='Bien ! Rejoue pour consolider les passages d’une heure à l’autre.';
+  }else{
+    finalMessage.textContent='Rejoue avec de nouveaux nombres pour t’entraîner à ajouter des durées à un horaire.';
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  resolved=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+  renderQuestion();
+}
+
+hourInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && hourInput.value.trim()!=='') minuteInput.focus();
+});
+minuteInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter') validateAnswer();
+});
+validateBtn.addEventListener('click',validateAnswer);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>

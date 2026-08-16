@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Instant ou durée ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:280px;padding:22px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:30px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.situation{
+  width:min(790px,100%);
+  min-height:118px;padding:18px 24px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.55rem,3.4vw,2.35rem);
+  font-weight:750;line-height:1.32;text-align:center;
+  background:#fff;border:2px solid #dce9f3;border-radius:17px
+}
+.value{color:var(--bd);font-weight:900;white-space:nowrap}
+.choice-buttons{
+  width:min(650px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:18px
+}
+.choice-button{
+  min-height:82px;padding:10px 18px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.35rem,3vw,1.8rem)/1 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice-button:hover:not(:disabled){border-color:#74a9cf}
+.choice-button:active:not(:disabled){transform:scale(.985)}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.feedback{
+  min-height:72px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.13rem);
+  line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;
+  justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.13rem}
+  .question-zone{min-height:200px;padding:10px;gap:14px}
+  .situation{min-height:85px;padding:12px;font-size:1.35rem}
+  .choice-buttons{gap:8px}
+  .choice-button{min-height:57px;padding:7px 10px;font-size:1.15rem}
+  .feedback{min-height:58px;padding:8px 10px;font-size:.86rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Indique si la situation décrit un instant ou une durée.</p>
+
+    <div class="question-zone">
+      <div class="situation" id="situation"></div>
+      <div class="choice-buttons">
+        <button class="choice-button" type="button" data-answer="instant">Instant</button>
+        <button class="choice-button" type="button" data-answer="duree">Durée</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles situations</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+
+const situation=$('situation');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+const choiceButtons=[...document.querySelectorAll('.choice-button')];
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let resolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function pad2(n){
+  return String(n).padStart(2,'0');
+}
+
+function clockTime(){
+  const h=randInt(7,21);
+  const minutePool=[0,5,10,12,15,20,25,27,30,32,35,40,42,45,48,50,55];
+  const m=pick(minutePool);
+  return m===0 ? `${h} h` : `${h} h ${pad2(m)}`;
+}
+
+function durationValue(){
+  const mode=randInt(1,5);
+
+  if(mode===1){
+    return `${randInt(8,59)} min`;
+  }
+  if(mode===2){
+    return `${randInt(1,8)} h`;
+  }
+  if(mode===3){
+    return `${randInt(1,4)} h ${pick([5,10,15,20,25,30,35,40,45,50,55])} min`;
+  }
+  if(mode===4){
+    return `${randInt(20,180)} s`;
+  }
+  return `${randInt(60,180)} min`;
+}
+
+const instantTemplates=[
+  value=>`Le train part à&nbsp;<span class="value">${value}</span>.`,
+  value=>`Le film commence à&nbsp;<span class="value">${value}</span>.`,
+  value=>`La récréation débute à&nbsp;<span class="value">${value}</span>.`,
+  value=>`L'avion atterrit à&nbsp;<span class="value">${value}</span>.`,
+  value=>`Le cours se termine à&nbsp;<span class="value">${value}</span>.`,
+  value=>`Heure de départ :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Heure d'arrivée :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Début du spectacle :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Le rendez-vous est fixé à&nbsp;<span class="value">${value}</span>.`,
+  value=>`Noé franchit la ligne d'arrivée à&nbsp;<span class="value">${value}</span>.`
+];
+
+const durationTemplates=[
+  value=>`Le trajet dure&nbsp;<span class="value">${value}</span>.`,
+  value=>`La séance dure&nbsp;<span class="value">${value}</span>.`,
+  value=>`Le film dure&nbsp;<span class="value">${value}</span>.`,
+  value=>`Temps de cuisson :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Durée du spectacle :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Temps réalisé par Noé :&nbsp;<span class="value">${value}</span>.`,
+  value=>`Le voyage prend&nbsp;<span class="value">${value}</span>.`,
+  value=>`La batterie fonctionne pendant&nbsp;<span class="value">${value}</span>.`,
+  value=>`Temps passé dans le musée :&nbsp;<span class="value">${value}</span>.`,
+  value=>`La course s'est déroulée pendant&nbsp;<span class="value">${value}</span>.`
+];
+
+function buildOne(type,templateIndex){
+  if(type==='instant'){
+    const value=clockTime();
+    return{
+      type,
+      value,
+      html:instantTemplates[templateIndex % instantTemplates.length](value)
+    };
+  }
+
+  const value=durationValue();
+  return{
+    type,
+    value,
+    html:durationTemplates[templateIndex % durationTemplates.length](value)
+  };
+}
+
+function buildQuestions(){
+  const instantIndexes=shuffle([...Array(instantTemplates.length).keys()]).slice(0,5);
+  const durationIndexes=shuffle([...Array(durationTemplates.length).keys()]).slice(0,5);
+
+  const qs=[
+    ...instantIndexes.map(i=>buildOne('instant',i)),
+    ...durationIndexes.map(i=>buildOne('duree',i))
+  ];
+
+  return shuffle(qs);
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetButtons(){
+  choiceButtons.forEach(btn=>{
+    btn.disabled=false;
+    btn.classList.remove('correct','wrong');
+  });
+}
+
+function disableButtons(){
+  choiceButtons.forEach(btn=>btn.disabled=true);
+}
+
+function getCorrectButton(){
+  return choiceButtons.find(btn=>btn.dataset.answer===questions[index].type);
+}
+
+function renderQuestion(){
+  attempts=0;
+  resolved=false;
+  resetButtons();
+
+  situation.innerHTML=questions[index].html;
+  feedback.textContent='';
+  feedback.className='feedback';
+  nextBtn.hidden=true;
+  updateTop();
+}
+
+function correctFeedback(q){
+  if(q.type==='instant'){
+    return `Bravo ! ${q.value} repère un moment précis : c'est un instant.`;
+  }
+  return `Bravo ! ${q.value} mesure un temps écoulé : c'est une durée.`;
+}
+
+function correctionFeedback(q){
+  if(q.type==='instant'){
+    return `${q.value} repère un moment précis : c'est un instant.`;
+  }
+  return `${q.value} mesure un temps écoulé : c'est une durée.`;
+}
+
+function choose(btn){
+  if(resolved) return;
+
+  const q=questions[index];
+  const answer=btn.dataset.answer;
+  attempts++;
+
+  if(answer===q.type){
+    resolved=true;
+    score++;
+    btn.classList.add('correct');
+    disableButtons();
+    setFeedback(correctFeedback(q),'success');
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    nextBtn.hidden=false;
+    return;
+  }
+
+  btn.classList.add('wrong');
+
+  resolved=true;
+  disableButtons();
+  const correctBtn=getCorrectButton();
+  if(correctBtn) correctBtn.classList.add('correct');
+  setFeedback(correctionFeedback(q),'error');
+  nextBtn.hidden=false;
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+  counter.textContent=`Question ${TOTAL} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalMessage.textContent='Excellent ! Tu distingues très bien un instant d’une durée.';
+  }else if(score>=8){
+    finalMessage.textContent='Très bien ! La différence entre instant et durée est bien comprise.';
+  }else if(score>=6){
+    finalMessage.textContent='Bien ! Rejoue pour consolider encore la différence entre instant et durée.';
+  }else{
+    finalMessage.textContent='Rejoue avec de nouvelles situations pour mieux distinguer moment précis et temps écoulé.';
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  resolved=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+  renderQuestion();
+}
+
+choiceButtons.forEach(btn=>btn.addEventListener('click',()=>choose(btn)));
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>

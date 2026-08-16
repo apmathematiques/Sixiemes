@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Faut-il transformer une heure ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:10%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:5px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:56px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.42rem,2.7vw,1.85rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:280px;padding:22px 26px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-evenly;gap:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.calculation{
+  display:flex;align-items:center;justify-content:center;gap:.28em;
+  flex-wrap:wrap;font-size:clamp(2rem,4.9vw,3.35rem);
+  font-weight:800;line-height:1.15;text-align:center
+}
+.choice-buttons{
+  width:min(760px,100%);display:grid;grid-template-columns:1fr 1fr;gap:16px
+}
+.choice-button{
+  min-height:78px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.15rem,2.6vw,1.55rem)/1.15 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;text-align:center
+}
+.choice-button.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice-button.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice-button:disabled{cursor:default}
+.step{width:100%;display:none;flex-direction:column;align-items:center;gap:16px}
+.step.show{display:flex}
+.step-label{
+  color:var(--m);font-size:clamp(1.05rem,2vw,1.25rem);
+  font-weight:700;text-align:center
+}
+.entry-line{
+  width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:.22em;font-size:clamp(1.7rem,4vw,2.7rem);font-weight:800
+}
+.answer-group{
+  display:inline-flex;align-items:center;gap:.14em;white-space:nowrap
+}
+.answer{
+  width:clamp(90px,11vw,126px);height:1.42em;
+  padding:0 .14em;border:3px solid #b9d4e8;border-radius:14px;
+  color:var(--bd);background:#fff;text-align:center;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(1.55rem,3.25vw,2.15rem);
+  font-weight:800;line-height:1;outline:none
+}
+.answer:focus{border-color:#74a9cf;box-shadow:0 0 0 4px rgba(23,105,170,.08)}
+.answer.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.answer.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.feedback{
+  min-height:76px;padding:10px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(1rem,1.9vw,1.15rem);
+  line-height:1.4;text-align:center;
+  background:#f4f7fb;border-radius:14px;visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px
+}
+button.action{
+  min-height:46px;padding:0 22px;font-size:1rem;font-weight:800;
+  cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:2px 10px 10px;gap:7px}
+  .instruction{min-height:42px;font-size:1.13rem}
+  .question-zone{min-height:200px;padding:10px 8px;gap:10px}
+  .calculation{font-size:1.7rem}
+  .choice-buttons{gap:8px}
+  .choice-button{min-height:56px;font-size:1rem}
+  .step-label{font-size:.95rem}
+  .entry-line{font-size:1.45rem}
+  .answer{width:72px;font-size:1.25rem}
+  .feedback{min-height:58px;padding:8px 10px;font-size:.84rem}
+  .controls{min-height:40px}
+  button.action{min-height:38px;height:38px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 10</div>
+    <div class="pill" id="score">Score : 0 / 10</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Décide d’abord s’il faut transformer 1 h en 60 min, puis effectue la soustraction.</p>
+
+    <div class="question-zone">
+      <div class="calculation" id="calculation"></div>
+
+      <div class="choice-buttons" id="choiceButtons">
+        <button class="choice-button" type="button" data-choice="yes">Oui, je transforme 1 h</button>
+        <button class="choice-button" type="button" data-choice="no">Non, ce n’est pas nécessaire</button>
+      </div>
+
+      <div class="step" id="transformStep">
+        <div class="step-label">Complète la durée après transformation.</div>
+        <div class="entry-line" id="transformLine"></div>
+      </div>
+
+      <div class="step" id="resultStep">
+        <div class="step-label">Calcule la différence.</div>
+        <div class="entry-line" id="resultLine"></div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validateCalc" hidden>Valider le calcul</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouveaux calculs</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=10;
+const $=id=>document.getElementById(id);
+
+const calculation=$('calculation');
+const choiceButtons=$('choiceButtons');
+const choices=[...document.querySelectorAll('.choice-button')];
+const transformStep=$('transformStep');
+const transformLine=$('transformLine');
+const resultStep=$('resultStep');
+const resultLine=$('resultLine');
+const feedback=$('feedback');
+const validateCalc=$('validateCalc');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let choiceResolved=false;
+let calcAttempts=0;
+let questionResolved=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+
+function makeQuestion(level){
+  let h1,m1,h2,m2,needsTransform;
+
+  if(level<=2){
+    needsTransform=false;
+    h1=randInt(4,12); h2=randInt(1,h1-1);
+    m2=randInt(5,35); m1=randInt(m2,58);
+  }else if(level<=4){
+    needsTransform=true;
+    h1=randInt(5,14); h2=randInt(1,h1-1);
+    m1=randInt(10,35); m2=randInt(m1+1,55);
+  }else if(level===5){
+    needsTransform=false;
+    h1=randInt(7,16); h2=randInt(2,h1-1);
+    m2=randInt(25,48); m1=randInt(m2,58);
+  }else if(level===6){
+    needsTransform=true;
+    h1=randInt(7,16); h2=randInt(2,h1-1);
+    m1=randInt(35,45); m2=randInt(m1+1,55);
+  }else if(level===7){
+    needsTransform=true;
+    h1=randInt(12,28); h2=randInt(5,h1-1);
+    m1=randInt(8,40); m2=randInt(m1+1,58);
+  }else if(level===8){
+    needsTransform=pick([true,false]);
+    h1=randInt(3,8); h2=randInt(1,h1);
+    if(needsTransform){
+      m1=randInt(5,30); m2=randInt(m1+1,55);
+      if(h2===h1) h2=h1-1;
+    }else{
+      m2=randInt(5,35); m1=randInt(m2,58);
+    }
+  }else{
+    needsTransform=pick([true,false]);
+    h1=randInt(10,36); h2=randInt(3,h1-1);
+    if(needsTransform){
+      m1=randInt(5,44); m2=randInt(m1+1,58);
+    }else{
+      m2=randInt(5,45); m1=randInt(m2,58);
+    }
+  }
+
+  const total1=h1*60+m1;
+  const total2=h2*60+m2;
+  const diff=total1-total2;
+
+  return{
+    h1,m1,h2,m2,needsTransform,
+    transformedH:needsTransform?h1-1:h1,
+    transformedM:needsTransform?m1+60:m1,
+    resultH:Math.floor(diff/60),
+    resultM:diff%60
+  };
+}
+
+function buildQuestions(){
+  return Array.from({length:10},(_,i)=>makeQuestion(i+1));
+}
+
+function setFeedback(text,type){
+  feedback.textContent=text;
+  feedback.className=`feedback show ${type}`;
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function renderQuestion(){
+  const q=questions[index];
+  choiceResolved=false;
+  calcAttempts=0;
+  questionResolved=false;
+
+  calculation.textContent=`${q.h1} h ${q.m1} min − ${q.h2} h ${q.m2} min`;
+
+  choices.forEach(btn=>{
+    btn.disabled=false;
+    btn.classList.remove('correct','wrong');
+  });
+
+  choiceButtons.style.display='grid';
+  transformStep.classList.remove('show');
+  resultStep.classList.remove('show');
+  transformLine.innerHTML='';
+  resultLine.innerHTML='';
+
+  feedback.textContent='';
+  feedback.className='feedback';
+  validateCalc.hidden=true;
+  nextBtn.hidden=true;
+  updateTop();
+}
+
+function renderCalcFields(){
+  const q=questions[index];
+
+  if(q.needsTransform){
+    transformLine.innerHTML=`
+      <span>${q.h1} h ${q.m1} min =</span>
+      <span class="answer-group">
+        <input class="answer" id="th" type="text" inputmode="numeric" autocomplete="off">
+        <span>h</span>
+      </span>
+      <span class="answer-group">
+        <input class="answer" id="tm" type="text" inputmode="numeric" autocomplete="off">
+        <span>min</span>
+      </span>
+    `;
+    transformStep.classList.add('show');
+  }else{
+    transformStep.classList.remove('show');
+  }
+
+  if(q.needsTransform){
+    resultLine.innerHTML=`
+      <span>
+        <span id="reportedH">…</span> h
+        <span id="reportedM">…</span> min
+        − ${q.h2} h ${q.m2} min =
+      </span>
+      <span class="answer-group">
+        <input class="answer" id="rh" type="text" inputmode="numeric" autocomplete="off">
+        <span>h</span>
+      </span>
+      <span class="answer-group">
+        <input class="answer" id="rm" type="text" inputmode="numeric" autocomplete="off">
+        <span>min</span>
+      </span>
+    `;
+  }else{
+    resultLine.innerHTML=`
+      <span>${q.h1} h ${q.m1} min − ${q.h2} h ${q.m2} min =</span>
+      <span class="answer-group">
+        <input class="answer" id="rh" type="text" inputmode="numeric" autocomplete="off">
+        <span>h</span>
+      </span>
+      <span class="answer-group">
+        <input class="answer" id="rm" type="text" inputmode="numeric" autocomplete="off">
+        <span>min</span>
+      </span>
+    `;
+  }
+
+  resultStep.classList.add('show');
+  validateCalc.hidden=false;
+
+  if(q.needsTransform){
+    const th=$('th');
+    const tm=$('tm');
+    const reportedH=$('reportedH');
+    const reportedM=$('reportedM');
+
+    const reportValues=()=>{
+      reportedH.textContent=th.value.trim()==='' ? '…' : th.value.trim();
+      reportedM.textContent=tm.value.trim()==='' ? '…' : tm.value.trim();
+    };
+
+    th.addEventListener('input',reportValues);
+    tm.addEventListener('input',reportValues);
+    reportValues();
+  }
+
+  const first = q.needsTransform ? $('th') : $('rh');
+  setTimeout(()=>first?.focus(),0);
+}
+
+function chooseTransform(btn){
+  if(choiceResolved) return;
+
+  const q=questions[index];
+  const choseYes=btn.dataset.choice==='yes';
+  const correct = choseYes===q.needsTransform;
+
+  choiceResolved=true;
+  choices.forEach(b=>b.disabled=true);
+
+  if(correct){
+    btn.classList.add('correct');
+    setFeedback(
+      q.needsTransform
+        ? `Oui : ${q.m1} min est plus petit que ${q.m2} min, il faut transformer 1 h en 60 min.`
+        : `Exact : ${q.m1} min permet de soustraire ${q.m2} min sans transformation.`,
+      'success'
+    );
+  }else{
+    btn.classList.add('wrong');
+    const correctBtn=choices.find(b=>(b.dataset.choice==='yes')===q.needsTransform);
+    if(correctBtn) correctBtn.classList.add('correct');
+
+    setFeedback(
+      q.needsTransform
+        ? `Il fallait transformer 1 h : ${q.m1} min est plus petit que ${q.m2} min.`
+        : `Aucune transformation n’était nécessaire : ${q.m1} min est supérieur ou égal à ${q.m2} min.`,
+      'error'
+    );
+  }
+
+  renderCalcFields();
+}
+
+function readInt(id){
+  const el=$(id);
+  if(!el) return null;
+  const raw=el.value.trim().replace(/\s+/g,'');
+  if(raw==='') return null;
+  const n=Number(raw);
+  return Number.isInteger(n) ? n : null;
+}
+
+function allCalcInputs(){
+  return [...document.querySelectorAll('#transformStep .answer, #resultStep .answer')];
+}
+
+function validateCalculation(){
+  if(questionResolved) return;
+
+  const q=questions[index];
+  const rh=readInt('rh');
+  const rm=readInt('rm');
+
+  let valuesComplete = rh!==null && rm!==null;
+  let transformCorrect = true;
+
+  let th=null,tm=null;
+  if(q.needsTransform){
+    th=readInt('th');
+    tm=readInt('tm');
+    valuesComplete = valuesComplete && th!==null && tm!==null;
+    transformCorrect = th===q.transformedH && tm===q.transformedM;
+  }
+
+  if(!valuesComplete){
+    setFeedback('Complète toutes les cases avant de valider.','error');
+    return;
+  }
+
+  calcAttempts++;
+  const resultCorrect = rh===q.resultH && rm===q.resultM;
+  const allCorrect = transformCorrect && resultCorrect;
+
+  if(allCorrect){
+    questionResolved=true;
+    score++;
+    allCalcInputs().forEach(i=>{
+      i.disabled=true;
+      i.classList.add('correct');
+    });
+    validateCalc.hidden=true;
+    nextBtn.hidden=false;
+    setFeedback(`Bravo ! Le résultat est ${q.resultH} h ${q.resultM} min.`,'success');
+    scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+    return;
+  }
+
+  if(calcAttempts===1){
+    allCalcInputs().forEach(i=>i.classList.add('wrong'));
+    setFeedback(
+      q.needsTransform
+        ? 'Ce n’est pas encore juste. Vérifie d’abord la transformation de 1 h en 60 min, puis refais la soustraction.'
+        : 'Ce n’est pas encore juste. Vérifie séparément les heures et les minutes.',
+      'error'
+    );
+    setTimeout(()=>{
+      allCalcInputs().forEach(i=>i.classList.remove('wrong'));
+      const first=q.needsTransform?$('th'):$('rh');
+      first?.focus();
+      first?.select();
+    },300);
+    return;
+  }
+
+  questionResolved=true;
+  validateCalc.hidden=true;
+  nextBtn.hidden=false;
+
+  allCalcInputs().forEach(i=>i.disabled=true);
+
+  if(q.needsTransform){
+    $('th').classList.add(th===q.transformedH?'correct':'wrong');
+    $('tm').classList.add(tm===q.transformedM?'correct':'wrong');
+  }
+  $('rh').classList.add(rh===q.resultH?'correct':'wrong');
+  $('rm').classList.add(rm===q.resultM?'correct':'wrong');
+
+  const transformation = q.needsTransform
+    ? `${q.h1} h ${q.m1} min = ${q.transformedH} h ${q.transformedM} min. `
+    : '';
+
+  setFeedback(
+    `${transformation}La bonne réponse est ${q.resultH} h ${q.resultM} min.`,
+    'error'
+  );
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+  counter.textContent=`Question ${TOTAL} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalMessage.textContent='Excellent ! Tu sais reconnaître quand transformer une heure et effectuer la soustraction.';
+  }else if(score>=8){
+    finalMessage.textContent='Très bien ! La soustraction de durées est bien maîtrisée.';
+  }else if(score>=6){
+    finalMessage.textContent='Bien ! Rejoue pour consolider les transformations d’une heure en 60 minutes.';
+  }else{
+    finalMessage.textContent='Rejoue avec de nouveaux nombres pour t’entraîner à choisir puis appliquer la bonne méthode.';
+  }
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  choiceResolved=false;
+  calcAttempts=0;
+  questionResolved=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+  renderQuestion();
+}
+
+choices.forEach(btn=>btn.addEventListener('click',()=>chooseTransform(btn)));
+validateCalc.addEventListener('click',validateCalculation);
+nextBtn.addEventListener('click',nextQuestion);
+restartBtn.addEventListener('click',restart);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>
