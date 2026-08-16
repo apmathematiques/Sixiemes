@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie II – Activité 6 – La moitié… ou le double ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --o:#b96b16;--os:#fff6ea;
+  --p:#7c3aed;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:500px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:800;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 16px;
+  display:flex;flex-direction:column;gap:9px
+}
+.instruction{
+  flex:0 0 auto;min-height:43px;margin:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:1px 10px;
+  font-size:clamp(1.2rem,2.2vw,1.55rem);
+  font-weight:800;line-height:1.2;text-align:center
+}
+.question-zone{
+  flex:1;min-height:0;padding:8px 12px;
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);
+  align-items:stretch;gap:12px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.figure-panel{
+  min-width:0;min-height:0;
+  display:flex;align-items:center;justify-content:center
+}
+#scene{
+  width:100%;height:100%;min-height:225px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.side{
+  stroke:var(--line);stroke-width:4.2;stroke-linecap:round
+}
+.bisector{
+  stroke:var(--r);stroke-width:5;stroke-linecap:round
+}
+.vertex{fill:var(--line)}
+.geom-label{
+  fill:var(--i);font:700 21px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.measure{
+  fill:var(--bd);font:900 23px Arial,Helvetica,sans-serif;
+  stroke:#fff;stroke-width:7;paint-order:stroke fill;
+  pointer-events:none
+}
+.measure-total{
+  fill:#7a3f08;font:900 22px Arial,Helvetica,sans-serif;
+  stroke:#fff;stroke-width:7;paint-order:stroke fill;
+  pointer-events:none
+}
+.arc-half{
+  fill:none;stroke:var(--b);stroke-width:4.2;stroke-linecap:round
+}
+.arc-half-equal{
+  fill:none;stroke:var(--b);stroke-width:4.2;stroke-linecap:round
+}
+.arc-total{
+  fill:none;stroke:var(--p);stroke-width:4;stroke-linecap:round
+}
+.coding{
+  stroke:#111827;stroke-width:4.8;stroke-linecap:round
+}
+.problem-panel{
+  min-width:0;padding:14px 16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;text-align:center;
+  background:#fff;border:1px solid #e0eaf2;border-radius:15px
+}
+.problem-text{
+  margin:0;
+  font-size:clamp(1.02rem,1.8vw,1.22rem);
+  line-height:1.35;font-weight:800
+}
+.answer-label{
+  margin:0;color:var(--m);
+  font-size:clamp(.94rem,1.5vw,1.05rem);
+  font-weight:700
+}
+.answer-line{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%
+}
+.answer-input{
+  width:min(170px,60%);height:58px;
+  padding:7px 12px;
+  color:var(--i);background:#fff;
+  border:3px solid #b9d4e8;border-radius:14px;
+  font:900 clamp(1.45rem,2.8vw,2rem)/1 Arial,Helvetica,sans-serif;
+  text-align:center;outline:none
+}
+.answer-input:focus{border-color:var(--b);box-shadow:0 0 0 3px rgba(23,105,170,.11)}
+.degree{
+  color:var(--bd);font-size:1.7rem;font-weight:900
+}
+.attempts{
+  min-height:28px;color:var(--m);
+  font-size:.98rem;font-weight:750
+}
+.feedback{
+  min-height:62px;padding:9px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:700;
+  font-size:clamp(.92rem,1.6vw,1.03rem);
+  line-height:1.32;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.feedback.hint{color:#7a4b13;background:var(--os);border:1px solid #efcfaa}
+.controls{
+  min-height:42px;display:flex;align-items:center;justify-content:center;gap:10px
+}
+button.action{
+  min-height:42px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.primary:disabled{opacity:.45;cursor:default}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.5rem,3vw,2rem)}
+.final-score{margin:8px 0;font-size:1.35rem;font-weight:900}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{padding:20px;color:#8f2727;font-weight:700;text-align:center}
+
+@media(max-width:700px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:8px 12px 4px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 9px 9px;gap:6px}
+  .instruction{min-height:34px;font-size:1rem}
+  .question-zone{padding:6px;gap:7px;grid-template-columns:1.2fr .8fr}
+  #scene{min-height:165px}
+  .problem-panel{padding:8px;gap:7px}
+  .problem-text{font-size:.9rem}
+  .answer-label{font-size:.8rem}
+  .answer-input{height:43px;width:115px;font-size:1.35rem}
+  .degree{font-size:1.35rem}
+  .attempts{min-height:21px;font-size:.78rem}
+  .feedback{min-height:46px;padding:6px 9px;font-size:.78rem}
+  .controls{min-height:34px}
+  button.action{min-height:34px;height:34px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Calcule la mesure demandée.</p>
+
+    <div class="question-zone">
+      <div class="figure-panel">
+        <div id="scene" role="img" aria-label="Figure avec une bissectrice"></div>
+      </div>
+
+      <div class="problem-panel">
+        <p class="problem-text" id="problemText"></p>
+        <p class="answer-label" id="answerLabel">Ta réponse :</p>
+        <div class="answer-line">
+          <input class="answer-input" id="answerInput" type="text"
+                 inputmode="numeric" autocomplete="off" aria-label="Réponse numérique">
+          <span class="degree">°</span>
+        </div>
+        <div class="attempts" id="attempts">Essai 1 / 2</div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Entre uniquement la mesure de l’angle.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" disabled>Valider</button>
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles mesures</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=560;
+const H=270;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const problemText=$('problemText');
+const answerInput=$('answerInput');
+const attemptsBox=$('attempts');
+const feedback=$('feedback');
+const validateBtn=$('validate');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempt=1;
+let resolved=false;
+let scene=null;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+function formatScore(n){
+  return Number.isInteger(n)?String(n):String(n).replace('.',',');
+}
+function polar(cx,cy,r,deg){
+  const a=degToRad(deg);
+  return {x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};
+}
+function arcPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let d=a2-a1;
+  while(d<0)d+=360;
+  const large=d>180?1:0;
+  return `M ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+}
+function addSvg(tag,attrs,parent){
+  const node=GeoLib.Utils.createSvg(tag,attrs);
+  (parent||scene.layers.drawings).appendChild(node);
+  return node;
+}
+function drawRay(cx,cy,a,len,cls){
+  const p=polar(cx,cy,len,a);
+  addSvg('line',{x1:cx,y1:cy,x2:p.x,y2:p.y,class:cls});
+}
+function drawArc(cx,cy,a1,a2,r,cls){
+  addSvg('path',{d:arcPath(cx,cy,r,a1,a2),class:cls});
+}
+function drawText(cx,cy,a,r,text,cls){
+  const p=polar(cx,cy,r,a);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+8,class:cls,'text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function drawVertex(cx,cy,label){
+  addSvg('circle',{cx,cy,r:5.2,class:'vertex'});
+  const t=addSvg('text',{
+    x:cx-17,y:cy+29,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=label;
+}
+function drawLabel(cx,cy,a,text,len=174){
+  const p=polar(cx,cy,len,a);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+7,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function drawCodingMark(cx,cy,a1,a2,r){
+  const mid=(a1+a2)/2;
+  const p=polar(cx,cy,r,mid);
+  const dir=mid+90;
+  const p1=polar(p.x,p.y,7,dir);
+  const p2=polar(p.x,p.y,7,dir+180);
+  addSvg('line',{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,class:'coding'});
+}
+function centerForAngles(angles,targetX,targetY,len=195){
+  const pts=[{x:0,y:0}];
+  angles.forEach(a=>pts.push(polar(0,0,len,a)));
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  return{
+    x:targetX-(Math.min(...xs)+Math.max(...xs))/2,
+    y:targetY-(Math.min(...ys)+Math.max(...ys))/2
+  };
+}
+function angleName(a,v,b){return `${a}${v}${b}`}
+
+function makeQuestion(type){
+  const vertex=pick(['O','I','J','K','M','N']);
+  const points=shuffle(['A','B','C','D','E','F','G','H','P','R','S','T'])
+    .slice(0,3);
+  const [p1,pm,p2]=points;
+
+  if(type==='totalToHalf'){
+    const half=randInt(24,70);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:half,
+      requested:angleName(p1,vertex,pm)
+    };
+  }
+
+  if(type==='halfToOther'){
+    const half=randInt(24,70);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:half,
+      requested:angleName(pm,vertex,p2)
+    };
+  }
+
+  if(type==='halfToTotal'){
+    const half=randInt(24,70);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:2*half,
+      requested:angleName(p1,vertex,p2)
+    };
+  }
+
+  if(type==='codingHalfToOther'){
+    const half=randInt(26,66);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:half,
+      requested:angleName(pm,vertex,p2)
+    };
+  }
+
+  if(type==='textHalfToTotal'){
+    const half=randInt(25,68);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:2*half,
+      requested:angleName(p1,vertex,p2)
+    };
+  }
+
+  if(type==='textTotalToHalf'){
+    const half=randInt(24,68);
+    return{
+      type,vertex,p1,pm,p2,
+      half,total:2*half,
+      answer:half,
+      requested:angleName(p1,vertex,pm)
+    };
+  }
+}
+
+function buildQuestions(){
+  return [
+    makeQuestion('totalToHalf'),
+    makeQuestion('totalToHalf'),
+    makeQuestion('halfToOther'),
+    makeQuestion('halfToTotal'),
+    makeQuestion('halfToOther'),
+    makeQuestion('codingHalfToOther'),
+    makeQuestion('textHalfToTotal'),
+    makeQuestion('textTotalToHalf')
+  ];
+}
+
+function questionText(q){
+  const whole=angleName(q.p1,q.vertex,q.p2);
+  const left=angleName(q.p1,q.vertex,q.pm);
+  const right=angleName(q.pm,q.vertex,q.p2);
+
+  switch(q.type){
+    case 'totalToHalf':
+      return `La demi-droite rouge est la bissectrice de l’angle ${whole}. Quelle est la mesure de l’angle ${left} ?`;
+    case 'halfToOther':
+      return `La demi-droite rouge est la bissectrice de l’angle ${whole}. Quelle est la mesure de l’angle ${right} ?`;
+    case 'halfToTotal':
+      return `La demi-droite rouge est la bissectrice de l’angle ${whole}. Quelle est la mesure de l’angle ${whole} ?`;
+    case 'codingHalfToOther':
+      return `Les codages indiquent que la demi-droite rouge partage l’angle en deux angles de même mesure. Calcule l’angle ${right}.`;
+    case 'textHalfToTotal':
+      return `La demi-droite [${q.vertex}${q.pm}) est la bissectrice de l’angle ${whole}. L’angle ${left} mesure ${q.half}°. Calcule l’angle ${whole}.`;
+    case 'textTotalToHalf':
+      return `La demi-droite [${q.vertex}${q.pm}) est la bissectrice de l’angle ${whole}. L’angle ${whole} mesure ${q.total}°. Calcule l’angle ${left}.`;
+  }
+}
+
+function correctionText(q){
+  switch(q.type){
+    case 'totalToHalf':
+    case 'textTotalToHalf':
+      return `La bissectrice partage l’angle en deux angles égaux : ${q.total}° ÷ 2 = ${q.half}°.`;
+    case 'halfToOther':
+    case 'codingHalfToOther':
+      return `Les deux angles ont la même mesure : l’angle demandé mesure donc ${q.half}°.`;
+    case 'halfToTotal':
+    case 'textHalfToTotal':
+      return `L’angle total contient deux angles de ${q.half}° : ${q.half}° × 2 = ${q.total}°.`;
+  }
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+
+  let base=randInt(12,105);
+  if(index===4) base=randInt(100,165);
+
+  const a0=base;
+  const amid=a0+q.half;
+  const a2=amid+q.half;
+  const origin=centerForAngles([a0,amid,a2],W/2,H/2,190);
+  const cx=origin.x,cy=origin.y;
+
+  drawRay(cx,cy,a0,154,'side');
+  drawRay(cx,cy,a2,154,'side');
+  drawRay(cx,cy,amid,150,'bisector');
+
+  drawLabel(cx,cy,a0,q.p1,182);
+  drawLabel(cx,cy,amid,q.pm,177);
+  drawLabel(cx,cy,a2,q.p2,182);
+  drawVertex(cx,cy,q.vertex);
+
+  if(q.type==='totalToHalf' || q.type==='textTotalToHalf'){
+    // Un seul grand arc extérieur : angle total.
+    drawArc(cx,cy,a0,a2,95,'arc-total');
+    drawText(cx,cy,(a0+a2)/2,116,`${q.total}°`,'measure-total');
+  }
+
+  if(q.type==='halfToOther' || q.type==='halfToTotal' || q.type==='textHalfToTotal'){
+    // Une seule petite mesure : l'autre moitié doit être déduite.
+    drawArc(cx,cy,a0,amid,63,'arc-half');
+    drawText(cx,cy,a0+q.half/2,44,`${q.half}°`,'measure');
+  }
+
+  if(q.type==='codingHalfToOther'){
+    // Deux arcs de même couleur, à deux niveaux distincts, avec codages
+    // placés à l'intérieur et non tangents aux arcs.
+    drawArc(cx,cy,a0,amid,58,'arc-half-equal');
+    drawArc(cx,cy,amid,a2,82,'arc-half-equal');
+    drawCodingMark(cx,cy,a0,amid,44);
+    drawCodingMark(cx,cy,amid,a2,67);
+    drawText(cx,cy,a0+q.half/2,34,`${q.half}°`,'measure');
+  }
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Angle partagé par une bissectrice rouge, question ${index+1}`
+  );
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+function resetQuestion(){
+  attempt=1;
+  resolved=false;
+  answerInput.value='';
+  answerInput.disabled=false;
+  validateBtn.disabled=true;
+  validateBtn.hidden=false;
+  nextBtn.hidden=true;
+  attemptsBox.textContent='Essai 1 / 2';
+  setFeedback("Entre uniquement la mesure de l’angle.");
+  updateTop();
+  problemText.textContent=questionText(questions[index]);
+  renderFigure();
+  setTimeout(()=>answerInput.focus(),0);
+}
+function numericValue(){
+  const cleaned=answerInput.value.trim().replace(',','.');
+  if(!/^-?\d+(\.\d+)?$/.test(cleaned)) return null;
+  return Number(cleaned);
+}
+function validate(){
+  if(resolved) return;
+  const value=numericValue();
+  if(value===null) return;
+
+  const q=questions[index];
+  const correct=Math.abs(value-q.answer)<1e-9;
+
+  if(correct){
+    const gained=attempt===1?1:.5;
+    score+=gained;
+    resolved=true;
+    answerInput.disabled=true;
+    validateBtn.hidden=true;
+    nextBtn.hidden=false;
+    setFeedback(
+      `Correct ! ${correctionText(q)} +${formatScore(gained)} point${gained===1?'':' '}.`,
+      'success'
+    );
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+    nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+    return;
+  }
+
+  if(attempt===1){
+    attempt=2;
+    answerInput.value='';
+    attemptsBox.textContent='Essai 2 / 2';
+    setFeedback(
+      "Ce n’est pas la bonne mesure. Observe bien quelle mesure est donnée et quelle mesure est demandée.",
+      'hint'
+    );
+    answerInput.focus();
+    return;
+  }
+
+  resolved=true;
+  answerInput.disabled=true;
+  validateBtn.hidden=true;
+  nextBtn.hidden=false;
+  setFeedback(
+    `La réponse était ${q.answer}°. ${correctionText(q)}`,
+    'error'
+  );
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu sais utiliser une bissectrice pour trouver une moitié, l’autre moitié ou l’angle total.";
+  }else if(score>=6){
+    message="Très bien. Tu distingues bien quand il faut conserver, partager par deux ou doubler une mesure.";
+  }else if(score>=4){
+    message="C’est en bonne voie. Repère toujours si la mesure demandée correspond à une moitié ou à l’angle entier.";
+  }else{
+    message="Rejoue avec de nouvelles mesures et appuie-toi sur le rôle de la bissectrice : deux angles adjacents de même mesure.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  resetQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  resetQuestion();
+}
+
+answerInput.addEventListener('input',()=>{
+  validateBtn.disabled=numericValue()===null;
+});
+answerInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !validateBtn.disabled && !resolved) validate();
+});
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  answerInput.disabled=true;
+  validateBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>

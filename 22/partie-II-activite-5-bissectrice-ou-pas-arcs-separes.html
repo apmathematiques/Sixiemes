@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie II – Activité 5 – Bissectrice ou pas ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:500px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:118px;padding:9px 14px;color:var(--bd);
+  font-weight:800;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 16px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  flex:0 0 auto;min-height:48px;margin:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:2px 10px;
+  font-size:clamp(1.28rem,2.35vw,1.68rem);
+  font-weight:800;line-height:1.2;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:0;padding:8px 12px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+#scene{
+  width:100%;height:100%;min-height:235px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.side{
+  stroke:var(--line);stroke-width:4.2;stroke-linecap:round
+}
+.bisector-candidate{
+  stroke:#c63d3d;stroke-width:5;stroke-linecap:round
+}
+.vertex{fill:var(--line)}
+.geom-label{
+  fill:var(--i);font:700 21px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.measure{
+  fill:var(--bd);font:900 24px Arial,Helvetica,sans-serif;
+  stroke:#ffffff;stroke-width:7;paint-order:stroke fill;
+  pointer-events:none
+}
+.measure-total{
+  fill:#7a3f08;font:900 22px Arial,Helvetica,sans-serif;
+  stroke:#ffffff;stroke-width:7;paint-order:stroke fill;
+  pointer-events:none
+}
+.arc-equal{
+  fill:none;stroke:#1769aa;stroke-width:4.4;stroke-linecap:round
+}
+.arc-left{
+  fill:none;stroke:#1769aa;stroke-width:4.4;stroke-linecap:round
+}
+.arc-right{
+  fill:none;stroke:#d97706;stroke-width:4.4;stroke-linecap:round
+}
+.arc-neutral{
+  fill:none;stroke:#6b7280;stroke-width:4.2;stroke-linecap:round
+}
+.arc-total{
+  fill:none;stroke:#7c3aed;stroke-width:3.8;stroke-linecap:round
+}
+.coding{
+  stroke:#111827;stroke-width:5.2;stroke-linecap:round
+}
+.answer-row{
+  width:min(850px,100%);display:grid;
+  grid-template-columns:1fr 1fr 1.35fr;gap:12px;
+  margin:0 auto
+}
+.choice{
+  min-height:54px;padding:9px 12px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:15px;
+  font:800 clamp(.96rem,1.75vw,1.14rem)/1.15 Arial,Helvetica,sans-serif;
+  text-align:center;cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice:hover:not(:disabled){border-color:#74a9cf}
+.choice:active:not(:disabled){transform:scale(.985)}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice:disabled{cursor:default}
+.feedback{
+  min-height:64px;padding:9px 14px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:700;
+  font-size:clamp(.94rem,1.65vw,1.05rem);
+  line-height:1.33;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:42px;display:flex;align-items:center;justify-content:center
+}
+button.action{
+  min-height:42px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.5rem,3vw,2rem)}
+.final-score{margin:8px 0;font-size:1.35rem;font-weight:900}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{padding:20px;color:#8f2727;font-weight:700;text-align:center}
+
+@media(max-width:700px),(max-height:650px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 12px 5px;gap:7px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:6px 9px}
+  .main{padding:1px 9px 9px;gap:6px}
+  .instruction{min-height:36px;padding:1px 8px;font-size:1.04rem}
+  .figure-zone{min-height:175px;padding:5px 7px}
+  #scene{min-height:170px}
+  .answer-row{gap:6px}
+  .choice{min-height:42px;padding:6px 7px;font-size:.82rem;border-width:2px}
+  .feedback{min-height:48px;padding:6px 9px;font-size:.8rem}
+  .controls{min-height:35px}
+  button.action{min-height:35px;height:35px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      La demi-droite rouge est-elle la bissectrice de l’angle ?
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Un angle partagé par une demi-droite rouge"></div>
+    </div>
+
+    <div class="answer-row">
+      <button class="choice" id="yes" type="button">Oui</button>
+      <button class="choice" id="no" type="button">Non</button>
+      <button class="choice" id="unknown" type="button">On ne peut pas savoir</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Utilise uniquement les informations données par la figure.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">Rejouer avec de nouvelles figures</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=860;
+const H=275;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const yesBtn=$('yes');
+const noBtn=$('no');
+const unknownBtn=$('unknown');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+let scene=null;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+
+function polar(cx,cy,r,deg){
+  const a=degToRad(deg);
+  return {x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};
+}
+function arcPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let d=a2-a1;
+  while(d<0)d+=360;
+  const large=d>180?1:0;
+  return `M ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+}
+function labelSet(n,exclude=[]){
+  const pool=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T']
+    .filter(x=>!exclude.includes(x));
+  return shuffle(pool).slice(0,n);
+}
+function vertexName(){return pick(['O','I','J','K','M','N'])}
+
+function addSvg(tag,attrs,parent){
+  const node=GeoLib.Utils.createSvg(tag,attrs);
+  (parent||scene.layers.drawings).appendChild(node);
+  return node;
+}
+function drawRay(cx,cy,a,len,cls){
+  const p=polar(cx,cy,len,a);
+  addSvg('line',{x1:cx,y1:cy,x2:p.x,y2:p.y,class:cls});
+}
+function drawArc(cx,cy,a1,a2,r,cls){
+  addSvg('path',{d:arcPath(cx,cy,r,a1,a2),class:cls});
+}
+function arcClassesForQuestion(q){
+  if(['equalMeasures','equalMeasuresRotated','sameCoding','totalHalf'].includes(q.type)){
+    return ['arc-equal','arc-equal'];
+  }
+  if(q.type==='noInfo'){
+    return ['arc-neutral','arc-neutral'];
+  }
+  return ['arc-left','arc-right'];
+}
+function drawText(cx,cy,a,r,text,cls,angleOffset=0){
+  const p=polar(cx,cy,r,a+angleOffset);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+8,class:cls,'text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function drawVertex(cx,cy,label){
+  addSvg('circle',{cx,cy,r:5.3,class:'vertex'});
+  const t=addSvg('text',{
+    x:cx-18,y:cy+30,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=label;
+}
+function drawLabel(cx,cy,a,text,len=190){
+  const p=polar(cx,cy,len,a);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+7,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+function centerForAngles(angles,targetX,targetY,len=205){
+  const pts=[{x:0,y:0}];
+  angles.forEach(a=>pts.push(polar(0,0,len,a)));
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  return{
+    x:targetX-(Math.min(...xs)+Math.max(...xs))/2,
+    y:targetY-(Math.min(...ys)+Math.max(...ys))/2
+  };
+}
+function drawCodingMark(cx,cy,a1,a2,r,count){
+  const mid=(a1+a2)/2;
+
+  // Codages lisibles, placés nettement à l'intérieur des angles.
+  const offsets = count===1 ? [0] : [-7, 7];
+
+  offsets.forEach(offset=>{
+    const p=polar(cx,cy,r,mid+offset);
+    const dir=(mid+offset)+90;
+    const p1=polar(p.x,p.y,7,dir);
+    const p2=polar(p.x,p.y,7,dir+180);
+
+    addSvg('line',{
+      x1:p1.x,y1:p1.y,
+      x2:p2.x,y2:p2.y,
+      class:'coding'
+    });
+  });
+}
+
+function makeEqualMeasures(){
+  const half=pick([28,31,34,37,41,44,48,52]);
+  return {type:'equalMeasures',left:half,right:half,answer:'yes'};
+}
+function makeDifferentMeasures(){
+  const left=pick([31,34,38,42,46,51]);
+  let right=left+pick([-7,-5,-3,3,5,7]);
+  if(right<22) right=left+5;
+  return {type:'differentMeasures',left,right,answer:'no'};
+}
+function makeSameCoding(){
+  const half=pick([30,36,42,48,54]);
+  return {type:'sameCoding',left:half,right:half,answer:'yes'};
+}
+function makeDifferentCoding(){
+  const left=pick([34,39,44,49]);
+  const right=left+pick([4,6,8]);
+  return {type:'differentCoding',left,right,answer:'no'};
+}
+function makeNoInfo(){
+  const half=pick([32,38,44,50,56]);
+  return {type:'noInfo',left:half,right:half,answer:'unknown'};
+}
+function makeEqualMeasuresRotated(){
+  const half=pick([27,33,39,45,51]);
+  return {type:'equalMeasuresRotated',left:half,right:half,answer:'yes'};
+}
+function makeTotalHalf(){
+  const total=pick([72,78,86,94,108,116,124,132]);
+  const half=total/2;
+  if(!Number.isInteger(half)) return makeTotalHalf();
+  return {type:'totalHalf',left:half,right:half,total,part:half,answer:'yes'};
+}
+function makeTotalNotHalf(){
+  const total=pick([84,90,100,106,112,120,128]);
+  let part=Math.round(total/2)+pick([-7,-5,-3,3,5,7]);
+  if(part<=15 || part>=total-15) part=Math.round(total/2)-4;
+  return {type:'totalNotHalf',left:part,right:total-part,total,part,answer:'no'};
+}
+function buildQuestions(){
+  return shuffle([
+    makeEqualMeasures(),
+    makeDifferentMeasures(),
+    makeSameCoding(),
+    makeDifferentCoding(),
+    makeNoInfo(),
+    makeEqualMeasuresRotated(),
+    makeTotalHalf(),
+    makeTotalNotHalf()
+  ]);
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+
+  // Rotation de toute la figure pour éviter une présentation figée.
+  let base=randInt(10,115);
+  if(q.type==='equalMeasuresRotated') base=randInt(100,170);
+
+  const a0=base;
+  const amid=a0+q.left;
+  const a2=amid+q.right;
+  const origin=centerForAngles([a0,amid,a2],W/2,H/2,205);
+  const cx=origin.x,cy=origin.y;
+
+  const v=vertexName();
+  const L=labelSet(3,[v]);
+
+  drawRay(cx,cy,a0,165,'side');
+  drawRay(cx,cy,a2,165,'side');
+  drawRay(cx,cy,amid,160,'bisector-candidate');
+
+  drawLabel(cx,cy,a0,L[0],195);
+  drawLabel(cx,cy,amid,L[1],190);
+  drawLabel(cx,cy,a2,L[2],195);
+  drawVertex(cx,cy,v);
+
+  // Arcs de lecture :
+  // - cas "mesures données" : deux arcs distincts, bien séparés
+  // - cas "codages" : arcs lisibles + codages à l'intérieur
+  // - cas "angle total donné" : un petit arc pour la partie connue
+  //   et un grand arc extérieur pour l'angle total
+  const [arcClass1,arcClass2]=arcClassesForQuestion(q);
+
+  if(q.type==='equalMeasures' || q.type==='differentMeasures' || q.type==='equalMeasuresRotated'){
+    drawArc(cx,cy,a0,amid,58,arcClass1);
+    drawArc(cx,cy,amid,a2,82,arcClass2);
+    drawText(cx,cy,a0+q.left/2,44,`${q.left}°`,'measure',-8);
+    drawText(cx,cy,amid+q.right/2,96,`${q.right}°`,'measure',8);
+  }
+
+  if(q.type==='sameCoding'){
+    drawArc(cx,cy,a0,amid,62,arcClass1);
+    drawArc(cx,cy,amid,a2,82,arcClass2);
+    drawCodingMark(cx,cy,a0,amid,48,1);
+    drawCodingMark(cx,cy,amid,a2,68,1);
+  }
+
+  if(q.type==='differentCoding'){
+    drawArc(cx,cy,a0,amid,62,arcClass1);
+    drawArc(cx,cy,amid,a2,82,arcClass2);
+    drawCodingMark(cx,cy,a0,amid,48,1);
+    drawCodingMark(cx,cy,amid,a2,68,2);
+  }
+
+  if(q.type==='noInfo'){
+    drawArc(cx,cy,a0,amid,62,arcClass1);
+    drawArc(cx,cy,amid,a2,82,arcClass2);
+  }
+
+  if(q.type==='totalHalf' || q.type==='totalNotHalf'){
+    // On ne montre que la partie connue, puis l'angle total :
+    // cela évite l'empilement confus de trois arcs.
+    drawArc(cx,cy,a0,amid,58,'arc-equal');
+    drawText(cx,cy,a0+q.left/2,42,`${q.part}°`,'measure',-8);
+
+    drawArc(cx,cy,a0,a2,102,'arc-total');
+    drawText(cx,cy,a0+(q.left+q.right)/2,128,`${q.total}°`,'measure-total');
+  }
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Un angle partagé par une demi-droite rouge, question ${index+1}`
+  );
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+function resetButtons(){
+  locked=false;
+  yesBtn.disabled=false;
+  noBtn.disabled=false;
+  unknownBtn.disabled=false;
+  yesBtn.className='choice';
+  noBtn.className='choice';
+  unknownBtn.className='choice';
+  nextBtn.hidden=true;
+  setFeedback("Utilise uniquement les informations données par la figure.");
+}
+function renderQuestion(){
+  resetButtons();
+  updateTop();
+  renderFigure();
+}
+
+function explanation(q){
+  switch(q.type){
+    case 'equalMeasures':
+    case 'equalMeasuresRotated':
+      return `Oui. Les deux angles formés sont adjacents et mesurent chacun ${q.left}° : la demi-droite rouge est la bissectrice.`;
+    case 'differentMeasures':
+      return `Non. Les deux angles mesurent ${q.left}° et ${q.right}° : ils n’ont pas la même mesure.`;
+    case 'sameCoding':
+      return "Oui. Les deux angles portent le même codage : ils ont donc la même mesure.";
+    case 'differentCoding':
+      return "Non. Les deux angles ne portent pas le même codage : la figure indique qu’ils n’ont pas la même mesure.";
+    case 'noInfo':
+      return "On ne peut pas savoir. Le dessin seul ne permet pas de conclure : aucune mesure ni aucun codage n’indique que les deux angles sont égaux.";
+    case 'totalHalf':
+      return `Oui. La moitié de ${q.total}° vaut ${q.total/2}°, et la partie indiquée mesure ${q.part}° : les deux angles ont donc la même mesure.`;
+    case 'totalNotHalf':
+      return `Non. La moitié de ${q.total}° vaut ${q.total/2}°, mais la partie indiquée mesure ${q.part}° : la demi-droite rouge n’est pas la bissectrice.`;
+    default:
+      return "";
+  }
+}
+
+function buttonFor(answer){
+  if(answer==='yes') return yesBtn;
+  if(answer==='no') return noBtn;
+  return unknownBtn;
+}
+
+function answer(value,button){
+  if(locked)return;
+  locked=true;
+
+  const q=questions[index];
+  const correct=value===q.answer;
+
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+  unknownBtn.disabled=true;
+
+  if(correct){
+    score++;
+    button.classList.add('correct');
+    setFeedback(explanation(q),'success');
+  }else{
+    button.classList.add('wrong');
+    buttonFor(q.answer).classList.add('correct');
+    setFeedback(explanation(q),'error');
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu reconnais une bissectrice en utilisant les informations de la figure.";
+  }else if(score>=6){
+    message="Très bien. Pense à t’appuyer sur les mesures et les codages, pas seulement sur l’apparence du dessin.";
+  }else if(score>=4){
+    message="C’est en bonne voie. Vérifie toujours que les deux angles adjacents ont la même mesure.";
+  }else{
+    message="Rejoue avec de nouvelles figures et utilise uniquement les informations données pour conclure.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+yesBtn.addEventListener('click',()=>answer('yes',yesBtn));
+noBtn.addEventListener('click',()=>answer('no',noBtn));
+unknownBtn.addEventListener('click',()=>answer('unknown',unknownBtn));
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+  unknownBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>

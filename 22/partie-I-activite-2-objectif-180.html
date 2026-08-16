@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie I – Activité 2 – Objectif 180°</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.35rem,2.5vw,1.76rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.question-zone{
+  flex:1;min-height:270px;padding:18px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:24px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+.measures{
+  display:flex;align-items:center;justify-content:center;
+  gap:26px;flex-wrap:wrap
+}
+.measure{
+  min-width:190px;padding:24px 30px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:18px;
+  font:900 clamp(2.35rem,5vw,3.6rem)/1 Arial,Helvetica,sans-serif;
+  text-align:center
+}
+.and{
+  color:var(--m);
+  font:800 clamp(1.5rem,3vw,2rem)/1 Arial,Helvetica,sans-serif
+}
+.hint{
+  margin:0;color:var(--m);
+  font-size:clamp(1rem,1.7vw,1.14rem);
+  font-weight:650;text-align:center
+}
+.answer-row{
+  width:min(650px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:16px;
+  margin:0 auto
+}
+.choice{
+  min-height:62px;padding:10px 16px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.08rem,2vw,1.28rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice:hover:not(:disabled){border-color:#74a9cf}
+.choice:active:not(:disabled){transform:scale(.985)}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice:disabled{cursor:default}
+.feedback{
+  min-height:66px;padding:9px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:46px;display:flex;align-items:center;justify-content:center
+}
+button.action{
+  min-height:44px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 14px 5px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:1px 10px 10px;gap:7px}
+  .instruction{min-height:40px;font-size:1.1rem}
+  .question-zone{min-height:185px;padding:10px;gap:12px}
+  .measures{gap:12px}
+  .measure{min-width:145px;padding:15px 18px;font-size:2.1rem;border-width:2px}
+  .and{font-size:1.35rem}
+  .hint{font-size:.87rem}
+  .answer-row{gap:8px}
+  .choice{min-height:46px;padding:7px 9px;font-size:.98rem}
+  .feedback{min-height:50px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:38px}
+  button.action{min-height:36px;height:36px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Les deux angles sont-ils supplémentaires ?
+    </p>
+
+    <div class="question-zone">
+      <div class="measures" aria-label="Mesures des deux angles">
+        <div class="measure" id="m1">73°</div>
+        <div class="and">et</div>
+        <div class="measure" id="m2">107°</div>
+      </div>
+      <p class="hint">À toi de décider.</p>
+    </div>
+
+    <div class="answer-row">
+      <button class="choice" id="yes" type="button">Oui</button>
+      <button class="choice" id="no" type="button">Non</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Observe les deux mesures avant de répondre.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouvelles mesures
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const $=id=>document.getElementById(id);
+
+const m1=$('m1');
+const m2=$('m2');
+const yesBtn=$('yes');
+const noBtn=$('no');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[randInt(0,arr.length-1)];
+}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function makeTrueQuestion(){
+  const a=randInt(18,162);
+  return {
+    a,
+    b:180-a,
+    isSupplementary:true
+  };
+}
+
+function makeFalseQuestion(delta){
+  let a,b,sum;
+
+  do{
+    a=randInt(18,162);
+    sum=180+delta;
+    b=sum-a;
+  }while(b<12 || b>168);
+
+  return {
+    a,
+    b,
+    isSupplementary:false
+  };
+}
+
+function buildQuestions(){
+  // Quatre cas vrais et quatre cas faux.
+  // Les faux cas restent proches de 180° pour obliger à calculer.
+  const falseDeltas=shuffle([-1,1,-2,2,-5,5,-8,8]).slice(0,4);
+
+  const list=[
+    makeTrueQuestion(),
+    makeTrueQuestion(),
+    makeTrueQuestion(),
+    makeTrueQuestion(),
+    ...falseDeltas.map(makeFalseQuestion)
+  ];
+
+  return shuffle(list);
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetButtons(){
+  locked=false;
+  yesBtn.disabled=false;
+  noBtn.disabled=false;
+  yesBtn.className='choice';
+  noBtn.className='choice';
+  nextBtn.hidden=true;
+  setFeedback("Observe les deux mesures avant de répondre.");
+}
+
+function renderQuestion(){
+  const q=questions[index];
+
+  resetButtons();
+  updateTop();
+
+  m1.textContent=`${q.a}°`;
+  m2.textContent=`${q.b}°`;
+}
+
+function explanation(q){
+  const sum=q.a+q.b;
+
+  if(q.isSupplementary){
+    return `Oui. ${q.a}° + ${q.b}° = 180°.`;
+  }
+
+  return `Non. ${q.a}° + ${q.b}° = ${sum}°, et non 180°.`;
+}
+
+function answer(value,button){
+  if(locked)return;
+  locked=true;
+
+  const q=questions[index];
+  const correct=value===q.isSupplementary;
+
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+
+  if(correct){
+    score++;
+    button.classList.add('correct');
+    setFeedback(explanation(q),'success');
+  }else{
+    button.classList.add('wrong');
+    const correctBtn=q.isSupplementary?yesBtn:noBtn;
+    correctBtn.classList.add('correct');
+    setFeedback(explanation(q),'error');
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu reconnais parfaitement deux angles supplémentaires.";
+  }else if(score>=6){
+    message="Très bien. Pense à vérifier que la somme vaut exactement 180°.";
+  }else if(score>=4){
+    message="C'est en bonne voie. Calcule toujours la somme des deux mesures avant de répondre.";
+  }else{
+    message="Rejoue avec de nouvelles mesures et vérifie si leur somme est exactement égale à 180°.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+
+  index++;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+yesBtn.addEventListener('click',()=>answer(true,yesBtn));
+noBtn.addEventListener('click',()=>answer(false,noBtn));
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>

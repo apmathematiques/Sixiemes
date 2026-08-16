@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie I – Activité 1 – Adjacents ou pas ?</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.35rem,2.5vw,1.76rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:270px;padding:10px 14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+#scene{
+  width:100%;height:100%;min-height:260px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.geom-ray{
+  stroke:var(--line);stroke-width:4.2;stroke-linecap:round
+}
+.geom-vertex{fill:var(--line)}
+.geom-label{
+  fill:var(--i);font:700 23px Arial,Helvetica,sans-serif
+}
+.angle-sector{
+  fill:rgba(23,105,170,.17);
+  stroke:var(--b);stroke-width:3.5
+}
+.angle-arc{
+  fill:none;stroke:var(--b);stroke-width:4;stroke-linecap:round
+}
+.answer-row{
+  width:min(650px,100%);display:grid;
+  grid-template-columns:1fr 1fr;gap:16px;
+  margin:0 auto
+}
+.choice{
+  min-height:62px;padding:10px 16px;
+  color:var(--bd);background:var(--bs);
+  border:3px solid #b9d4e8;border-radius:16px;
+  font:800 clamp(1.08rem,2vw,1.28rem)/1.2 Arial,Helvetica,sans-serif;
+  cursor:pointer;touch-action:manipulation;
+  transition:transform .08s ease,border-color .15s ease,background .15s ease
+}
+.choice:hover:not(:disabled){border-color:#74a9cf}
+.choice:active:not(:disabled){transform:scale(.985)}
+.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}
+.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}
+.choice:disabled{cursor:default}
+.feedback{
+  min-height:66px;padding:9px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:46px;display:flex;align-items:center;justify-content:center
+}
+button.action{
+  min-height:44px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{
+  padding:20px;color:#8f2727;font-weight:700;text-align:center
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 14px 5px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:1px 10px 10px;gap:7px}
+  .instruction{min-height:40px;font-size:1.1rem}
+  .figure-zone{min-height:185px;padding:6px 8px}
+  #scene{min-height:180px}
+  .answer-row{gap:8px}
+  .choice{min-height:46px;padding:7px 9px;font-size:.98rem}
+  .feedback{min-height:50px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:38px}
+  button.action{min-height:36px;height:36px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Observe les deux angles colorés. Sont-ils adjacents ?
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Deux angles colorés"></div>
+    </div>
+
+    <div class="answer-row">
+      <button class="choice" id="yes" type="button">Oui</button>
+      <button class="choice" id="no" type="button">Non</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Observe attentivement la figure avant de répondre.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=860;
+const H=300;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const yesBtn=$('yes');
+const noBtn=$('no');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+let scene=null;
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+
+function polar(cx,cy,r,deg){
+  const a=degToRad(deg);
+  return {x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};
+}
+
+function sectorPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let delta=a2-a1;
+  while(delta<0)delta+=360;
+  const large=delta>180?1:0;
+  return `M ${cx} ${cy} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
+}
+
+function arcPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let delta=a2-a1;
+  while(delta<0)delta+=360;
+  const large=delta>180?1:0;
+  return `M ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+}
+
+function labelSet(n,exclude=[]){
+  const pool=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T']
+    .filter(x=>!exclude.includes(x));
+  return shuffle(pool).slice(0,n);
+}
+
+function vertexName(){
+  return pick(['O','I','J','K','M','N']);
+}
+
+function centeredOrigin(angles,targetX,targetY,length=178){
+  const pts=[{x:0,y:0},{x:-18,y:31}];
+  angles.forEach(a=>pts.push(polar(0,0,length,a)));
+
+  const xs=pts.map(p=>p.x);
+  const ys=pts.map(p=>p.y);
+
+  const minX=Math.min(...xs);
+  const maxX=Math.max(...xs);
+  const minY=Math.min(...ys);
+  const maxY=Math.max(...ys);
+
+  return {
+    x:targetX-(minX+maxX)/2,
+    y:targetY-(minY+maxY)/2
+  };
+}
+
+function makeAdjacent(){
+  const base=randInt(15,95);
+  const g1=randInt(34,62);
+  const g2=randInt(34,62);
+  return {
+    type:'adjacent',
+    isAdjacent:true,
+    angles:[[base,base+g1],[base+g1,base+g1+g2]],
+    rays:[base,base+g1,base+g1+g2]
+  };
+}
+
+function makeNoCommonSide(){
+  const base=randInt(5,42);
+  const g1=randInt(28,42);
+  const sep=randInt(28,42);
+  const g2=randInt(28,42);
+  const a0=base;
+  const a1=a0+g1;
+  const a2=a1+sep;
+  const a3=a2+g2;
+  return {
+    type:'noCommonSide',
+    isAdjacent:false,
+    angles:[[a0,a1],[a2,a3]],
+    rays:[a0,a1,a2,a3]
+  };
+}
+
+function makeSameSide(mode){
+  const base=randInt(12,90);
+  const g1=randInt(30,48);
+  const g2=randInt(28,48);
+  const a0=base;
+  const a1=a0+g1;
+  const a2=a1+g2;
+  return {
+    type:'sameSide',
+    isAdjacent:false,
+    angles:mode===0?[[a0,a1],[a0,a2]]:[[a1,a2],[a0,a2]],
+    rays:[a0,a1,a2]
+  };
+}
+
+function makeDifferentVertex(){
+  return {
+    type:'differentVertex',
+    isAdjacent:false,
+    separate:true,
+    first:{
+      base:randInt(40,95),
+      opening:randInt(38,62)
+    },
+    second:{
+      base:randInt(70,120),
+      opening:randInt(38,62)
+    }
+  };
+}
+
+function buildQuestions(){
+  return shuffle([
+    makeAdjacent(),
+    makeAdjacent(),
+    makeAdjacent(),
+    makeAdjacent(),
+    makeDifferentVertex(),
+    makeNoCommonSide(),
+    makeSameSide(0),
+    makeSameSide(1)
+  ]);
+}
+
+function addSvg(tag,attrs,parent){
+  const node=GeoLib.Utils.createSvg(tag,attrs);
+  (parent||scene.layers.drawings).appendChild(node);
+  return node;
+}
+
+function drawRay(cx,cy,angle,length,label){
+  const p=polar(cx,cy,length,angle);
+  addSvg('line',{
+    x1:cx,y1:cy,x2:p.x,y2:p.y,class:'geom-ray'
+  });
+
+  const lp=polar(cx,cy,length+24,angle);
+  const t=addSvg('text',{
+    x:lp.x,y:lp.y+8,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=label;
+}
+
+function drawVertex(cx,cy,label){
+  addSvg('circle',{cx,cy,r:5.2,class:'geom-vertex'});
+  const t=addSvg('text',{
+    x:cx-18,y:cy+31,class:'geom-label','text-anchor':'middle'
+  });
+  t.textContent=label;
+}
+
+function drawAngle(cx,cy,a1,a2,r){
+  addSvg('path',{
+    d:sectorPath(cx,cy,r,a1,a2),
+    class:'angle-sector'
+  });
+  addSvg('path',{
+    d:arcPath(cx,cy,r,a1,a2),
+    class:'angle-arc'
+  });
+}
+
+function drawSingleVertex(q){
+  const v=vertexName();
+  const labels=labelSet(q.rays.length,[v]);
+
+  // On centre la figure complète (rayons + étiquettes), et non le sommet.
+  const origin=centeredOrigin(q.rays,W/2,H/2,178);
+  const cx=origin.x,cy=origin.y;
+
+  // Le second secteur est légèrement plus grand si les angles se chevauchent,
+  // afin que les deux sélections restent visibles.
+  drawAngle(cx,cy,q.angles[0][0],q.angles[0][1],78);
+  drawAngle(cx,cy,q.angles[1][0],q.angles[1][1],
+            q.type==='sameSide'?112:92);
+
+  q.rays.forEach((a,i)=>drawRay(cx,cy,a,150,labels[i]));
+  drawVertex(cx,cy,v);
+}
+
+function drawSeparateVertices(q){
+  const vertices=shuffle(['O','I','J','K','M','N']).slice(0,2);
+  const L=labelSet(4,vertices);
+
+  const a10=q.first.base;
+  const a11=a10+q.first.opening;
+  const a20=q.second.base;
+  const a21=a20+q.second.opening;
+
+  // Chaque petit angle est centré dans sa moitié de la zone.
+  const o1=centeredOrigin([a10,a11],W*.29,H/2,148);
+  const o2=centeredOrigin([a20,a21],W*.71,H/2,148);
+
+  drawAngle(o1.x,o1.y,a10,a11,74);
+  drawRay(o1.x,o1.y,a10,120,L[0]);
+  drawRay(o1.x,o1.y,a11,120,L[1]);
+  drawVertex(o1.x,o1.y,vertices[0]);
+
+  drawAngle(o2.x,o2.y,a20,a21,74);
+  drawRay(o2.x,o2.y,a20,120,L[2]);
+  drawRay(o2.x,o2.y,a21,120,L[3]);
+  drawVertex(o2.x,o2.y,vertices[1]);
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+
+  if(q.separate) drawSeparateVertices(q);
+  else drawSingleVertex(q);
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Deux angles colorés, question ${index+1}`
+  );
+}
+
+function explanation(q){
+  switch(q.type){
+    case 'differentVertex':
+      return "Non. Ces deux angles n'ont pas le même sommet.";
+    case 'noCommonSide':
+      return "Non. Ils ont le même sommet, mais aucun côté commun.";
+    case 'sameSide':
+      return "Non. Ils sont situés du même côté de leur côté commun.";
+    default:
+      return "Oui. Ils ont le même sommet, un côté commun et sont situés de part et d'autre de ce côté commun.";
+  }
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetButtons(){
+  locked=false;
+  yesBtn.disabled=false;
+  noBtn.disabled=false;
+  yesBtn.className='choice';
+  noBtn.className='choice';
+  nextBtn.hidden=true;
+  setFeedback("Observe attentivement la figure avant de répondre.");
+}
+
+function renderQuestion(){
+  resetButtons();
+  updateTop();
+  renderFigure();
+}
+
+function answer(value,button){
+  if(locked)return;
+  locked=true;
+
+  const q=questions[index];
+  const correct=value===q.isAdjacent;
+
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+
+  if(correct){
+    score++;
+    button.classList.add('correct');
+    setFeedback(explanation(q),'success');
+  }else{
+    button.classList.add('wrong');
+    const correctBtn=q.isAdjacent?yesBtn:noBtn;
+    correctBtn.classList.add('correct');
+    setFeedback(explanation(q),'error');
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu reconnais les angles adjacents dans toutes les configurations.";
+  }else if(score>=6){
+    message="Très bien. Pense à vérifier les trois conditions avant de conclure.";
+  }else if(score>=4){
+    message="C'est en bonne voie. Vérifie le sommet, le côté commun et la position des deux angles.";
+  }else{
+    message="Rejoue avec de nouvelles figures et vérifie les trois conditions une par une.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  renderQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  renderQuestion();
+}
+
+yesBtn.addEventListener('click',()=>answer(true,yesBtn));
+noBtn.addEventListener('click',()=>answer(false,noBtn));
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+  yesBtn.disabled=true;
+  noBtn.disabled=true;
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>

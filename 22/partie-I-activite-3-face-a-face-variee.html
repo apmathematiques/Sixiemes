@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie I – Activité 3 – Face à face</title>
+<style>
+:root{
+  --b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;
+  --g:#20864b;--gs:#e9f7ef;
+  --r:#c63d3d;--rs:#fff0f0;
+  --i:#17212b;--m:#5f6d79;--line:#263442
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  color:var(--i);font-family:Arial,Helvetica,sans-serif
+}
+body{display:grid;place-items:center;padding:12px}
+.app{
+  width:min(100%,980px);aspect-ratio:16/9;min-height:480px;
+  max-height:calc(100vh - 24px);overflow:hidden;
+  display:flex;flex-direction:column;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;
+  align-items:center;gap:14px;padding:16px 24px 10px
+}
+.track{height:12px;overflow:hidden;background:#dceaf5;border-radius:999px}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;transition:width 260ms ease
+}
+.pill{
+  min-width:116px;padding:9px 14px;color:var(--bd);
+  font-weight:700;text-align:center;white-space:nowrap;
+  background:var(--bs);border-radius:999px
+}
+.main{
+  flex:1;min-height:0;padding:4px 18px 18px;
+  display:flex;flex-direction:column;gap:10px
+}
+.instruction{
+  min-height:54px;margin:0;display:flex;align-items:center;
+  justify-content:center;padding:0 10px;
+  font-size:clamp(1.35rem,2.5vw,1.76rem);
+  font-weight:700;line-height:1.25;text-align:center
+}
+.figure-zone{
+  flex:1;min-height:315px;padding:10px 14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid #dce9f3;border-radius:18px
+}
+#scene{
+  width:100%;height:100%;min-height:305px;
+  overflow:hidden;border-radius:13px;background:#fff
+}
+#scene svg{width:100%;height:100%;display:block}
+.cross-line{
+  stroke:var(--line);stroke-width:4.2;stroke-linecap:round
+}
+.vertex{fill:var(--line)}
+.point-label{
+  fill:var(--i);
+  font:700 22px Arial,Helvetica,sans-serif;
+  pointer-events:none
+}
+.angle-target{
+  fill:rgba(23,105,170,.22);
+  stroke:var(--b);stroke-width:4;
+  pointer-events:none
+}
+.angle-choice{
+  fill:rgba(234,244,252,.35);
+  stroke:#bfd7e9;stroke-width:2.5;
+  cursor:pointer;touch-action:manipulation;
+  transition:fill .15s ease,stroke .15s ease
+}
+.angle-choice:hover{
+  fill:rgba(234,244,252,.75);
+  stroke:#74a9cf
+}
+.angle-choice.correct{
+  fill:rgba(32,134,75,.18);
+  stroke:#79c798;stroke-width:4
+}
+.angle-choice.wrong{
+  fill:rgba(198,61,61,.14);
+  stroke:#df8585;stroke-width:4
+}
+.angle-choice.locked{cursor:default}
+.feedback{
+  min-height:66px;padding:9px 16px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--m);font-weight:650;
+  font-size:clamp(.98rem,1.8vw,1.1rem);
+  line-height:1.35;text-align:center;
+  background:#f4f7fb;border-radius:14px
+}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.controls{
+  min-height:46px;display:flex;align-items:center;justify-content:center
+}
+button.action{
+  min-height:44px;padding:0 22px;font-size:1rem;
+  font-weight:800;cursor:pointer;border:0;border-radius:13px
+}
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+.final{flex:1;padding:22px;display:none;place-items:center;text-align:center}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;background:#fff;
+  border:1px solid #dce9f3;border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-icon{margin-bottom:5px;font-size:3rem}
+.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}
+.final-score{margin:8px 0;font-size:1.3rem;font-weight:800}
+.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+.load-error{
+  padding:20px;color:#8f2727;font-weight:700;text-align:center
+}
+@media(max-width:700px),(max-height:620px){
+  body{padding:6px}
+  .app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}
+  .top{grid-template-columns:1fr auto;padding:9px 14px 5px;gap:8px}
+  .track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}
+  .main{padding:1px 10px 10px;gap:7px}
+  .instruction{min-height:40px;font-size:1.08rem}
+  .figure-zone{min-height:220px;padding:6px 8px}
+  #scene{min-height:210px}
+  .feedback{min-height:50px;padding:7px 10px;font-size:.84rem}
+  .controls{min-height:38px}
+  button.action{min-height:36px;height:36px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">
+      Clique sur l’angle opposé par le sommet à l’angle coloré en bleu.
+    </p>
+
+    <div class="figure-zone">
+      <div id="scene" role="img" aria-label="Deux droites sécantes et un angle coloré en bleu"></div>
+    </div>
+
+    <div class="feedback" id="feedback">
+      Clique directement sur l’un des trois autres angles.
+    </div>
+
+    <div class="controls">
+      <button class="action secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <div class="final-icon">✓</div>
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="action primary" id="restart">
+        Rejouer avec de nouvelles figures
+      </button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/gh/apmathematiques/Sixiemes@main/geolib/v1.3/geolib.js"></script>
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8;
+const W=860;
+const H=330;
+
+const $=id=>document.getElementById(id);
+const sceneBox=$('scene');
+const feedback=$('feedback');
+const nextBtn=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalMessage=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let locked=false;
+let scene=null;
+let clickableSectors=[];
+
+function rand(min,max){return Math.random()*(max-min)+min}
+function randInt(min,max){return Math.floor(rand(min,max+1))}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function degToRad(deg){return deg*Math.PI/180}
+
+function polar(cx,cy,r,deg){
+  const a=degToRad(deg);
+  return {x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)};
+}
+
+function sectorPath(cx,cy,r,a1,a2){
+  const p1=polar(cx,cy,r,a1);
+  const p2=polar(cx,cy,r,a2);
+  let delta=a2-a1;
+  while(delta<0)delta+=360;
+  const large=delta>180?1:0;
+  return `M ${cx} ${cy} L ${p1.x.toFixed(1)} ${p1.y.toFixed(1)}
+          A ${r} ${r} 0 ${large} 0 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z`;
+}
+
+function labelSet(n,exclude=[]){
+  const pool=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T']
+    .filter(x=>!exclude.includes(x));
+  return shuffle(pool).slice(0,n);
+}
+
+function vertexName(){
+  return pick(['O','I','J','K','M','N']);
+}
+
+function buildQuestion(acuteGap){
+  // On impose des écarts très différents entre les deux droites.
+  // acuteGap est toujours l'angle aigu formé par les deux droites.
+  // Une question sur deux utilise l'angle supplémentaire pour que
+  // les positions relatives changent vraiment visuellement.
+  const useSupplementary=Math.random()<.5;
+  const opening=useSupplementary ? 180-acuteGap : acuteGap;
+
+  // Rotation complète de la figure.
+  const base=randInt(0,179);
+
+  // L'angle bleu peut être n'importe lequel des quatre angles.
+  const target=randInt(0,3);
+
+  const rays=[
+    base,
+    base+opening,
+    base+180,
+    base+180+opening
+  ];
+
+  return {
+    base,
+    opening,
+    acuteGap,
+    target,
+    correct:(target+2)%4,
+    rays
+  };
+}
+
+function buildQuestions(){
+  // On ne laisse plus le hasard produire huit figures presque identiques.
+  // Les huit parties utilisent volontairement des ouvertures très variées.
+  const gaps=shuffle([
+    randInt(24,30),
+    randInt(33,39),
+    randInt(42,48),
+    randInt(51,57),
+    randInt(60,66),
+    randInt(69,74),
+    randInt(76,80),
+    randInt(82,85)
+  ]);
+
+  return gaps.map(gap=>buildQuestion(gap));
+}
+
+function addSvg(tag,attrs,parent){
+  const node=GeoLib.Utils.createSvg(tag,attrs);
+  (parent||scene.layers.drawings).appendChild(node);
+  return node;
+}
+
+function lineEndpoints(cx,cy,angle,length){
+  return [
+    polar(cx,cy,length,angle),
+    polar(cx,cy,length,angle+180)
+  ];
+}
+
+function drawLine(cx,cy,angle,length){
+  const [a,b]=lineEndpoints(cx,cy,angle,length);
+  addSvg('line',{
+    x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'cross-line'
+  });
+}
+
+function drawPointLabel(cx,cy,angle,length,text){
+  const p=polar(cx,cy,length,angle);
+  const t=addSvg('text',{
+    x:p.x,y:p.y+8,class:'point-label','text-anchor':'middle'
+  });
+  t.textContent=text;
+}
+
+function centeredIntersection(rays,targetX,targetY,length=185){
+  const pts=[{x:0,y:0}];
+  rays.forEach(a=>{
+    pts.push(polar(0,0,length+28,a));
+  });
+
+  const xs=pts.map(p=>p.x);
+  const ys=pts.map(p=>p.y);
+  return {
+    x:targetX-(Math.min(...xs)+Math.max(...xs))/2,
+    y:targetY-(Math.min(...ys)+Math.max(...ys))/2
+  };
+}
+
+function sectorBounds(q,i){
+  const r=q.rays;
+  if(i===0) return [r[0],r[1]];
+  if(i===1) return [r[1],r[2]];
+  if(i===2) return [r[2],r[3]];
+  return [r[3],r[0]+360];
+}
+
+function renderFigure(){
+  const q=questions[index];
+  scene=new GeoLib.Scene(sceneBox,{width:W,height:H,keyboard:false});
+  clickableSectors=[];
+
+  const origin=centeredIntersection(q.rays,W/2,H/2,205);
+  const cx=origin.x,cy=origin.y;
+
+  const v=vertexName();
+  const labels=labelSet(4,[v]);
+
+  // Les deux droites sont dessinées par-dessus les secteurs.
+  for(let i=0;i<4;i++){
+    const [a1,a2]=sectorBounds(q,i);
+    const path=addSvg('path',{
+      d:sectorPath(cx,cy,88,a1,a2),
+      class:i===q.target?'angle-target':'angle-choice',
+      'data-index':i,
+      'aria-label':i===q.target?'Angle de départ':'Angle cliquable'
+    });
+
+    if(i!==q.target){
+      clickableSectors.push(path);
+      path.addEventListener('click',()=>answer(i,path));
+    }
+  }
+
+  drawLine(cx,cy,q.base,205);
+  drawLine(cx,cy,q.base+q.opening,205);
+
+  addSvg('circle',{cx,cy,r:5.5,class:'vertex'});
+
+  q.rays.forEach((a,i)=>{
+    drawPointLabel(cx,cy,a,232,labels[i]);
+  });
+
+  const tv=addSvg('text',{
+    x:cx-18,y:cy+31,class:'point-label','text-anchor':'middle'
+  });
+  tv.textContent=v;
+
+  sceneBox.setAttribute(
+    'aria-label',
+    `Deux droites sécantes, angle bleu à trouver en face, question ${index+1}`
+  );
+}
+
+function setFeedback(text,type=''){
+  feedback.textContent=text;
+  feedback.className='feedback'+(type?` ${type}`:'');
+}
+
+function updateTop(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetQuestion(){
+  locked=false;
+  nextBtn.hidden=true;
+  setFeedback("Clique directement sur l’un des trois autres angles.");
+  updateTop();
+  renderFigure();
+}
+
+function answer(choiceIndex,clickedPath){
+  if(locked)return;
+  locked=true;
+
+  const q=questions[index];
+  const correct=choiceIndex===q.correct;
+
+  clickableSectors.forEach(p=>{
+    p.classList.add('locked');
+    p.style.pointerEvents='none';
+  });
+
+  const correctPath=clickableSectors.find(
+    p=>Number(p.getAttribute('data-index'))===q.correct
+  );
+
+  if(correct){
+    score++;
+    clickedPath.classList.add('correct');
+    setFeedback(
+      "Correct ! Les côtés de ces deux angles sont dans le prolongement les uns des autres.",
+      'success'
+    );
+  }else{
+    clickedPath.classList.add('wrong');
+    if(correctPath) correctPath.classList.add('correct');
+    setFeedback(
+      "Incorrect. L’angle opposé par le sommet est celui situé en face : ses côtés prolongent ceux de l’angle bleu.",
+      'error'
+    );
+  }
+
+  scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  nextBtn.hidden=false;
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+  bar.style.width='100%';
+
+  finalScore.textContent=`Score : ${score} / ${TOTAL}`;
+
+  let message;
+  if(score===8){
+    message="Excellent : tu repères les angles opposés par le sommet quelle que soit l’orientation de la figure.";
+  }else if(score>=6){
+    message="Très bien. Pense à regarder quels côtés sont dans le prolongement les uns des autres.";
+  }else if(score>=4){
+    message="C’est en bonne voie. Ne cherche pas seulement l’angle le plus proche : cherche celui qui est en face.";
+  }else{
+    message="Rejoue avec de nouvelles figures et vérifie les prolongements des côtés avant de cliquer.";
+  }
+  finalMessage.textContent=message;
+}
+
+function next(){
+  if(index>=TOTAL-1){
+    showFinal();
+    return;
+  }
+  index++;
+  resetQuestion();
+}
+
+function restart(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  exercise.style.display='';
+  final.classList.remove('show');
+  resetQuestion();
+}
+
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+if(!window.GeoLib){
+  sceneBox.innerHTML='<div class="load-error">GeoLib n’a pas pu être chargée.</div>';
+}else{
+  restart();
+}
+})();
+</script>
+</body>
+</html>
