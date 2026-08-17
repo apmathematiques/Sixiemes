@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie I – Activité 1 – À toi de calculer !</title>
+<style>
+:root{
+  --blue:#1769aa;--blue-dark:#0d4778;--blue-soft:#eaf4fc;
+  --green:#1f7a45;--green-soft:#eaf7ef;
+  --red:#b93434;--red-soft:#fff0f0;
+  --orange:#9a5b16;--orange-soft:#fff6e9;
+  --ink:#17212b;--muted:#5e6b76;--line:#d9e6ef
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  font-family:Arial,Helvetica,sans-serif;color:var(--ink)
+}
+body{display:grid;place-items:center;padding:8px}
+.app{
+  width:min(100%,1000px);aspect-ratio:16/9;min-height:0;
+  max-height:calc(100vh - 16px);overflow:hidden;
+  display:flex;flex-direction:column;background:#fff;
+  border:1px solid rgba(23,105,170,.16);border-radius:22px;
+  box-shadow:0 14px 34px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;
+  align-items:center;padding:14px 20px 8px
+}
+.track{height:12px;border-radius:999px;overflow:hidden;background:#dceaf5}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--blue),#4f9ed8);
+  transition:width .25s ease
+}
+.pill{
+  padding:8px 13px;border-radius:999px;background:var(--blue-soft);
+  color:var(--blue-dark);font-weight:800;white-space:nowrap
+}
+.main{
+  flex:1;min-height:0;padding:4px 16px 12px;
+  display:flex;flex-direction:column;gap:8px;overflow:hidden
+}
+.instruction{
+  margin:0;min-height:42px;display:flex;align-items:center;
+  justify-content:center;text-align:center;
+  font-size:clamp(1.35rem,2.6vw,1.9rem);font-weight:850;line-height:1.15
+}
+.card{
+  flex:1;min-height:0;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  display:flex;align-items:center;justify-content:center;
+  padding:14px 18px;overflow:hidden
+}
+.exercise-left{
+  width:100%;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px
+}
+.level{
+  color:var(--blue-dark);background:var(--blue-soft);
+  border-radius:999px;padding:6px 12px;font-size:1rem;font-weight:850;
+  text-align:center
+}
+.calc{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  flex-wrap:nowrap;white-space:nowrap;
+  font-size:clamp(2.5rem,5.8vw,4.8rem);font-weight:900;line-height:1
+}
+.answer{
+  width:clamp(145px,22vw,220px);height:clamp(66px,9vw,88px);
+  border:4px solid #86b5d6;border-radius:15px;background:#fff;
+  color:var(--blue-dark);outline:none;text-align:center;
+  font-size:clamp(2rem,4.7vw,3.35rem);font-weight:900;
+  font-family:Arial,Helvetica,sans-serif
+}
+.answer:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,170,.12)}
+.answer.wrong{border-color:#d76d6d;background:var(--red-soft)}
+.answer.correct{border-color:#62b883;background:var(--green-soft);color:#165e36}
+.answer.revealed{border-color:#e0a35c;background:var(--orange-soft);color:#75420e}
+.attempt{
+  min-height:22px;margin:0;color:var(--muted);text-align:center;
+  font-size:1.04rem;font-weight:750
+}
+.feedback{
+  width:min(760px,100%);min-height:56px;padding:9px 14px;
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  text-align:center;font-size:clamp(.98rem,1.65vw,1.12rem);
+  font-weight:800;visibility:hidden;line-height:1.25
+}
+.feedback.show{visibility:visible}
+.feedback.error{color:#8f2727;background:var(--red-soft);border:1px solid #efbcbc}
+.feedback.success{color:#165e36;background:var(--green-soft);border:1px solid #a9ddbd}
+.feedback.correction{color:#6d3d0b;background:var(--orange-soft);border:1px solid #e3ad6e}
+
+
+.controls{
+  flex:0 0 44px;min-height:44px;
+  display:flex;justify-content:center;align-items:center;gap:10px
+}
+button{
+  min-height:42px;padding:0 22px;border:0;border-radius:12px;
+  font-size:1rem;font-weight:850;cursor:pointer;
+  font-family:Arial,Helvetica,sans-serif
+}
+.primary{color:#fff;background:var(--blue)}
+.secondary{color:var(--blue-dark);background:var(--blue-soft)}
+button:disabled{opacity:.45;cursor:default}
+.final{
+  flex:1;display:none;place-items:center;padding:24px;text-align:center
+}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;border:1px solid var(--line);
+  border-radius:20px;background:#fff;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-card h2{margin:0 0 10px;color:var(--blue-dark);font-size:1.9rem}
+.final-score{margin:8px 0;font-size:1.4rem;font-weight:900}
+.final-message{margin:8px 0 20px;color:var(--muted);font-size:1.08rem;line-height:1.45}
+
+/* On ne passe sous le calcul que sur un écran réellement étroit,
+   pas simplement parce que l'iframe est peu haute. */
+@media(max-width:680px){
+  body{padding:4px}
+  .app{height:calc(100vh - 8px);aspect-ratio:auto;max-height:none;border-radius:14px}
+  .top{grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px}
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.82rem}
+  .main{padding:2px 8px 8px;gap:5px}
+  .instruction{min-height:34px;font-size:1.1rem}
+  .card{padding:8px 10px}
+  .exercise-left{gap:7px}
+            .level{font-size:.78rem;padding:4px 7px}
+  .calc{font-size:1.85rem;gap:7px}
+  .answer{width:105px;height:50px;border-width:3px;font-size:1.65rem}
+  .attempt{font-size:.8rem;min-height:16px}
+  .feedback{min-height:38px;padding:5px 7px;font-size:.8rem}
+  .long-division{grid-template-columns:minmax(0,1fr) 82px;font-size:.88rem}
+  .controls{flex:0 0 36px;min-height:36px}
+  button{min-height:34px;height:34px;padding:0 14px}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction">Calcule le quotient.</p>
+
+    <div class="card" id="card">
+      <div class="exercise-left">
+        <div class="level" id="level"></div>
+
+        <div class="calc">
+          <span id="dividend">18,4</span>
+          <span>÷</span>
+          <span id="divisor">4</span>
+          <span id="operator">=</span>
+          <input class="answer" id="answer" inputmode="decimal"
+                 autocomplete="off" spellcheck="false" aria-label="Quotient">
+        </div>
+
+        <p class="attempt" id="attempt">Tu as 2 essais.</p>
+        <div class="feedback" id="feedback"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouveaux nombres</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8, MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const instructionEl=$('instruction');
+const dividendEl=$('dividend'), divisorEl=$('divisor'), operatorEl=$('operator');
+const answerEl=$('answer'), attemptEl=$('attempt'), feedbackEl=$('feedback');
+const validateBtn=$('validate'), nextBtn=$('next');
+const counterEl=$('counter'), scoreEl=$('score'), barEl=$('bar'), levelEl=$('level');
+const exerciseEl=$('exercise'), finalEl=$('final');
+const finalScoreEl=$('finalScore'), finalMessageEl=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[],index=0,score=0,attempts=0,resolved=false;
+
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(a){return a[randInt(0,a.length-1)]}
+function roundTo(v,d){const f=10**d;return Math.round((v+Number.EPSILON)*f)/f}
+function formatDecimal(v,max=3,min=0){
+  return roundTo(v,max).toLocaleString('fr-FR',{
+    minimumFractionDigits:min,maximumFractionDigits:max,useGrouping:false
+  }).replace(/\u202f/g,' ')
+}
+function parseAnswer(t){
+  const s=String(t).trim().replace(/\s/g,'').replace(',','.');
+  return /^\d+(?:\.\d+)?$/.test(s)?Number(s):null
+}
+function nearlyEqual(a,b){return Math.abs(a-b)<1e-9}
+
+/* ---------- Génération des 8 niveaux ---------- */
+function makeQ1(){
+  let d,q,n;
+  do{d=randInt(2,5);q=randInt(12,79);n=q*d}
+  while(q%10===0 || n%10===0 || n>499);
+  return {dividend:n/10,divisor:d,quotient:q/10,shownDecimals:1,approx:false}
+}
+function makeQ2(){
+  let d,q,n;
+  do{d=randInt(4,9);q=randInt(45,159);n=q*d}
+  while(q%10===0 || n%10===0 || n>1299);
+  return {dividend:n/10,divisor:d,quotient:q/10,shownDecimals:1,approx:false}
+}
+function makeQ3(){
+  let d,q,n;
+  do{d=randInt(2,9);q=randInt(125,899);n=q*d}
+  while(q%10===0 || n%100===0 || n>7999);
+  return {dividend:n/100,divisor:d,quotient:q/100,shownDecimals:2,approx:false}
+}
+function makeQ4(){
+  const ds=[4,5,8];let d,n,q;
+  do{d=pick(ds);n=randInt(3,35);q=n/d}while(Number.isInteger(q));
+  return {dividend:n,divisor:d,quotient:q,shownDecimals:0,approx:false}
+}
+function makeQ5(){
+  let d,q,n;
+  do{
+    d=randInt(2,6);
+    q=randInt(1,9)*100+randInt(1,9); // x,0y
+    n=q*d
+  }while(n>9999 || n%100===0);
+  return {dividend:n/100,divisor:d,quotient:q/100,shownDecimals:2,approx:false}
+}
+function makeQ6(){
+  let n;do{n=randInt(1,23)}while(n%2===0);
+  return {dividend:n,divisor:8,quotient:n/8,shownDecimals:0,approx:false}
+}
+function makeApprox(places){
+  let d,n,q,r;
+  do{
+    d=pick([3,6,7,9]);n=randInt(2,48);q=n/d;r=roundTo(q,places)
+  }while(Number.isInteger(q)||nearlyEqual(q,r));
+  return {dividend:n,divisor:d,quotient:q,rounded:r,places,shownDecimals:0,approx:true}
+}
+function makeQ7(){return makeApprox(1)}
+function makeQ8(){return makeApprox(2)}
+function buildQuestions(){
+  return [makeQ1(),makeQ2(),makeQ3(),makeQ4(),makeQ5(),makeQ6(),makeQ7(),makeQ8()]
+}
+function levelText(i){
+  return [
+    'Niveau 1 — Quotient à un chiffre décimal',
+    'Niveau 2 — Nombres plus grands',
+    'Niveau 3 — Quotient à deux chiffres décimaux',
+    'Niveau 4 — Le dividende est entier',
+    'Niveau 5 — Attention au zéro',
+    'Niveau 6 — Quotient à trois chiffres décimaux',
+    'Niveau 7 — Valeur approchée au dixième',
+    'Niveau 8 — Valeur approchée au centième'
+  ][i]
+}
+
+/* ---------- Interface ---------- */
+function resetFeedback(){
+  feedbackEl.className='feedback';
+  feedbackEl.innerHTML='';
+}
+function setFeedback(html,type){
+  feedbackEl.innerHTML=html;feedbackEl.className=`feedback show ${type}`
+}
+function clearAnswerState(){answerEl.classList.remove('wrong','correct','revealed')}
+function expected(q){return q.approx?q.rounded:q.quotient}
+
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;resolved=false;
+  counterEl.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreEl.textContent=`Score : ${formatDecimal(score,1)} / ${TOTAL}`;
+  barEl.style.width=`${((index+1)/TOTAL)*100}%`;
+  levelEl.textContent=levelText(index);
+
+  dividendEl.textContent=formatDecimal(q.dividend,q.shownDecimals);
+  divisorEl.textContent=q.divisor;
+
+  if(q.approx){
+    instructionEl.textContent=q.places===1
+      ? 'Donne une valeur approchée au dixième près.'
+      : 'Donne une valeur approchée au centième près.';
+    operatorEl.textContent='≈'
+  }else{
+    instructionEl.textContent='Calcule le quotient.';
+    operatorEl.textContent='='
+  }
+
+  answerEl.value='';answerEl.disabled=false;clearAnswerState();
+  attemptEl.textContent='Tu as 2 essais.';resetFeedback();
+  validateBtn.hidden=false;validateBtn.disabled=true;nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+  setTimeout(()=>answerEl.focus(),0)
+}
+
+function correctionSentence(q){
+  const a=formatDecimal(q.dividend,q.shownDecimals);
+  if(q.approx){
+    const r=formatDecimal(q.rounded,q.places,q.places);
+    return `<strong>${a} ÷ ${q.divisor} ≈ ${r}</strong>`
+  }
+  const quotient=formatDecimal(q.quotient,3);
+  return `<strong>${a} ÷ ${q.divisor} = ${quotient}</strong>`
+}
+
+function resolveCorrect(points){
+  const q=questions[index];
+  resolved=true;score+=points;
+  answerEl.disabled=true;answerEl.classList.add('correct');
+  setFeedback(`Bravo ! ${correctionSentence(q)}`,'success');
+  attemptEl.textContent=points===1?'Bonne réponse au 1er essai.':'Bonne réponse au 2e essai.';
+  scoreEl.textContent=`Score : ${formatDecimal(score,1)} / ${TOTAL}`;
+  validateBtn.hidden=true;nextBtn.hidden=false
+}
+function resolveWrong(){
+  const q=questions[index];
+  resolved=true;answerEl.disabled=true;
+  answerEl.classList.remove('wrong');answerEl.classList.add('revealed');
+  answerEl.value=q.approx
+    ? formatDecimal(q.rounded,q.places,q.places)
+    : formatDecimal(q.quotient,3);
+  setFeedback(`Correction : ${correctionSentence(q)}`,'correction');
+  attemptEl.textContent='Deux essais utilisés.';
+  validateBtn.hidden=true;nextBtn.hidden=false
+}
+function validate(){
+  if(resolved)return;
+  const q=questions[index],value=parseAnswer(answerEl.value);
+  if(value===null){
+    setFeedback('Écris un nombre décimal dans le champ de réponse.','error');
+    answerEl.focus();return
+  }
+  attempts++;
+  if(nearlyEqual(value,expected(q))){
+    resolveCorrect(attempts===1?1:.5);return
+  }
+  answerEl.classList.add('wrong');
+  if(attempts<MAX_ATTEMPTS){
+    setFeedback(
+      q.approx
+        ? 'Ce n’est pas la valeur approchée demandée. Vérifie le calcul et l’arrondi.'
+        : 'Ce n’est pas le bon quotient. Vérifie ton calcul.',
+      'error'
+    );
+    attemptEl.textContent='Il te reste 1 essai.';
+    answerEl.select()
+  }else resolveWrong()
+}
+function showFinal(){
+  exerciseEl.style.display='none';finalEl.classList.add('show');barEl.style.width='100%';
+  finalScoreEl.textContent=`Score : ${formatDecimal(score,1)} / ${TOTAL}`;
+  finalMessageEl.textContent=
+    score===8?'Excellent : tu maîtrises les quotients exacts et les valeurs approchées.':
+    score>=6?'Très bien. Rejoue pour gagner encore en rapidité et en précision.':
+    score>=4?'C’est en bonne voie. Rejoue avec de nouveaux nombres pour consolider la technique.':
+    'Rejoue avec une nouvelle série et prends le temps de vérifier chaque quotient.'
+}
+function next(){
+  if(index>=TOTAL-1){showFinal();return}
+  index++;renderQuestion()
+}
+function restart(){
+  questions=buildQuestions();index=0;score=0;
+  exerciseEl.style.display='';finalEl.classList.remove('show');renderQuestion()
+}
+
+answerEl.addEventListener('input',()=>{
+  clearAnswerState();
+  validateBtn.disabled=resolved||answerEl.value.trim()===''
+});
+answerEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validateBtn.disabled&&!validateBtn.hidden)validate()
+});
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>

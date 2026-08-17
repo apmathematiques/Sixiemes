@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Partie II – Activité 3 – Le défi des problèmes</title>
+<style>
+:root{
+  --blue:#1769aa;--blue-dark:#0d4778;--blue-soft:#eaf4fc;
+  --green:#1f7a45;--green-soft:#eaf7ef;
+  --red:#b93434;--red-soft:#fff0f0;
+  --orange:#9a5b16;--orange-soft:#fff6e9;
+  --ink:#17212b;--muted:#5e6b76;--line:#d9e6ef
+}
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;background:transparent;
+  font-family:Arial,Helvetica,sans-serif;color:var(--ink)
+}
+body{display:grid;place-items:center;padding:8px}
+.app{
+  width:min(100%,1000px);aspect-ratio:16/9;min-height:0;
+  max-height:calc(100vh - 16px);overflow:hidden;
+  display:flex;flex-direction:column;background:#fff;
+  border:1px solid rgba(23,105,170,.16);border-radius:22px;
+  box-shadow:0 14px 34px rgba(17,63,103,.14)
+}
+.top{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;
+  align-items:center;padding:14px 20px 8px
+}
+.track{height:12px;border-radius:999px;overflow:hidden;background:#dceaf5}
+.bar{
+  width:12.5%;height:100%;
+  background:linear-gradient(90deg,var(--blue),#4f9ed8);
+  transition:width .25s ease
+}
+.pill{
+  padding:8px 13px;border-radius:999px;background:var(--blue-soft);
+  color:var(--blue-dark);font-weight:800;white-space:nowrap
+}
+.main{
+  flex:1;min-height:0;padding:4px 16px 12px;
+  display:flex;flex-direction:column;gap:8px;overflow:hidden
+}
+.instruction{
+  margin:0;min-height:42px;display:flex;align-items:center;
+  justify-content:center;text-align:center;
+  font-size:clamp(1.35rem,2.5vw,1.85rem);
+  font-weight:850;line-height:1.15
+}
+.card{
+  flex:1;min-height:0;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:17px;padding:18px 24px;overflow:hidden
+}
+.problem{
+  width:min(850px,100%);margin:0;text-align:center;
+  font-size:clamp(1.38rem,2.75vw,2rem);
+  font-weight:780;line-height:1.38
+}
+.problem strong{color:var(--blue-dark);font-weight:900}
+.answer-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;max-width:100%
+}
+.answer{
+  width:clamp(155px,23vw,230px);
+  height:clamp(66px,9vw,88px);
+  border:4px solid #86b5d6;border-radius:15px;background:#fff;
+  color:var(--blue-dark);outline:none;text-align:center;
+  font-size:clamp(2rem,4.8vw,3.35rem);font-weight:900;
+  font-family:Arial,Helvetica,sans-serif
+}
+.answer:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(23,105,170,.12)
+}
+.answer.wrong{border-color:#d76d6d;background:var(--red-soft)}
+.answer.correct{
+  border-color:#62b883;background:var(--green-soft);color:#165e36
+}
+.answer.revealed{
+  border-color:#e0a35c;background:var(--orange-soft);color:#75420e
+}
+.unit{
+  max-width:270px;
+  color:var(--blue-dark);
+  font-size:clamp(1.2rem,2.4vw,1.75rem);
+  font-weight:900;line-height:1.1
+}
+.attempt{
+  min-height:22px;margin:0;color:var(--muted);
+  text-align:center;font-size:1.02rem;font-weight:750
+}
+.feedback{
+  width:min(850px,100%);min-height:62px;padding:9px 14px;
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  text-align:center;visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.error{color:#8f2727;background:var(--red-soft);border:1px solid #efbcbc}
+.feedback.success{color:#165e36;background:var(--green-soft);border:1px solid #a9ddbd}
+.feedback.correction{color:#6d3d0b;background:var(--orange-soft);border:1px solid #e3ad6e}
+.fb-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;width:100%;line-height:1.22
+}
+.fb-title{font-size:clamp(1rem,1.7vw,1.12rem);font-weight:900}
+.fb-calc{font-size:clamp(.98rem,1.6vw,1.08rem);font-weight:900}
+.fb-text{font-size:clamp(.88rem,1.4vw,.98rem);font-weight:800}
+.controls{
+  flex:0 0 44px;min-height:44px;
+  display:flex;justify-content:center;align-items:center;gap:10px
+}
+button{
+  min-height:42px;padding:0 22px;border:0;border-radius:12px;
+  font-size:1rem;font-weight:850;cursor:pointer;
+  font-family:Arial,Helvetica,sans-serif
+}
+.primary{color:#fff;background:var(--blue)}
+.secondary{color:var(--blue-dark);background:var(--blue-soft)}
+button:disabled{opacity:.45;cursor:default}
+.final{
+  flex:1;display:none;place-items:center;padding:24px;text-align:center
+}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);padding:28px;border:1px solid var(--line);
+  border-radius:20px;background:#fff;
+  box-shadow:0 12px 30px rgba(17,63,103,.1)
+}
+.final-card h2{margin:0 0 10px;color:var(--blue-dark);font-size:1.9rem}
+.final-score{margin:8px 0;font-size:1.4rem;font-weight:900}
+.final-message{
+  margin:8px 0 20px;color:var(--muted);
+  font-size:1.08rem;line-height:1.45
+}
+
+@media(max-width:720px),(max-height:650px){
+  body{padding:4px}
+  .app{
+    height:calc(100vh - 8px);aspect-ratio:auto;
+    max-height:none;border-radius:14px
+  }
+  .top{
+    grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px
+  }
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.82rem}
+  .main{padding:2px 8px 8px;gap:5px}
+  .instruction{min-height:32px;font-size:1.08rem}
+  .card{padding:8px 10px;gap:9px}
+  .problem{font-size:1.04rem;line-height:1.26}
+  .answer-row{gap:8px}
+  .answer{
+    width:120px;height:52px;border-width:3px;
+    border-radius:11px;font-size:1.75rem
+  }
+  .unit{font-size:1rem;max-width:160px}
+  .attempt{min-height:16px;font-size:.78rem}
+  .feedback{min-height:44px;padding:6px 8px}
+  .fb-wrap{gap:2px}
+  .fb-title{font-size:.8rem}
+  .fb-calc{font-size:.78rem}
+  .fb-text{font-size:.72rem}
+  .controls{flex:0 0 36px;min-height:36px}
+  button{min-height:34px;height:34px;padding:0 14px;font-size:.86rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Résous le problème et écris ta réponse.</p>
+
+    <div class="card">
+      <p class="problem" id="problem"></p>
+
+      <div class="answer-row">
+        <input
+          class="answer"
+          id="answer"
+          inputmode="decimal"
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Réponse numérique"
+        >
+        <span class="unit" id="unit"></span>
+      </div>
+
+      <p class="attempt" id="attempt">Tu as 2 essais.</p>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Défi terminé !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouveaux problèmes</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=8, MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const problemEl=$('problem'),answerEl=$('answer'),unitEl=$('unit');
+const attemptEl=$('attempt'),feedbackEl=$('feedback');
+const validateBtn=$('validate'),nextBtn=$('next');
+const counterEl=$('counter'),scoreEl=$('score'),barEl=$('bar');
+const exerciseEl=$('exercise'),finalEl=$('final');
+const finalScoreEl=$('finalScore'),finalMessageEl=$('finalMessage');
+const restartBtn=$('restart');
+
+let questions=[],index=0,score=0,attempts=0,resolved=false;
+
+/* ---------- Utilitaires ---------- */
+function ri(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function pick(arr){return arr[ri(0,arr.length-1)]}
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]]
+  }
+  return a
+}
+function roundTo(v,d){
+  const f=10**d;
+  return Math.round((v+Number.EPSILON)*f)/f
+}
+function fmt(v,max=2,min=0){
+  return roundTo(v,max).toLocaleString('fr-FR',{
+    minimumFractionDigits:min,
+    maximumFractionDigits:max,
+    useGrouping:false
+  }).replace(/\u202f/g,' ')
+}
+function parseAnswer(text){
+  const s=String(text).trim().replace(/\s/g,'').replace(',','.');
+  if(!/^\d+(?:\.\d+)?$/.test(s))return null;
+  return Number(s)
+}
+function nearlyEqual(a,b){return Math.abs(a-b)<1e-9}
+function gcd(a,b){while(b){const t=b;b=a%b;a=t}return Math.abs(a)}
+function fractionTerminates(a,b){
+  const g=gcd(a,b);let d=b/g;
+  while(d%2===0)d/=2;
+  while(d%5===0)d/=5;
+  return d===1
+}
+function strong(v,max=2,min=0){
+  return `<strong>${fmt(v,max,min)}</strong>`
+}
+
+/* ---------- Générateurs numériques ---------- */
+function exactDivData(){
+  const divisor=ri(2,9);
+  const kind=pick([1,1,2]);
+  const scale=kind===1?10:100;
+  let qInt;
+  do{
+    qInt=ri(kind===1?12:115,kind===1?145:875)
+  }while(qInt%10===0);
+  const quotient=qInt/scale;
+  const total=roundTo(quotient*divisor,2);
+  return{a:total,b:divisor,answer:quotient}
+}
+function approxDivData(){
+  const places=pick([1,2]);
+  let a,b,q;
+  do{
+    a=ri(5,58);
+    b=pick([3,6,7,9]);
+    q=a/b
+  }while(Number.isInteger(q)||fractionTerminates(a,b));
+  return{
+    a,b,answer:roundTo(q,places),
+    places,exact:q
+  }
+}
+function euclidData(){
+  const b=ri(2,9),q=ri(3,15),r=ri(1,b-1);
+  return{a:b*q+r,b,answer:q,remainder:r}
+}
+function mulData(){
+  const a=(ri(12,95)+(ri(0,1)?0:100))/10;
+  const b=ri(2,9);
+  return{a,b,answer:roundTo(a*b,2)}
+}
+function addData(){
+  const a=ri(15,180)/10,b=ri(10,120)/10;
+  return{a,b,answer:roundTo(a+b,2)}
+}
+function subData(){
+  let a=ri(65,230)/10,b=ri(10,95)/10;
+  if(b>=a)b=roundTo(a/2,1);
+  return{a,b,answer:roundTo(a-b,2)}
+}
+
+/* ---------- Gabarits : 24 divisions exactes ---------- */
+const EXACT_DIV=[
+{t:(d)=>`${strong(d.a)} L de jus sont répartis dans ${strong(d.b,0)} bouteilles identiques. Quelle quantité contient une bouteille ?`,u:'L',c:'La quantité dans une bouteille',op:'÷'},
+{t:(d)=>`Une corde de ${strong(d.a)} m est découpée en ${strong(d.b,0)} morceaux de même longueur. Quelle est la longueur d’un morceau ?`,u:'m',c:'La longueur d’un morceau',op:'÷'},
+{t:(d)=>`${strong(d.b,0)} cahiers identiques coûtent ${strong(d.a,2,2)} €. Quel est le prix d’un cahier ?`,u:'€',c:'Le prix d’un cahier',op:'÷',money:true},
+{t:(d)=>`Une randonnée de ${strong(d.a)} km est organisée en ${strong(d.b,0)} étapes de même longueur. Quelle est la longueur d’une étape ?`,u:'km',c:'La longueur d’une étape',op:'÷'},
+{t:(d)=>`${strong(d.a)} kg de pommes sont répartis dans ${strong(d.b,0)} cagettes identiques. Quelle masse contient une cagette ?`,u:'kg',c:'La masse d’une cagette',op:'÷'},
+{t:(d)=>`On remplit également ${strong(d.b,0)} récipients avec ${strong(d.a)} L d’eau. Quelle quantité reçoit un récipient ?`,u:'L',c:'La quantité dans un récipient',op:'÷'},
+{t:(d)=>`Un ruban de ${strong(d.a)} m permet de réaliser ${strong(d.b,0)} décorations identiques. Quelle longueur de ruban faut-il pour une décoration ?`,u:'m',c:'La longueur pour une décoration',op:'÷'},
+{t:(d)=>`${strong(d.a)} kg de farine sont répartis dans ${strong(d.b,0)} sacs identiques. Quelle masse contient un sac ?`,u:'kg',c:'La masse d’un sac',op:'÷'},
+{t:(d)=>`${strong(d.b,0)} places de cinéma coûtent ${strong(d.a,2,2)} €. Quel est le prix d’une place ?`,u:'€',c:'Le prix d’une place',op:'÷',money:true},
+{t:(d)=>`Une planche de ${strong(d.a)} m est découpée en ${strong(d.b,0)} étagères de même longueur. Quelle longueur mesure une étagère ?`,u:'m',c:'La longueur d’une étagère',op:'÷'},
+{t:(d)=>`Une cuve contient ${strong(d.a)} L de peinture. Elle est répartie dans ${strong(d.b,0)} pots identiques. Quelle quantité contient un pot ?`,u:'L',c:'La quantité dans un pot',op:'÷'},
+{t:(d)=>`Une équipe parcourt ${strong(d.a)} km en ${strong(d.b,0)} jours, à raison de la même distance chaque jour. Quelle distance parcourt-elle par jour ?`,u:'km',c:'La distance parcourue par jour',op:'÷'},
+{t:(d)=>`${strong(d.b,0)} paquets identiques ont une masse totale de ${strong(d.a)} kg. Quelle est la masse d’un paquet ?`,u:'kg',c:'La masse d’un paquet',op:'÷'},
+{t:(d)=>`On utilise ${strong(d.a)} m de tissu pour confectionner ${strong(d.b,0)} rideaux identiques. Quelle longueur faut-il pour un rideau ?`,u:'m',c:'La longueur pour un rideau',op:'÷'},
+{t:(d)=>`${strong(d.a)} kg de fruits sont répartis dans ${strong(d.b,0)} paniers identiques. Quelle masse contient un panier ?`,u:'kg',c:'La masse d’un panier',op:'÷'},
+{t:(d)=>`Un parcours de ${strong(d.a)} km correspond à ${strong(d.b,0)} tours identiques. Quelle est la longueur d’un tour ?`,u:'km',c:'La longueur d’un tour',op:'÷'},
+{t:(d)=>`Une somme de ${strong(d.a,2,2)} € est répartie également entre ${strong(d.b,0)} personnes. Quelle somme reçoit une personne ?`,u:'€',c:'La somme reçue par une personne',op:'÷',money:true},
+{t:(d)=>`Un réservoir de ${strong(d.a)} L remplit exactement ${strong(d.b,0)} bidons identiques. Quelle est la contenance d’un bidon ?`,u:'L',c:'La contenance d’un bidon',op:'÷'},
+{t:(d)=>`${strong(d.b,0)} billets de train identiques coûtent au total ${strong(d.a,2,2)} €. Quel est le prix d’un billet ?`,u:'€',c:'Le prix d’un billet',op:'÷',money:true},
+{t:(d)=>`Une bande de papier de ${strong(d.a)} m est partagée en ${strong(d.b,0)} bandes identiques. Quelle longueur mesure une bande ?`,u:'m',c:'La longueur d’une bande',op:'÷'},
+{t:(d)=>`On verse ${strong(d.a)} L de soupe dans ${strong(d.b,0)} bols identiques. Quelle quantité de soupe y a-t-il dans un bol ?`,u:'L',c:'La quantité dans un bol',op:'÷'},
+{t:(d)=>`Une commande de ${strong(d.b,0)} objets identiques coûte ${strong(d.a,2,2)} €. Quel est le prix d’un objet ?`,u:'€',c:'Le prix d’un objet',op:'÷',money:true},
+{t:(d)=>`Une piste de ${strong(d.a)} km est divisée en ${strong(d.b,0)} portions de même longueur. Quelle est la longueur d’une portion ?`,u:'km',c:'La longueur d’une portion',op:'÷'},
+{t:(d)=>`${strong(d.a)} kg de pâte permettent de préparer ${strong(d.b,0)} pains identiques. Quelle masse de pâte faut-il pour un pain ?`,u:'kg',c:'La masse de pâte pour un pain',op:'÷'}
+];
+
+/* ---------- 8 gabarits de divisions avec valeur approchée ---------- */
+const APPROX_DIV=[
+{t:(d)=>`Un trajet de ${strong(d.a,0)} km est réparti sur ${strong(d.b,0)} jours avec la même distance chaque jour. Donne la distance quotidienne au ${d.places===1?'dixième':'centième'} près.`,u:'km',c:'La distance quotidienne'},
+{t:(d)=>`${strong(d.a,0)} L d’eau sont répartis dans ${strong(d.b,0)} récipients identiques. Donne la quantité par récipient au ${d.places===1?'dixième':'centième'} près.`,u:'L',c:'La quantité par récipient'},
+{t:(d)=>`Une corde de ${strong(d.a,0)} m est découpée en ${strong(d.b,0)} morceaux de même longueur. Donne la longueur d’un morceau au ${d.places===1?'dixième':'centième'} près.`,u:'m',c:'La longueur d’un morceau'},
+{t:(d)=>`Une masse de ${strong(d.a,0)} kg est répartie dans ${strong(d.b,0)} boîtes identiques. Donne la masse d’une boîte au ${d.places===1?'dixième':'centième'} près.`,u:'kg',c:'La masse d’une boîte'},
+{t:(d)=>`${strong(d.a,0)} € sont répartis également entre ${strong(d.b,0)} personnes. Donne la somme par personne au ${d.places===1?'dixième':'centième'} d’euro près.`,u:'€',c:'La somme par personne'},
+{t:(d)=>`Une piste de ${strong(d.a,0)} km comporte ${strong(d.b,0)} tours identiques. Donne la longueur d’un tour au ${d.places===1?'dixième':'centième'} près.`,u:'km',c:'La longueur d’un tour'},
+{t:(d)=>`${strong(d.a,0)} kg de fruits sont répartis dans ${strong(d.b,0)} paniers identiques. Donne la masse par panier au ${d.places===1?'dixième':'centième'} près.`,u:'kg',c:'La masse par panier'},
+{t:(d)=>`Un rouleau de ${strong(d.a,0)} m est partagé en ${strong(d.b,0)} morceaux identiques. Donne la longueur d’un morceau au ${d.places===1?'dixième':'centième'} près.`,u:'m',c:'La longueur d’un morceau'}
+];
+
+/* ---------- 10 gabarits de division euclidienne ---------- */
+const EUCLID=[
+{t:(d)=>`On range ${strong(d.a,0)} bonbons dans des sachets de ${strong(d.b,0)} bonbons. Combien de sachets complets peut-on remplir ?`,u:'sachets',c:'Le nombre de sachets complets'},
+{t:(d)=>`On place ${strong(d.a,0)} œufs dans des boîtes de ${strong(d.b,0)} œufs. Combien de boîtes complètes peut-on remplir ?`,u:'boîtes',c:'Le nombre de boîtes complètes'},
+{t:(d)=>`Avec ${strong(d.a,0)} élèves, on forme des équipes de ${strong(d.b,0)} élèves. Combien d’équipes complètes peut-on former ?`,u:'équipes',c:'Le nombre d’équipes complètes'},
+{t:(d)=>`On range ${strong(d.a,0)} livres dans des cartons de ${strong(d.b,0)} livres. Combien de cartons complets peut-on remplir ?`,u:'cartons',c:'Le nombre de cartons complets'},
+{t:(d)=>`On met ${strong(d.a,0)} crayons dans des boîtes de ${strong(d.b,0)} crayons. Combien de boîtes complètes obtient-on ?`,u:'boîtes',c:'Le nombre de boîtes complètes'},
+{t:(d)=>`Avec ${strong(d.a,0)} perles, on fabrique des bracelets de ${strong(d.b,0)} perles. Combien de bracelets complets peut-on fabriquer ?`,u:'bracelets',c:'Le nombre de bracelets complets'},
+{t:(d)=>`On range ${strong(d.a,0)} balles dans des tubes de ${strong(d.b,0)} balles. Combien de tubes complets peut-on remplir ?`,u:'tubes',c:'Le nombre de tubes complets'},
+{t:(d)=>`On dispose ${strong(d.a,0)} jetons en rangées de ${strong(d.b,0)} jetons. Combien de rangées complètes peut-on former ?`,u:'rangées',c:'Le nombre de rangées complètes'},
+{t:(d)=>`On colle ${strong(d.a,0)} images à raison de ${strong(d.b,0)} images par page. Combien de pages complètes peut-on remplir ?`,u:'pages',c:'Le nombre de pages complètes'},
+{t:(d)=>`On range ${strong(d.a,0)} bouteilles dans des caisses de ${strong(d.b,0)} bouteilles. Combien de caisses complètes peut-on remplir ?`,u:'caisses',c:'Le nombre de caisses complètes'}
+];
+
+/* ---------- 18 autres gabarits ---------- */
+const MULT=[
+{t:(d)=>`Un cahier coûte ${strong(d.a,2,2)} €. On en achète ${strong(d.b,0)}. Combien paie-t-on au total ?`,u:'€',c:'Le prix total'},
+{t:(d)=>`Un tour de piste mesure ${strong(d.a)} km. Un cycliste effectue ${strong(d.b,0)} tours. Quelle distance parcourt-il ?`,u:'km',c:'La distance totale'},
+{t:(d)=>`Un paquet pèse ${strong(d.a)} kg. On prépare ${strong(d.b,0)} paquets identiques. Quelle est leur masse totale ?`,u:'kg',c:'La masse totale'},
+{t:(d)=>`Une bouteille contient ${strong(d.a)} L. On a ${strong(d.b,0)} bouteilles identiques. Quelle quantité possède-t-on au total ?`,u:'L',c:'La quantité totale'},
+{t:(d)=>`Il faut ${strong(d.a)} m de ruban pour un paquet. On prépare ${strong(d.b,0)} paquets. Quelle longueur faut-il ?`,u:'m',c:'La longueur totale'},
+{t:(d)=>`Un billet coûte ${strong(d.a,2,2)} €. Une famille achète ${strong(d.b,0)} billets. Combien paie-t-elle ?`,u:'€',c:'Le prix total'}
+];
+const ADD=[
+{t:(d)=>`Lina parcourt ${strong(d.a)} km le matin puis ${strong(d.b)} km l’après-midi. Quelle distance parcourt-elle au total ?`,u:'km',c:'La distance totale'},
+{t:(d)=>`Un panier contient ${strong(d.a)} kg de pommes et ${strong(d.b)} kg de poires. Quelle est la masse totale ?`,u:'kg',c:'La masse totale'},
+{t:(d)=>`Une bouteille contient ${strong(d.a)} L de jus. On ajoute ${strong(d.b)} L. Quelle quantité contient-elle maintenant ?`,u:'L',c:'La quantité totale'},
+{t:(d)=>`Un morceau de tissu mesure ${strong(d.a)} m et un second ${strong(d.b)} m. Quelle longueur obtient-on en les mettant bout à bout ?`,u:'m',c:'La longueur totale'},
+{t:(d)=>`Un achat coûte ${strong(d.a,2,2)} € et un second ${strong(d.b,2,2)} €. Quelle somme faut-il payer ?`,u:'€',c:'La somme totale'},
+{t:(d)=>`Une randonnée comporte une première partie de ${strong(d.a)} km et une seconde de ${strong(d.b)} km. Quelle est sa longueur totale ?`,u:'km',c:'La longueur totale'}
+];
+const SUB=[
+{t:(d)=>`Une bouteille contient ${strong(d.a)} L. On utilise ${strong(d.b)} L. Quelle quantité reste-t-il ?`,u:'L',c:'La quantité restante'},
+{t:(d)=>`Une corde mesure ${strong(d.a)} m. On coupe ${strong(d.b)} m. Quelle longueur reste-t-il ?`,u:'m',c:'La longueur restante'},
+{t:(d)=>`Noah possède ${strong(d.a,2,2)} €. Il dépense ${strong(d.b,2,2)} €. Combien lui reste-t-il ?`,u:'€',c:'La somme restante'},
+{t:(d)=>`Un parcours mesure ${strong(d.a)} km. Une marcheuse a déjà parcouru ${strong(d.b)} km. Quelle distance lui reste-t-il ?`,u:'km',c:'La distance restante'},
+{t:(d)=>`Un sac contient ${strong(d.a)} kg de farine. On en utilise ${strong(d.b)} kg. Quelle masse reste dans le sac ?`,u:'kg',c:'La masse restante'},
+{t:(d)=>`Un réservoir contient ${strong(d.a)} L. On prélève ${strong(d.b)} L. Quelle quantité reste-t-il ?`,u:'L',c:'La quantité restante'}
+];
+
+/* ---------- Construction des questions ---------- */
+function makeFrom(template,type){
+  const data=
+    type==='div' ? exactDivData() :
+    type==='approx' ? approxDivData() :
+    type==='euclid' ? euclidData() :
+    type==='mult' ? mulData() :
+    type==='add' ? addData() : subData();
+
+  return{
+    type,
+    data,
+    text:template.t(data),
+    unit:template.u,
+    conclusion:template.c,
+    answer:data.answer
+  }
+}
+function sample(arr,n){return shuffle(arr).slice(0,n)}
+function buildQuestions(){
+  const otherPools=[
+    {arr:MULT,type:'mult'},
+    {arr:ADD,type:'add'},
+    {arr:SUB,type:'sub'}
+  ];
+  const others=shuffle(otherPools).slice(0,2).map(p=>makeFrom(pick(p.arr),p.type));
+
+  return shuffle([
+    ...sample(EXACT_DIV,4).map(t=>makeFrom(t,'div')),
+    makeFrom(pick(APPROX_DIV),'approx'),
+    makeFrom(pick(EUCLID),'euclid'),
+    ...others
+  ])
+}
+
+/* ---------- Correction ---------- */
+function operationLine(q){
+  const d=q.data;
+
+  if(q.type==='div'){
+    return `${fmt(d.a,2)} ÷ ${fmt(d.b,0)} = ${fmt(q.answer,2)}`
+  }
+  if(q.type==='approx'){
+    return `${fmt(d.a,0)} ÷ ${fmt(d.b,0)} ≈ ${fmt(q.answer,d.places,d.places)}`
+  }
+  if(q.type==='euclid'){
+    return `${fmt(d.a,0)} = ${fmt(d.b,0)} × ${fmt(q.answer,0)} + ${fmt(d.remainder,0)}`
+  }
+  if(q.type==='mult'){
+    return `${fmt(d.a,2)} × ${fmt(d.b,0)} = ${fmt(q.answer,2)}`
+  }
+  if(q.type==='add'){
+    return `${fmt(d.a,2)} + ${fmt(d.b,2)} = ${fmt(q.answer,2)}`
+  }
+  return `${fmt(d.a,2)} − ${fmt(d.b,2)} = ${fmt(q.answer,2)}`
+}
+function answerDisplay(q){
+  if(q.type==='approx'){
+    return fmt(q.answer,q.data.places,q.data.places)
+  }
+  if(q.type==='euclid')return fmt(q.answer,0);
+  return fmt(q.answer,2)
+}
+function correctionHtml(q,title){
+  return `<div class="fb-wrap">
+    <div class="fb-title">${title}</div>
+    <div class="fb-calc">${operationLine(q)}</div>
+    <div class="fb-text">${q.conclusion} : ${answerDisplay(q)} ${q.unit}.</div>
+  </div>`
+}
+function setFeedback(html,type){
+  feedbackEl.innerHTML=html;
+  feedbackEl.className=`feedback show ${type}`
+}
+function resetFeedback(){
+  feedbackEl.innerHTML='';
+  feedbackEl.className='feedback'
+}
+
+/* ---------- Interface ---------- */
+function renderQuestion(){
+  const q=questions[index];
+  attempts=0;resolved=false;
+
+  counterEl.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;
+  barEl.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  problemEl.innerHTML=q.text;
+  unitEl.textContent=q.unit;
+
+  answerEl.value='';
+  answerEl.disabled=false;
+  answerEl.className='answer';
+
+  attemptEl.textContent='Tu as 2 essais.';
+  resetFeedback();
+
+  validateBtn.hidden=false;
+  validateBtn.disabled=true;
+  nextBtn.hidden=true;
+  nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+
+  setTimeout(()=>answerEl.focus(),0)
+}
+function resolveCorrect(points){
+  const q=questions[index];
+  resolved=true;
+  score+=points;
+
+  answerEl.disabled=true;
+  answerEl.className='answer correct';
+
+  setFeedback(correctionHtml(q,'Bonne réponse.'),'success');
+  attemptEl.textContent=points===1
+    ? 'Bonne réponse au 1er essai.'
+    : 'Bonne réponse au 2e essai.';
+
+  scoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;
+  validateBtn.hidden=true;
+  nextBtn.hidden=false
+}
+function resolveWrong(){
+  const q=questions[index];
+  resolved=true;
+
+  answerEl.disabled=true;
+  answerEl.className='answer revealed';
+  answerEl.value=answerDisplay(q);
+
+  setFeedback(correctionHtml(q,'Correction.'),'correction');
+  attemptEl.textContent='Deux essais utilisés.';
+
+  validateBtn.hidden=true;
+  nextBtn.hidden=false
+}
+function validate(){
+  if(resolved)return;
+
+  const q=questions[index];
+  const value=parseAnswer(answerEl.value);
+
+  if(value===null){
+    setFeedback(
+      `<div class="fb-wrap"><div class="fb-title">Réponse non reconnue.</div><div class="fb-text">Écris uniquement un nombre.</div></div>`,
+      'error'
+    );
+    answerEl.focus();
+    return
+  }
+
+  attempts++;
+
+  if(nearlyEqual(value,q.answer)){
+    resolveCorrect(attempts===1?1:.5);
+    return
+  }
+
+  answerEl.className='answer wrong';
+
+  if(attempts<MAX_ATTEMPTS){
+    setFeedback(
+      `<div class="fb-wrap"><div class="fb-title">Ce n’est pas la bonne réponse.</div><div class="fb-text">Vérifie ton raisonnement et ton calcul.</div></div>`,
+      'error'
+    );
+    attemptEl.textContent='Il te reste 1 essai.';
+    answerEl.select()
+  }else{
+    resolveWrong()
+  }
+}
+function showFinal(){
+  exerciseEl.style.display='none';
+  finalEl.classList.add('show');
+  barEl.style.width='100%';
+
+  finalScoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;
+  finalMessageEl.textContent=
+    score===8
+      ? 'Excellent : tu sais choisir l’opération et résoudre les problèmes de façon autonome.'
+      : score>=6
+        ? 'Très bien. Rejoue pour rencontrer de nouvelles situations.'
+        : score>=4
+          ? 'C’est en bonne voie. Relis bien la question avant de choisir ton calcul.'
+          : 'Rejoue avec de nouveaux problèmes et prends le temps d’identifier ce que l’on cherche.'
+}
+function next(){
+  if(index>=TOTAL-1){showFinal();return}
+  index++;
+  renderQuestion()
+}
+function restart(){
+  questions=buildQuestions();
+  index=0;score=0;
+  exerciseEl.style.display='';
+  finalEl.classList.remove('show');
+  renderQuestion()
+}
+
+answerEl.addEventListener('input',()=>{
+  answerEl.classList.remove('wrong');
+  validateBtn.disabled=resolved||answerEl.value.trim()===''
+});
+answerEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validateBtn.disabled&&!validateBtn.hidden)validate()
+});
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>
