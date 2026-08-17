@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Partie II – Activité 2 – Quelle opération ?</title>
+<style>
+:root{--b:#1769aa;--bd:#0d4778;--bs:#eaf4fc;--g:#1f7a45;--gs:#eaf7ef;--r:#b93434;--rs:#fff0f0;--o:#9a5b16;--os:#fff6e9;--i:#17212b;--m:#5e6b76;--l:#d9e6ef}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:transparent;font-family:Arial,Helvetica,sans-serif;color:var(--i)}
+body{display:grid;place-items:center;padding:8px}
+.app{width:min(100%,1000px);aspect-ratio:16/9;max-height:calc(100vh - 16px);overflow:hidden;display:flex;flex-direction:column;background:#fff;border:1px solid rgba(23,105,170,.16);border-radius:22px;box-shadow:0 14px 34px rgba(17,63,103,.14)}
+.top{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 20px 8px}
+.track{height:12px;border-radius:999px;overflow:hidden;background:#dceaf5}.bar{width:12.5%;height:100%;background:linear-gradient(90deg,var(--b),#4f9ed8);transition:width .25s}
+.pill{padding:8px 13px;border-radius:999px;background:var(--bs);color:var(--bd);font-weight:800;white-space:nowrap}
+.main{flex:1;min-height:0;padding:4px 16px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.instruction{margin:0;min-height:42px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:clamp(1.3rem,2.5vw,1.85rem);font-weight:850}
+.card{flex:1;min-height:0;border:1px solid var(--l);border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbfe);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px 24px;overflow:hidden}
+.problem{width:min(850px,100%);margin:0;text-align:center;font-size:clamp(1.35rem,2.7vw,2rem);font-weight:780;line-height:1.35}.problem strong{color:var(--bd);font-weight:900}
+.choices{
+  width:min(880px,100%);
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:10px 12px
+}
+.choice:nth-child(1),
+.choice:nth-child(2),
+.choice:nth-child(3){grid-column:span 2}
+.choice:nth-child(4){grid-column:2 / span 2}
+.choice:nth-child(5){grid-column:4 / span 2}
+.choice{min-height:70px;padding:10px 16px;border:3px solid #b9d4e8;border-radius:16px;background:var(--bs);color:var(--bd);font-size:clamp(1.4rem,3vw,2.2rem);font-weight:900;cursor:pointer}
+.choice:hover:not(:disabled){border-color:#74a9cf}.choice.wrong{color:#8f2727;background:var(--rs);border-color:#df8585}.choice.correct{color:#165e36;background:var(--gs);border-color:#79c798}.choice:disabled{cursor:default}
+.attempt{min-height:22px;margin:0;color:var(--m);text-align:center;font-size:1rem;font-weight:750}
+.feedback{
+  width:min(850px,100%);
+  min-height:58px;
+  padding:9px 14px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  visibility:hidden
+}
+.feedback.show{visibility:visible}
+.feedback.error{color:#8f2727;background:var(--rs);border:1px solid #efbcbc}
+.feedback.success{color:#165e36;background:var(--gs);border:1px solid #a9ddbd}
+.feedback.correction{color:#6d3d0b;background:var(--os);border:1px solid #e3ad6e}
+.fb-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  width:100%;
+  line-height:1.22
+}
+.fb-title{
+  font-size:clamp(1rem,1.7vw,1.12rem);
+  font-weight:900
+}
+.fb-text{
+  font-size:clamp(.9rem,1.45vw,1rem);
+  font-weight:800
+}
+.fb-op{
+  display:inline-block;
+  margin-top:2px;
+  padding:3px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  border:1px solid rgba(23,105,170,.18);
+  font-size:clamp(.9rem,1.45vw,1rem);
+  font-weight:900
+}
+.controls{flex:0 0 44px;min-height:44px;display:flex;justify-content:center;align-items:center}
+button.action{min-height:42px;padding:0 22px;border:0;border-radius:12px;font-size:1rem;font-weight:850;cursor:pointer}.secondary{color:var(--bd);background:var(--bs)}.primary{color:#fff;background:var(--b)}
+.final{flex:1;display:none;place-items:center;padding:24px;text-align:center}.final.show{display:grid}.final-card{width:min(650px,100%);padding:28px;border:1px solid var(--l);border-radius:20px;background:#fff;box-shadow:0 12px 30px rgba(17,63,103,.1)}
+.final-card h2{margin:0 0 10px;color:var(--bd);font-size:1.9rem}.final-score{margin:8px 0;font-size:1.4rem;font-weight:900}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.08rem;line-height:1.45}
+@media(max-width:720px),(max-height:650px){
+body{padding:4px}.app{height:calc(100vh - 8px);aspect-ratio:auto;max-height:none;border-radius:14px}.top{grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px}.track{grid-column:1/-1}.pill{padding:6px 9px;font-size:.82rem}
+.main{padding:2px 8px 8px;gap:5px}.instruction{min-height:32px;font-size:1.05rem}.card{padding:8px 10px;gap:7px}.problem{font-size:1.02rem;line-height:1.24}.choices{gap:7px}.choice{min-height:42px;padding:5px 7px;font-size:1.02rem;border-width:2px}
+.choice:nth-child(1),
+.choice:nth-child(2),
+.choice:nth-child(3){grid-column:span 2}
+.choice:nth-child(4){grid-column:2 / span 2}
+.choice:nth-child(5){grid-column:4 / span 2}.attempt{min-height:15px;font-size:.76rem}.feedback{min-height:44px;padding:6px 7px}
+.fb-wrap{gap:3px}
+.fb-title{font-size:.8rem}
+.fb-text{font-size:.75rem}
+.fb-op{font-size:.75rem;padding:2px 8px}.controls{flex:0 0 35px;min-height:35px}button.action{min-height:33px;height:33px;padding:0 13px;font-size:.86rem}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="top">
+<div class="track"><div class="bar" id="bar"></div></div>
+<div class="pill" id="counter">Question 1 / 8</div>
+<div class="pill" id="score">Score : 0 / 8</div>
+</header>
+
+<section class="main" id="exercise">
+<p class="instruction">Choisis le calcul qui permet de répondre à la question.</p>
+<div class="card">
+<p class="problem" id="problem"></p>
+<div class="choices" id="choices"></div>
+<p class="attempt" id="attempt">Tu as 2 essais.</p>
+<div class="feedback" id="feedback"></div>
+</div>
+<div class="controls"><button class="action secondary" id="next" hidden>Question suivante</button></div>
+</section>
+
+<section class="final" id="final">
+<div class="final-card">
+<h2>Activité terminée !</h2>
+<p class="final-score" id="finalScore"></p>
+<p class="final-message" id="finalMessage"></p>
+<button class="action primary" id="restart">Rejouer avec de nouveaux problèmes</button>
+</div>
+</section>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const TOTAL=8,OPS=['+','−','×','÷','E'],$=id=>document.getElementById(id);
+const problemEl=$('problem'),choicesEl=$('choices'),attemptEl=$('attempt'),feedbackEl=$('feedback'),nextBtn=$('next'),counterEl=$('counter'),scoreEl=$('score'),barEl=$('bar'),exerciseEl=$('exercise'),finalEl=$('final'),finalScoreEl=$('finalScore'),finalMessageEl=$('finalMessage'),restartBtn=$('restart');
+let questions=[],index=0,score=0,attempts=0,resolved=false;
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function pick(a){return a[ri(0,a.length-1)]}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(n,m=2){const f=10**m,r=Math.round((n+Number.EPSILON)*f)/f;return r.toLocaleString('fr-FR',{maximumFractionDigits:m,useGrouping:false})}
+function dec1(a,b){let n=ri(a,b);if(n%10===0)n+=1;return n/10}
+function dec2(a,b){let n=ri(a,b);if(n%10===0)n+=1;return n/100}
+function divData(){const b=ri(2,9),q=pick([dec1(12,95),dec1(18,145),dec2(125,850)]);return{a:Math.round(q*b*100)/100,b}}
+function mulData(){return{a:dec1(12,95),b:ri(2,9)}}
+function addData(){return{a:dec1(15,180),b:dec1(10,120)}}
+function subData(){let a=dec1(60,220),b=dec1(10,95);if(b>=a)b=Math.round(a*4)/10;return{a,b}}
+function euData(){
+  const b=ri(2,9);
+  const q=ri(3,14);
+  const r=ri(1,b-1);
+  return{a:b*q+r,b}
+}
+
+const T={
+'÷':[
+['On répartit {A} L de jus équitablement dans {B} bouteilles. Quelle quantité contient chaque bouteille ?','On cherche une part égale de la quantité totale.'],
+['Une corde de {A} m est découpée en {B} morceaux de même longueur. Quelle est la longueur d’un morceau ?','On cherche la longueur d’un seul morceau parmi plusieurs morceaux égaux.'],
+['{B} cahiers identiques coûtent {A} €. Quel est le prix d’un cahier ?','On cherche le prix d’un seul cahier à partir du prix total.'],
+['Une randonnée de {A} km est répartie en {B} étapes de même longueur. Quelle est la longueur d’une étape ?','On partage la distance totale entre plusieurs étapes égales.'],
+['On répartit {A} kg de pommes dans {B} cagettes identiques. Quelle masse met-on dans chaque cagette ?','On répartit une masse totale en parts égales.'],
+['Avec {A} L d’eau, on remplit de façon égale {B} récipients. Quelle quantité reçoit chaque récipient ?','On cherche une part égale de la quantité totale.'],
+['Un ruban de {A} m sert à fabriquer {B} nœuds identiques. Quelle longueur utilise-t-on par nœud ?','On répartit la longueur totale entre des réalisations identiques.'],
+['Une masse de {A} kg de farine est répartie dans {B} sacs identiques. Quelle masse contient un sac ?','On cherche la masse d’un seul sac.'],
+['{B} places de cinéma coûtent au total {A} €. Combien coûte une place ?','On cherche le prix unitaire à partir du prix total.'],
+['Une planche de {A} m est partagée en {B} étagères de même longueur. Quelle longueur mesure une étagère ?','On partage une longueur totale en longueurs égales.'],
+['Une cuve contient {A} L de peinture. On la répartit également dans {B} pots. Quelle quantité y a-t-il par pot ?','On cherche la quantité correspondant à une part égale.'],
+['Une équipe parcourt {A} km en {B} jours en parcourant la même distance chaque jour. Quelle distance parcourt-elle par jour ?','On répartit la distance totale entre plusieurs jours.'],
+['{B} paquets identiques ont une masse totale de {A} kg. Quelle est la masse d’un paquet ?','On cherche la masse d’un seul paquet.'],
+['On utilise {A} m de tissu pour confectionner {B} rideaux identiques. Quelle longueur faut-il par rideau ?','On répartit la longueur totale entre plusieurs rideaux identiques.'],
+['Une quantité de {A} kg de fruits est répartie équitablement dans {B} paniers. Quelle masse y a-t-il dans un panier ?','On cherche la masse d’une part égale.'],
+['Un parcours de {A} km comporte {B} tours identiques. Quelle est la longueur d’un tour ?','On cherche la longueur d’un seul tour à partir de la longueur totale.'],
+['Une somme de {A} € est partagée équitablement entre {B} personnes. Quelle somme reçoit chaque personne ?','On répartit une somme totale en parts égales.'],
+['Un réservoir de {A} L permet de remplir complètement {B} bidons identiques. Quelle est la contenance d’un bidon ?','On cherche la contenance d’un seul bidon.']
+],
+'×':[
+['Un cahier coûte {A} €. On en achète {B}. Quel est le prix total ?','On connaît le prix d’un objet et le nombre d’objets identiques.'],
+['Un tour de piste mesure {A} km. Un cycliste effectue {B} tours. Quelle distance parcourt-il ?','La même distance est parcourue plusieurs fois.'],
+['Un paquet pèse {A} kg. On prépare {B} paquets identiques. Quelle est leur masse totale ?','On additionne plusieurs fois la même masse.'],
+['Une bouteille contient {A} L. On a {B} bouteilles identiques. Quelle quantité possède-t-on au total ?','La même quantité est présente dans plusieurs bouteilles.'],
+['Pour un paquet cadeau, il faut {A} m de ruban. On prépare {B} paquets. Quelle longueur faut-il ?','La même longueur est utilisée plusieurs fois.'],
+['Un billet coûte {A} €. Une famille achète {B} billets. Combien paie-t-elle ?','Le prix d’un billet est répété plusieurs fois.'],
+['Chaque caisse contient {A} kg de marchandises. Il y a {B} caisses. Quelle est la masse totale ?','On a plusieurs caisses contenant la même masse.'],
+['Une machine produit {A} m de câble par minute pendant {B} minutes. Quelle longueur produit-elle ?','La même quantité est produite à chaque minute.']
+],
+'+':[
+['Lina parcourt {A} km le matin puis {B} km l’après-midi. Quelle distance parcourt-elle au total ?','On réunit deux distances parcourues successivement.'],
+['Un panier contient {A} kg de pommes et {B} kg de poires. Quelle est la masse totale ?','On cherche le total de deux masses.'],
+['Une bouteille contient {A} L de jus. On ajoute {B} L. Quelle quantité contient-elle maintenant ?','On ajoute une quantité à celle déjà présente.'],
+['Un morceau de tissu mesure {A} m et un second {B} m. Quelle longueur obtient-on en les mettant bout à bout ?','On réunit deux longueurs.'],
+['Un achat coûte {A} € et un second {B} €. Quelle somme faut-il payer au total ?','On cherche le total de deux dépenses.'],
+['Une randonnée comporte une partie de {A} km et une seconde de {B} km. Quelle est la longueur totale ?','On additionne les longueurs des deux parties.'],
+['On verse {A} L d’eau dans une cuve puis encore {B} L. Quelle quantité a été versée ?','On réunit les deux quantités versées.']
+],
+'−':[
+['Une bouteille contient {A} L. On utilise {B} L. Quelle quantité reste-t-il ?','On cherche ce qui reste après avoir retiré une quantité.'],
+['Une corde mesure {A} m. On coupe un morceau de {B} m. Quelle longueur reste-t-il ?','On retire la longueur coupée de la longueur initiale.'],
+['Noah possède {A} €. Il dépense {B} €. Combien lui reste-t-il ?','On cherche l’argent restant après une dépense.'],
+['Un parcours mesure {A} km. Une marcheuse a déjà parcouru {B} km. Quelle distance lui reste-t-il ?','On retire la distance déjà parcourue de la distance totale.'],
+['Un sac contient {A} kg de farine. On en utilise {B} kg. Quelle masse reste dans le sac ?','On cherche la masse restante.'],
+['Un réservoir contient {A} L. On prélève {B} L. Quelle quantité reste dans le réservoir ?','On retire la quantité prélevée de la quantité initiale.'],
+['Une planche mesure {A} m. On en utilise {B} m. Quelle longueur n’a pas encore été utilisée ?','On cherche la différence entre la longueur initiale et la longueur utilisée.']
+],
+'E':[
+['On range {A} bonbons dans des sachets de {B}. Combien peut-on remplir de sachets complets et combien de bonbons resteront ?','On cherche un nombre de groupes complets et un reste.'],
+['On place {A} œufs dans des boîtes de {B}. Combien de boîtes complètes peut-on remplir et combien d’œufs resteront ?','On cherche combien de groupes complets on peut former, puis ce qui reste.'],
+['Un professeur veut former des équipes de {B} élèves avec {A} élèves. Combien d’équipes complètes peut-il former et combien d’élèves resteront sans équipe complète ?','On cherche le nombre d’équipes complètes et le reste.'],
+['On range {A} livres dans des cartons pouvant contenir {B} livres. Combien de cartons seront complètement remplis et combien de livres resteront ?','On cherche un quotient entier et un reste.'],
+['On met {A} crayons dans des boîtes de {B} crayons. Combien de boîtes complètes obtient-on et combien de crayons restent ?','On cherche le nombre de boîtes complètes et les crayons restants.'],
+['Avec {A} perles, on fabrique des bracelets de {B} perles chacun. Combien de bracelets complets peut-on fabriquer et combien de perles resteront ?','On cherche combien de groupes complets de même taille sont possibles et le reste.'],
+['On range {A} balles de tennis dans des tubes de {B}. Combien de tubes complets peut-on remplir et combien de balles resteront ?','On cherche un nombre de tubes complets et un reste.'],
+['On dispose {A} jetons en rangées de {B} jetons. Combien de rangées complètes peut-on faire et combien de jetons resteront ?','On cherche le nombre de rangées complètes et le reste.'],
+['On colle {A} images dans un album à raison de {B} images par page. Combien de pages complètes peut-on remplir et combien d’images resteront pour la page suivante ?','On cherche le nombre de pages complètes et le reste.'],
+['On range {A} bouteilles dans des caisses de {B} bouteilles. Combien de caisses complètes obtient-on et combien de bouteilles resteront ?','On cherche combien de caisses complètes peuvent être remplies et le reste.']
+]};
+
+function dataFor(op){return op==='÷'?divData():op==='×'?mulData():op==='+'?addData():op==='−'?subData():euData()}
+function makeQ(op,tpl){const d=dataFor(op);return{op,a:d.a,b:d.b,tpl,why:tpl[1]}}
+function inst(q){const A=`<strong>${fmt(q.a)}</strong>`,B=`<strong>${fmt(q.b)}</strong>`;q.text=q.tpl[0].replaceAll('{A}',A).replaceAll('{B}',B);return q}
+function sample(op,n){return shuffle(T[op]).slice(0,n).map(x=>makeQ(op,x))}
+function buildQuestions(){return shuffle([...sample('÷',4),...sample('E',1),...sample('×',1),...sample('+',1),...sample('−',1)].map(inst))}
+function opText(q,op){
+  return op==='E'
+    ? 'Division euclidienne'
+    : `${fmt(q.a)} ${op} ${fmt(q.b)}`
+}
+function explainText(q){
+  if(q.op==='E'){
+    return {
+      why:q.why,
+      opLabel:'division euclidienne'
+    };
+  }
+  return {
+    why:q.why,
+    opLabel:opText(q,q.op)
+  };
+}
+function feedbackHtml(title,q){
+  const e=explainText(q);
+  return `<div class="fb-wrap">
+    <div class="fb-title">${title}</div>
+    <div class="fb-text">${e.why}</div>
+    <div class="fb-op">${e.opLabel}</div>
+  </div>`;
+}
+function setFb(txt,type){feedbackEl.innerHTML=txt;feedbackEl.className=`feedback show ${type}`}
+function resetFb(){feedbackEl.innerHTML='';feedbackEl.className='feedback'}
+function render(){
+ const q=questions[index];attempts=0;resolved=false;
+ counterEl.textContent=`Question ${index+1} / ${TOTAL}`;scoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;barEl.style.width=`${((index+1)/TOTAL)*100}%`;
+ problemEl.innerHTML=q.text;attemptEl.textContent='Tu as 2 essais.';choicesEl.innerHTML='';resetFb();nextBtn.hidden=true;nextBtn.textContent=index===TOTAL-1?'Voir le bilan':'Question suivante';
+ shuffle(['+','−','×','÷']).forEach(op=>{
+   const b=document.createElement('button');
+   b.className='choice';b.type='button';b.dataset.op=op;
+   b.textContent=opText(q,op);b.onclick=()=>answer(op,b);
+   choicesEl.appendChild(b)
+ });
+ const e=document.createElement('button');
+ e.className='choice';e.type='button';e.dataset.op='E';
+ e.textContent=opText(q,'E');e.onclick=()=>answer('E',e);
+ choicesEl.appendChild(e);
+}
+function answer(op,btn){
+ if(resolved)return;const q=questions[index];attempts++;
+ if(op===q.op){
+   resolved=true;score+=attempts===1?1:.5;btn.classList.add('correct');[...choicesEl.children].forEach(b=>b.disabled=true);
+   setFb(feedbackHtml('Bonne réponse.',q),'success');attemptEl.textContent=attempts===1?'Bonne réponse au 1er essai.':'Bonne réponse au 2e essai.';scoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;nextBtn.hidden=false;return
+ }
+ btn.classList.add('wrong');btn.disabled=true;
+ if(attempts===1){setFb('Ce n’est pas le bon calcul. Relis la question : que cherche-t-on ?','error');attemptEl.textContent='Il te reste 1 essai.'}
+ else{
+   resolved=true;[...choicesEl.children].forEach(b=>{b.disabled=true;if(b.dataset.op===q.op)b.classList.add('correct')});
+   setFb(feedbackHtml('Correction.',q),'correction');attemptEl.textContent='Deux essais utilisés.';nextBtn.hidden=false
+ }
+}
+function next(){if(index===TOTAL-1){exerciseEl.style.display='none';finalEl.classList.add('show');barEl.style.width='100%';finalScoreEl.textContent=`Score : ${fmt(score,1)} / ${TOTAL}`;finalMessageEl.textContent=score===8?'Excellent : tu choisis l’opération adaptée avec précision.':score>=6?'Très bien. Rejoue pour rencontrer de nouvelles situations.':score>=4?'C’est en bonne voie. Identifie d’abord ce que demande chaque problème.':'Rejoue avec de nouveaux problèmes et concentre-toi d’abord sur la question posée.';return}index++;render()}
+function restart(){questions=buildQuestions();index=0;score=0;exerciseEl.style.display='';finalEl.classList.remove('show');render()}
+nextBtn.onclick=next;restartBtn.onclick=restart;restart();
+})();
+</script>
+</body>
+</html>
