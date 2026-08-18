@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partie I – Activité 1 – Partie ou tout ?</title>
+<style>
+:root{
+  --blue:#1769aa;
+  --blue-dark:#0d4778;
+  --blue-soft:#eaf4fc;
+  --green:#18733f;
+  --green-soft:#e9f7ee;
+  --red:#a52d2d;
+  --red-soft:#fff0f0;
+  --orange:#8b5315;
+  --orange-soft:#fff5e8;
+  --ink:#17212b;
+  --muted:#5f6d78;
+  --line:#d8e4ed;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--ink);
+}
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:8px;
+}
+.app{
+  width:min(100%,1000px);
+  aspect-ratio:16/9;
+  max-height:calc(100vh - 16px);
+  background:#fff;
+  border:1px solid rgba(23,105,170,.18);
+  border-radius:22px;
+  box-shadow:0 14px 34px rgba(17,63,103,.14);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:12px;
+  align-items:center;
+  padding:14px 20px 8px;
+}
+.track{
+  height:12px;
+  background:#dceaf5;
+  border-radius:999px;
+  overflow:hidden;
+}
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--blue),#4f9ed8);
+  transition:width .2s ease;
+}
+.pill{
+  background:var(--blue-soft);
+  color:var(--blue-dark);
+  border-radius:999px;
+  padding:8px 13px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:4px 18px 14px;
+}
+.instruction{
+  margin:0;
+  text-align:center;
+  font-size:clamp(1.25rem,2.4vw,1.75rem);
+  font-weight:900;
+}
+.card{
+  flex:1;
+  min-height:0;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  padding:18px 22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+}
+.problem{
+  margin:0;
+  width:min(880px,100%);
+  text-align:center;
+  font-size:clamp(1.35rem,2.55vw,1.95rem);
+  line-height:1.35;
+  font-weight:780;
+}
+.problem strong{
+  color:var(--blue-dark);
+  font-weight:900;
+}
+.target{
+  width:min(820px,100%);
+  padding:10px 14px;
+  border-radius:13px;
+  background:var(--blue-soft);
+  color:var(--blue-dark);
+  text-align:center;
+  font-size:clamp(1.02rem,1.8vw,1.25rem);
+  font-weight:850;
+}
+.answers{
+  width:min(720px,100%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.answer-box{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+.answer-box label{
+  font-size:clamp(1.05rem,1.8vw,1.25rem);
+  font-weight:900;
+  color:var(--blue-dark);
+}
+.answer-box input{
+  width:180px;
+  max-width:100%;
+  height:70px;
+  border:4px solid #8bb8d6;
+  border-radius:15px;
+  background:#fff;
+  outline:none;
+  text-align:center;
+  color:var(--blue-dark);
+  font-size:2.35rem;
+  font-weight:900;
+}
+.answer-box input:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(23,105,170,.12);
+}
+.answer-box input.good{
+  border-color:#56aa77;
+  background:var(--green-soft);
+  color:var(--green);
+}
+.answer-box input.bad{
+  border-color:#d06a6a;
+  background:var(--red-soft);
+  color:var(--red);
+}
+.answer-box input.reveal{
+  border-color:#dda15b;
+  background:var(--orange-soft);
+  color:var(--orange);
+}
+.attempt{
+  margin:0;
+  min-height:20px;
+  color:var(--muted);
+  font-size:1rem;
+  font-weight:750;
+}
+
+/* Zone de feedback dédiée : toujours dans le flux de la page */
+.feedback{
+  display:none;
+  width:min(820px,100%);
+  padding:12px 16px;
+  border-radius:14px;
+  text-align:center;
+  line-height:1.3;
+}
+.feedback.show{display:block}
+.feedback.success{
+  background:var(--green-soft);
+  color:var(--green);
+  border:2px solid #91cfaa;
+}
+.feedback.error{
+  background:var(--red-soft);
+  color:var(--red);
+  border:2px solid #e0a2a2;
+}
+.feedback.correction{
+  background:var(--orange-soft);
+  color:var(--orange);
+  border:2px solid #e0af72;
+}
+.feedback-title{
+  font-size:clamp(1.15rem,2vw,1.45rem);
+  font-weight:950;
+  margin-bottom:4px;
+}
+.feedback-text{
+  font-size:clamp(1rem,1.7vw,1.18rem);
+  font-weight:800;
+}
+.feedback-values{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  font-size:clamp(1.05rem,1.9vw,1.28rem);
+  font-weight:900;
+}
+
+.controls{
+  min-height:48px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}
+button{
+  border:0;
+  border-radius:12px;
+  min-height:44px;
+  padding:0 24px;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:1rem;
+  font-weight:900;
+  cursor:pointer;
+}
+button.primary{
+  background:var(--blue);
+  color:#fff;
+}
+button.secondary{
+  background:var(--blue-soft);
+  color:var(--blue-dark);
+}
+button:disabled{
+  opacity:.45;
+  cursor:default;
+}
+.final{
+  display:none;
+  flex:1;
+  place-items:center;
+  padding:24px;
+}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  text-align:center;
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.10);
+}
+.final-card h2{
+  margin:0 0 10px;
+  color:var(--blue-dark);
+  font-size:2rem;
+}
+.final-score{
+  margin:8px 0;
+  font-size:1.45rem;
+  font-weight:950;
+}
+.final-message{
+  margin:8px 0 20px;
+  color:var(--muted);
+  font-size:1.08rem;
+  line-height:1.4;
+}
+
+@media(max-width:720px),(max-height:650px){
+  body{padding:4px}
+  .app{
+    height:calc(100vh - 8px);
+    aspect-ratio:auto;
+    max-height:none;
+    border-radius:14px;
+  }
+  .top{
+    grid-template-columns:1fr auto;
+    gap:7px;
+    padding:8px 10px 5px;
+  }
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.82rem}
+  .main{padding:2px 8px 8px;gap:6px}
+  .instruction{font-size:1.05rem}
+  .card{padding:8px 10px;gap:8px}
+  .problem{font-size:1rem;line-height:1.25}
+  .target{padding:6px 8px;font-size:.82rem}
+  .answers{gap:10px}
+  .answer-box{gap:4px}
+  .answer-box label{font-size:.85rem}
+  .answer-box input{
+    width:120px;
+    height:50px;
+    border-width:3px;
+    border-radius:10px;
+    font-size:1.7rem;
+  }
+  .attempt{font-size:.76rem;min-height:15px}
+  .feedback{padding:7px 9px}
+  .feedback-title{font-size:.9rem}
+  .feedback-text{font-size:.78rem}
+  .feedback-values{font-size:.84rem;gap:14px;margin-top:4px}
+  .controls{min-height:38px}
+  button{min-height:34px;height:34px;padding:0 15px;font-size:.86rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Repère la partie étudiée et le tout.</p>
+
+    <div class="card">
+      <p class="problem" id="problem"></p>
+      <div class="target" id="target"></div>
+
+      <div class="answers">
+        <div class="answer-box">
+          <label for="partAnswer">Partie étudiée</label>
+          <input id="partAnswer" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="answer-box">
+          <label for="wholeAnswer">Tout</label>
+          <input id="wholeAnswer" inputmode="numeric" autocomplete="off">
+        </div>
+      </div>
+
+      <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+      <div class="feedback" id="feedback" role="status" aria-live="assertive">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+        <div class="feedback-values" id="feedbackValues"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouvelles situations</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const TOTAL = 8;
+const MAX_ATTEMPTS = 2;
+
+const $ = id => document.getElementById(id);
+const problemEl = $('problem');
+const targetEl = $('target');
+const partEl = $('partAnswer');
+const wholeEl = $('wholeAnswer');
+const attemptEl = $('attempt');
+const feedbackEl = $('feedback');
+const feedbackTitleEl = $('feedbackTitle');
+const feedbackTextEl = $('feedbackText');
+const feedbackValuesEl = $('feedbackValues');
+const validateBtn = $('validate');
+const nextBtn = $('next');
+const counterEl = $('counter');
+const scoreEl = $('score');
+const barEl = $('bar');
+const exerciseEl = $('exercise');
+const finalEl = $('final');
+const finalScoreEl = $('finalScore');
+const finalMessageEl = $('finalMessage');
+const restartBtn = $('restart');
+
+let questions = [];
+let index = 0;
+let score = 0;
+let attempts = 0;
+let resolved = false;
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[ri(0,arr.length-1)];
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function fmt(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+function intValue(input){
+  const t = input.value.trim();
+  if(!/^\d+$/.test(t)) return null;
+  return Number(t);
+}
+function resetFeedback(){
+  feedbackEl.className = 'feedback';
+  feedbackTitleEl.textContent = '';
+  feedbackTextEl.textContent = '';
+  feedbackValuesEl.innerHTML = '';
+}
+function showFeedback(type,title,text,valuesHtml=''){
+  feedbackEl.className = `feedback show ${type}`;
+  feedbackTitleEl.textContent = title;
+  feedbackTextEl.textContent = text;
+  feedbackValuesEl.innerHTML = valuesHtml;
+}
+
+/* ---------- Générateurs par niveau ---------- */
+
+function q1(){
+  const templates = [
+    () => {
+      const whole = pick([20,24,25,30,32,36,40]);
+      const part = ri(4,whole-4);
+      return {
+        statement:`Une boîte contient <strong>${whole} chocolats</strong>. Parmi eux, <strong>${part}</strong> sont au chocolat blanc.`,
+        target:`On cherche la proportion de chocolats blancs.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([20,25,30,35,40]);
+      const part = ri(5,whole-5);
+      return {
+        statement:`Dans une classe de <strong>${whole} élèves</strong>, <strong>${part}</strong> portent des lunettes.`,
+        target:`On cherche la proportion d'élèves qui portent des lunettes.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([30,40,50,60]);
+      const part = ri(6,whole-6);
+      return {
+        statement:`Une bibliothèque expose <strong>${whole} livres</strong>, dont <strong>${part}</strong> bandes dessinées.`,
+        target:`On cherche la proportion de bandes dessinées.`,
+        part, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q2(){
+  const templates = [
+    () => {
+      const whole = pick([24,28,32,36,40]);
+      const part = ri(5,whole-5);
+      return {
+        statement:`<strong>${part} élèves</strong> viennent à vélo parmi les <strong>${whole} élèves</strong> de la classe.`,
+        target:`On cherche la proportion d'élèves qui viennent à vélo.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([40,50,60,80]);
+      const part = ri(8,whole-8);
+      return {
+        statement:`<strong>${part} fruits</strong> sont des pommes dans un panier qui contient <strong>${whole} fruits</strong>.`,
+        target:`On cherche la proportion de pommes.`,
+        part, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q3(){
+  const templates = [
+    () => {
+      const whole = pick([30,40,50,60]);
+      const part = ri(5,whole-5);
+      return {
+        statement:`Lors d'un sondage, <strong>${whole} personnes</strong> ont répondu. <strong>${part}</strong> ont choisi la réponse A.`,
+        target:`On cherche la proportion de personnes ayant choisi la réponse A.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([25,30,40,50]);
+      const part = ri(5,whole-5);
+      return {
+        statement:`Un club compte <strong>${whole} adhérents</strong>. Parmi eux, <strong>${part}</strong> pratiquent le tennis.`,
+        target:`On cherche la proportion d'adhérents qui pratiquent le tennis.`,
+        part, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q4(){
+  const templates = [
+    () => {
+      const whole = pick([40,50,60,80]);
+      const part = ri(8,whole-8);
+      return {
+        statement:`Parmi les <strong>${whole} véhicules</strong> observés, on compte <strong>${part} voitures électriques</strong>.`,
+        target:`On cherche la proportion de voitures électriques parmi les véhicules observés.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([20,24,30,36]);
+      const part = ri(4,whole-4);
+      return {
+        statement:`Sur un plateau, il y a <strong>${part} verres de jus d'orange</strong> et, au total, <strong>${whole} verres</strong>.`,
+        target:`On cherche la proportion de verres de jus d'orange.`,
+        part, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q5(){
+  const templates = [
+    () => {
+      const whole = pick([30,32,36,40]);
+      const part = ri(8,whole-8);
+      const parasite = ri(2,Math.max(3,part-2));
+      return {
+        statement:`Dans une classe de <strong>${whole} élèves</strong>, <strong>${part}</strong> viennent en bus. Parmi ceux qui viennent en bus, <strong>${parasite}</strong> habitent le même quartier.`,
+        target:`On cherche la proportion d'élèves de la classe qui viennent en bus.`,
+        part, whole
+      };
+    },
+    () => {
+      const whole = pick([40,50,60]);
+      const part = ri(10,whole-10);
+      const parasite = ri(2,Math.max(3,part-2));
+      return {
+        statement:`Une boîte contient <strong>${whole} bonbons</strong>. <strong>${part}</strong> sont rouges et, parmi les rouges, <strong>${parasite}</strong> sont à la fraise.`,
+        target:`On cherche la proportion de bonbons rouges.`,
+        part, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q6(){
+  const templates = [
+    () => {
+      const whole = pick([40,50,60,80]);
+      const a = ri(8,whole-16);
+      const b = ri(4,whole-a-4);
+      return {
+        statement:`Une médiathèque a prêté <strong>${whole} documents</strong> aujourd'hui : <strong>${a} romans</strong>, <strong>${b} bandes dessinées</strong> et les autres sont des documentaires.`,
+        target:`On cherche la proportion de romans parmi les documents prêtés.`,
+        part:a, whole
+      };
+    },
+    () => {
+      const whole = pick([30,36,40,45]);
+      const a = ri(6,whole-12);
+      const b = ri(4,whole-a-4);
+      return {
+        statement:`Dans un groupe de <strong>${whole} élèves</strong>, <strong>${a}</strong> font du football et <strong>${b}</strong> font du basket.`,
+        target:`On cherche la proportion d'élèves qui font du basket.`,
+        part:b, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q7(){
+  const templates = [
+    () => {
+      const whole = pick([30,36,40]);
+      const bus = ri(8,whole-12);
+      const bike = ri(4,whole-bus-4);
+      const helmet = ri(2,Math.max(2,bike));
+      return {
+        statement:`Dans une classe de <strong>${whole} élèves</strong>, <strong>${bus}</strong> viennent en bus et <strong>${bike}</strong> viennent à vélo. Parmi ceux qui viennent à vélo, <strong>${helmet}</strong> portent un casque.`,
+        target:`On cherche la proportion d'élèves de la classe qui viennent à vélo.`,
+        part:bike, whole
+      };
+    },
+    () => {
+      const whole = pick([40,50,60]);
+      const fiction = ri(10,whole-15);
+      const comics = ri(5,whole-fiction-5);
+      const newComics = ri(2,Math.max(2,comics));
+      return {
+        statement:`Une bibliothèque présente <strong>${whole} livres</strong>. <strong>${fiction}</strong> sont des romans et <strong>${comics}</strong> sont des bandes dessinées. Parmi les bandes dessinées, <strong>${newComics}</strong> sont des nouveautés.`,
+        target:`On cherche la proportion de bandes dessinées parmi tous les livres.`,
+        part:comics, whole
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function q8(){
+  const templates = [
+    () => {
+      const whole = pick([40,50,60]);
+      const sport = ri(12,whole-12);
+      const football = ri(4,sport-4);
+      return {
+        statement:`Sur <strong>${whole} élèves</strong> interrogés, <strong>${sport}</strong> pratiquent un sport en club. Parmi ces sportifs, <strong>${football}</strong> jouent au football.`,
+        target:`On cherche la proportion de joueurs de football parmi les élèves qui pratiquent un sport en club.`,
+        part:football, whole:sport
+      };
+    },
+    () => {
+      const whole = pick([50,60,80]);
+      const fruit = ri(15,whole-15);
+      const apple = ri(5,fruit-5);
+      return {
+        statement:`Un magasin a vendu <strong>${whole} desserts</strong>. Parmi eux, <strong>${fruit}</strong> sont des desserts aux fruits, dont <strong>${apple}</strong> à la pomme.`,
+        target:`On cherche la proportion de desserts à la pomme parmi les desserts aux fruits.`,
+        part:apple, whole:fruit
+      };
+    }
+  ];
+  return pick(templates)();
+}
+
+function generateQuestions(){
+  return [q1(),q2(),q3(),q4(),q5(),q6(),q7(),q8()];
+}
+
+function render(){
+  const item = questions[index];
+  attempts = 0;
+  resolved = false;
+
+  problemEl.innerHTML = item.statement;
+  targetEl.textContent = item.target;
+
+  partEl.value = '';
+  wholeEl.value = '';
+  partEl.disabled = false;
+  wholeEl.disabled = false;
+  partEl.className = '';
+  wholeEl.className = '';
+
+  attemptEl.textContent = 'Tu as 2 essais.';
+  resetFeedback();
+
+  validateBtn.hidden = false;
+  validateBtn.disabled = true;
+  nextBtn.hidden = true;
+  nextBtn.disabled = false;
+
+  counterEl.textContent = `Question ${index+1} / ${TOTAL}`;
+  scoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+  barEl.style.width = `${((index+1)/TOTAL)*100}%`;
+
+  setTimeout(()=>partEl.focus(),0);
+}
+
+function updateValidate(){
+  if(resolved){
+    validateBtn.disabled = true;
+    return;
+  }
+  validateBtn.disabled = !(partEl.value.trim() && wholeEl.value.trim());
+}
+
+function markInputs(item){
+  const p = intValue(partEl);
+  const w = intValue(wholeEl);
+
+  partEl.className = p === item.part ? 'good' : 'bad';
+  wholeEl.className = w === item.whole ? 'good' : 'bad';
+}
+
+function handleCorrect(item){
+  resolved = true;
+  const points = attempts === 1 ? 1 : 0.5;
+  score += points;
+
+  partEl.className = 'good';
+  wholeEl.className = 'good';
+  partEl.disabled = true;
+  wholeEl.disabled = true;
+
+  showFeedback(
+    'success',
+    '✓ Bravo !',
+    attempts === 1
+      ? 'Tu as correctement identifié la partie étudiée et le tout. Clique sur « Question suivante » pour continuer.'
+      : 'Tu as correctement identifié la partie étudiée et le tout au deuxième essai. Clique sur « Question suivante » pour continuer.'
+  );
+
+  attemptEl.textContent = points === 1 ? '1 point gagné.' : '0,5 point gagné.';
+  scoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+
+  validateBtn.hidden = true;
+  nextBtn.hidden = false;
+  nextBtn.disabled = true;
+  setTimeout(()=>{ nextBtn.disabled = false; }, 700);
+}
+
+function handleFirstError(item){
+  markInputs(item);
+
+  showFeedback(
+    'error',
+    'Ce n’est pas encore ça.',
+    'Repère ce que l’on étudie, puis cherche l’ensemble auquel cela appartient.'
+  );
+
+  attemptEl.textContent = 'Il te reste 1 essai.';
+  partEl.focus();
+}
+
+function handleSecondError(item){
+  resolved = true;
+
+  partEl.value = item.part;
+  wholeEl.value = item.whole;
+  partEl.className = 'reveal';
+  wholeEl.className = 'reveal';
+  partEl.disabled = true;
+  wholeEl.disabled = true;
+
+  showFeedback(
+    'correction',
+    'Correction',
+    'Voici les deux valeurs à identifier. Clique sur « Question suivante » pour continuer.',
+    `<span>Partie étudiée : <strong>${item.part}</strong></span>
+     <span>Tout : <strong>${item.whole}</strong></span>`
+  );
+
+  attemptEl.textContent = 'La correction est affichée.';
+  validateBtn.hidden = true;
+  nextBtn.hidden = false;
+  nextBtn.disabled = true;
+  setTimeout(()=>{ nextBtn.disabled = false; }, 700);
+}
+
+function validate(){
+  if(resolved) return;
+
+  const p = intValue(partEl);
+  const w = intValue(wholeEl);
+
+  if(p === null || w === null){
+    showFeedback('error','Réponse incomplète','Écris un nombre dans chaque case.');
+    return;
+  }
+
+  attempts++;
+
+  const item = questions[index];
+  const correct = (p === item.part && w === item.whole);
+
+  if(correct){
+    handleCorrect(item);
+    return;
+  }
+
+  if(attempts < MAX_ATTEMPTS){
+    handleFirstError(item);
+  }else{
+    handleSecondError(item);
+  }
+}
+
+function next(){
+  index++;
+  if(index >= TOTAL){
+    finish();
+  }else{
+    render();
+  }
+}
+
+function finish(){
+  exerciseEl.style.display = 'none';
+  finalEl.classList.add('show');
+
+  finalScoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+
+  if(score >= 7){
+    finalMessageEl.textContent = 'Très bien : tu identifies correctement la partie étudiée et le tout.';
+  }else if(score >= 5){
+    finalMessageEl.textContent = 'Bon travail. Relis attentivement la question lorsque plusieurs nombres sont présents.';
+  }else{
+    finalMessageEl.textContent = 'Entraîne-toi encore : commence toujours par repérer ce que l’on étudie et l’ensemble auquel cela appartient.';
+  }
+}
+
+function restart(){
+  questions = generateQuestions();
+  index = 0;
+  score = 0;
+  attempts = 0;
+  resolved = false;
+
+  finalEl.classList.remove('show');
+  exerciseEl.style.display = 'flex';
+
+  render();
+}
+
+partEl.addEventListener('input',()=>{
+  partEl.className = '';
+  updateValidate();
+});
+wholeEl.addEventListener('input',()=>{
+  wholeEl.className = '';
+  updateValidate();
+});
+
+partEl.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !validateBtn.disabled && !validateBtn.hidden){
+    validate();
+  }
+});
+wholeEl.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !validateBtn.disabled && !validateBtn.hidden){
+    validate();
+  }
+});
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>

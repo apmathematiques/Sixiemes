@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activité 6 – Quelle mission ?</title>
+<style>
+:root{--blue:#1769aa;--blue-dark:#0d4778;--blue-soft:#eaf4fc;--green:#18733f;--green-soft:#e9f7ee;--red:#a52d2d;--red-soft:#fff0f0;--orange:#8b5315;--orange-soft:#fff5e8;--ink:#17212b;--muted:#5f6d78;--line:#d8e4ed}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:transparent;font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+body{display:flex;justify-content:center;align-items:center;padding:8px}
+.app{width:min(100%,1000px);aspect-ratio:16/9;max-height:calc(100vh - 16px);background:#fff;border:1px solid rgba(23,105,170,.18);border-radius:22px;box-shadow:0 14px 34px rgba(17,63,103,.14);display:flex;flex-direction:column;overflow:hidden}
+.top{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 20px 8px}
+.track{height:12px;background:#dceaf5;border-radius:999px;overflow:hidden}.bar{width:10%;height:100%;background:linear-gradient(90deg,var(--blue),#4f9ed8);transition:width .2s}
+.pill{background:var(--blue-soft);color:var(--blue-dark);border-radius:999px;padding:8px 13px;font-weight:800;white-space:nowrap}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;padding:4px 18px 14px}
+.instruction{margin:0;text-align:center;font-size:clamp(1.2rem,2.3vw,1.7rem);font-weight:900}
+.card{flex:1;min-height:0;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#f8fbfe);padding:16px 22px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px}
+.problem{width:min(880px,100%);margin:0;text-align:center;font-size:clamp(1.25rem,2.5vw,1.9rem);line-height:1.38;font-weight:780}.problem strong{color:var(--blue-dark);font-weight:900}
+.answer-row{display:flex;align-items:center;justify-content:center;gap:12px}.answer{width:190px;height:72px;border:4px solid #8bb8d6;border-radius:15px;outline:none;text-align:center;color:var(--blue-dark);background:#fff;font-size:2.35rem;font-weight:900}
+.answer:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(23,105,170,.12)}.answer.good{border-color:#56aa77;background:var(--green-soft);color:var(--green)}.answer.bad{border-color:#d06a6a;background:var(--red-soft);color:var(--red)}.answer.reveal{border-color:#dda15b;background:var(--orange-soft);color:var(--orange)}
+.unit{max-width:240px;color:var(--blue-dark);font-size:clamp(1.15rem,2vw,1.5rem);font-weight:900}.attempt{margin:0;min-height:20px;color:var(--muted);font-size:1rem;font-weight:750}
+.feedback{display:none;width:min(850px,100%);padding:12px 16px;border-radius:14px;text-align:center;line-height:1.3}.feedback.show{display:block}.feedback.success{background:var(--green-soft);color:var(--green);border:2px solid #91cfaa}.feedback.error{background:var(--red-soft);color:var(--red);border:2px solid #e0a2a2}.feedback.correction{background:var(--orange-soft);color:var(--orange);border:2px solid #e0af72}
+.feedback-title{font-size:clamp(1.12rem,2vw,1.42rem);font-weight:950;margin-bottom:4px}.feedback-text{font-size:clamp(.98rem,1.7vw,1.16rem);font-weight:800}.course{display:none;margin-top:7px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.7);font-size:clamp(1.02rem,1.8vw,1.25rem);font-weight:900}.correction-math{margin-top:7px;font-size:clamp(1.15rem,2.25vw,1.55rem);font-weight:950}
+.frac-inline{display:inline-grid;grid-template-rows:auto auto;justify-items:center;align-items:center;vertical-align:middle;line-height:1;margin:0 .18em;min-width:1.9em}.frac-inline .num{width:100%;padding:0 .18em .12em;border-bottom:2px solid currentColor;text-align:center}.frac-inline .den{padding:.12em .18em 0;text-align:center}
+.controls{min-height:48px;display:flex;justify-content:center;align-items:center;gap:12px}button{border:0;border-radius:12px;min-height:44px;padding:0 24px;font-family:Arial,Helvetica,sans-serif;font-size:1rem;font-weight:900;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:var(--blue-soft);color:var(--blue-dark)}button:disabled{opacity:.45;cursor:default}
+.final{display:none;flex:1;place-items:center;padding:24px}.final.show{display:grid}.final-card{width:min(650px,100%);padding:28px;text-align:center;border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-card h2{margin:0 0 10px;color:var(--blue-dark);font-size:2rem}.final-score{margin:8px 0;font-size:1.45rem;font-weight:950}.final-message{margin:8px 0 20px;color:var(--muted);font-size:1.08rem;line-height:1.4}
+@media(max-width:720px),(max-height:650px){body{padding:4px}.app{height:calc(100vh - 8px);aspect-ratio:auto;max-height:none;border-radius:14px}.top{grid-template-columns:1fr auto;gap:7px;padding:8px 10px 5px}.track{grid-column:1/-1}.pill{padding:6px 9px;font-size:.82rem}.main{padding:2px 8px 8px;gap:6px}.instruction{font-size:1.02rem}.card{padding:8px 10px;gap:8px}.problem{font-size:.95rem;line-height:1.23}.answer{width:125px;height:50px;border-width:3px;border-radius:10px;font-size:1.7rem}.unit{font-size:1rem;max-width:150px}.attempt{font-size:.76rem;min-height:15px}.feedback{padding:7px 9px}.feedback-title{font-size:.9rem}.feedback-text{font-size:.76rem}.course{padding:5px 7px;font-size:.8rem;margin-top:4px}.correction-math{font-size:.95rem;margin-top:4px}.controls{min-height:38px}button{min-height:34px;height:34px;padding:0 15px;font-size:.86rem}}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+<header class="top"><div class="track"><div class="bar" id="bar"></div></div><div class="pill" id="counter">Question 1 / 10</div><div class="pill" id="score">Score : 0 / 10</div></header>
+<section class="main" id="exercise">
+<p class="instruction">Lis bien la situation et donne directement la réponse.</p>
+<div class="card">
+<p class="problem" id="problem"></p>
+<div class="answer-row"><input id="answer" class="answer" inputmode="decimal" autocomplete="off"><span class="unit" id="unit"></span></div>
+<p class="attempt" id="attempt">Tu as 2 essais.</p>
+<div class="feedback" id="feedback" role="status" aria-live="assertive"><div class="feedback-title" id="feedbackTitle"></div><div class="feedback-text" id="feedbackText"></div><div class="course" id="courseBox"></div><div class="correction-math" id="feedbackMath"></div></div>
+</div>
+<div class="controls"><button class="primary" id="validate" disabled>Valider</button><button class="secondary" id="next" hidden>Question suivante</button></div>
+</section>
+<section class="final" id="final"><div class="final-card"><h2>Activité terminée !</h2><p class="final-score" id="finalScore"></p><p class="final-message" id="finalMessage"></p><button class="primary" id="restart">Rejouer avec de nouvelles situations</button></div></section>
+</main>
+<script>
+(()=>{'use strict';
+const TOTAL=10,MAX_ATTEMPTS=2,$=id=>document.getElementById(id);
+const problemEl=$('problem'),answerEl=$('answer'),unitEl=$('unit'),attemptEl=$('attempt'),feedbackEl=$('feedback'),feedbackTitleEl=$('feedbackTitle'),feedbackTextEl=$('feedbackText'),courseBoxEl=$('courseBox'),feedbackMathEl=$('feedbackMath'),validateBtn=$('validate'),nextBtn=$('next'),counterEl=$('counter'),scoreEl=$('score'),barEl=$('bar'),exerciseEl=$('exercise'),finalEl=$('final'),finalScoreEl=$('finalScore'),finalMessageEl=$('finalMessage'),restartBtn=$('restart');
+let questions=[],index=0,score=0,attempts=0,resolved=false;
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a}function pick(a){return a[ri(0,a.length-1)]}function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(n){const r=Math.round((n+Number.EPSILON)*100)/100;return Number.isInteger(r)?String(r):String(r).replace('.',',')}
+function parseNumber(t){const s=String(t).trim().replace(/\s/g,'').replace(',','.');return /^-?\d+(?:\.\d+)?$/.test(s)?Number(s):null}
+function same(a,b){return Math.abs(a-b)<1e-9}
+function resetFeedback(){feedbackEl.className='feedback';feedbackTitleEl.textContent='';feedbackTextEl.textContent='';courseBoxEl.innerHTML='';courseBoxEl.style.display='none';feedbackMathEl.innerHTML=''}
+function showFeedback(type,title,text,course='',math=''){feedbackEl.className=`feedback show ${type}`;feedbackTitleEl.textContent=title;feedbackTextEl.textContent=text;courseBoxEl.innerHTML=course;courseBoxEl.style.display=course?'block':'none';feedbackMathEl.innerHTML=math}
+
+const determineContexts=[
+(p,w)=>`Une boîte contient <strong>${w} chocolats</strong>. <strong>${p}</strong> sont au chocolat blanc. Quel pourcentage des chocolats sont au chocolat blanc ?`,
+(p,w)=>`Dans une classe de <strong>${w} élèves</strong>, <strong>${p}</strong> viennent à vélo. Quel pourcentage des élèves viennent à vélo ?`,
+(p,w)=>`Une bibliothèque présente <strong>${w} livres</strong>. <strong>${p}</strong> sont des bandes dessinées. Quel pourcentage des livres sont des bandes dessinées ?`,
+(p,w)=>`Un club compte <strong>${w} adhérents</strong>. <strong>${p}</strong> pratiquent le tennis. Quel pourcentage des adhérents pratiquent le tennis ?`,
+(p,w)=>`Lors d'un sondage, <strong>${w} personnes</strong> ont répondu. <strong>${p}</strong> ont choisi la réponse A. Quel pourcentage cela représente-t-il ?`
+];
+const totals=[4,5,10,20,25,50,100];
+function makeDetermine(){const whole=pick(totals),part=ri(1,whole-1),percent=part*(100/whole);return{type:'determine',statement:pick(determineContexts)(part,whole),part,whole,result:percent,unit:'%'}}
+
+const applyContexts=[
+{u:'g',b:(q,p)=>`Une tablette pèse <strong>${q} g</strong> et contient <strong>${p} % de cacao</strong>. Quelle masse de cacao contient-elle ?`},
+{u:'€',b:(q,p)=>`Un article coûte <strong>${q} €</strong>. Une remise de <strong>${p} %</strong> est appliquée. Quel est le montant de la remise ?`},
+{u:'mL',b:(q,p)=>`Une bouteille contient <strong>${q} mL</strong>. On utilise <strong>${p} %</strong> de son contenu. Quel volume est utilisé ?`},
+{u:'km',b:(q,p)=>`Un parcours mesure <strong>${q} km</strong>. Une portion représente <strong>${p} %</strong> de cette distance. Quelle est la longueur de cette portion ?`},
+{u:'élèves',b:(q,p)=>`Un collège compte <strong>${q} élèves</strong>. <strong>${p} %</strong> participent à une sortie. Combien d'élèves cela représente-t-il ?`}
+];
+const quantities=[80,100,120,125,150,160,180,200,240,250,300,320,350,400,450,500,600,750,800];
+function makeApply(){const percent=ri(11,89),quantity=pick(quantities),c=pick(applyContexts);return{type:'apply',statement:c.b(quantity,percent),percent,quantity,result:quantity*percent/100,unit:c.u}}
+
+function generateQuestions(){const qs=[],seen=new Set();while(qs.filter(q=>q.type==='determine').length<5){const q=makeDetermine(),k=`D|${q.part}|${q.whole}|${q.statement}`;if(seen.has(k))continue;seen.add(k);qs.push(q)}while(qs.filter(q=>q.type==='apply').length<5){const q=makeApply(),k=`A|${q.percent}|${q.quantity}|${q.unit}`;if(seen.has(k))continue;seen.add(k);qs.push(q)}return shuffle(qs)}
+
+function render(){const item=questions[index];attempts=0;resolved=false;problemEl.innerHTML=item.statement;unitEl.textContent=item.unit;answerEl.value='';answerEl.disabled=false;answerEl.className='answer';attemptEl.textContent='Tu as 2 essais.';resetFeedback();validateBtn.hidden=false;validateBtn.disabled=true;nextBtn.hidden=true;nextBtn.disabled=false;counterEl.textContent=`Question ${index+1} / ${TOTAL}`;scoreEl.textContent=`Score : ${fmt(score)} / ${TOTAL}`;barEl.style.width=`${((index+1)/TOTAL)*100}%`;setTimeout(()=>answerEl.focus(),0)}
+function showNext(){validateBtn.hidden=true;nextBtn.hidden=false;nextBtn.disabled=true;setTimeout(()=>nextBtn.disabled=false,700)}
+function success(){resolved=true;const pts=attempts===1?1:.5;score+=pts;answerEl.className='answer good';answerEl.disabled=true;showFeedback('success','✓ Bravo !',attempts===1?'Tu as choisi la bonne démarche et trouvé la bonne réponse.':'Tu as trouvé la bonne réponse au deuxième essai.');attemptEl.textContent=pts===1?'1 point gagné.':'0,5 point gagné.';scoreEl.textContent=`Score : ${fmt(score)} / ${TOTAL}`;showNext()}
+function firstError(item){answerEl.className='answer bad';if(item.type==='determine'){showFeedback('error','Ce n’est pas encore ça.','Reprends la situation et utilise le rappel du cours.','Rappel du cours : pour exprimer une proportion en pourcentage, cherche combien elle représente sur 100.')}else{showFeedback('error','Ce n’est pas encore ça.','Reprends les données du problème et utilise la propriété du cours.','Rappel du cours : prendre <em>t</em> % d’un nombre, c’est multiplier ce nombre par <span class="frac-inline"><span class="num"><em>t</em></span><span class="den">100</span></span>.')}attemptEl.textContent='Il te reste 1 essai.';answerEl.focus()}
+function secondError(item){resolved=true;answerEl.value=fmt(item.result);answerEl.className='answer reveal';answerEl.disabled=true;if(item.type==='determine'){showFeedback('correction','Correction',`La partie étudiée est ${item.part} et le tout est ${item.whole}.`,'',`<span class="frac-inline"><span class="num">${item.part}</span><span class="den">${item.whole}</span></span> = <span class="frac-inline"><span class="num">${fmt(item.result)}</span><span class="den">100</span></span> = ${fmt(item.result)} %`)}else{showFeedback('correction','Correction',`On applique la propriété du cours avec t = ${item.percent}.`,'',`<span class="frac-inline"><span class="num">${item.percent}</span><span class="den">100</span></span> × ${fmt(item.quantity)} = ${fmt(item.result)} ${item.unit}`)}attemptEl.textContent='La correction est affichée.';showNext()}
+function validate(){if(resolved)return;const v=parseNumber(answerEl.value);if(v===null){showFeedback('error','Réponse incomplète','Écris un nombre dans la case.');return}attempts++;const item=questions[index];if(same(v,item.result))success();else if(attempts<MAX_ATTEMPTS)firstError(item);else secondError(item)}
+function next(){if(nextBtn.disabled)return;index++;index>=TOTAL?finish():render()}
+function finish(){exerciseEl.style.display='none';finalEl.classList.add('show');finalScoreEl.textContent=`Score : ${fmt(score)} / ${TOTAL}`;finalMessageEl.textContent=score>=9?'Très bien : tu sais distinguer les deux types de problèmes sur les pourcentages.':score>=6.5?'Bon travail. Continue à bien repérer ce que l’on cherche avant de choisir la méthode.':'Entraîne-toi encore : commence toujours par identifier si tu dois déterminer un pourcentage ou appliquer un pourcentage à une quantité.'}
+function restart(){questions=generateQuestions();index=0;score=0;attempts=0;resolved=false;finalEl.classList.remove('show');exerciseEl.style.display='flex';render()}
+answerEl.addEventListener('input',()=>{answerEl.className='answer';validateBtn.disabled=!answerEl.value.trim()});answerEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!validateBtn.disabled&&!validateBtn.hidden){e.preventDefault();validate()}});
+validateBtn.addEventListener('click',validate);nextBtn.addEventListener('click',next);restartBtn.addEventListener('click',restart);restart();
+})();
+</script>
+</body>
+</html>
