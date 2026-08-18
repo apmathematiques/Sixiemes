@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partie I – Activité 2 – Ramène à 100 !</title>
+<style>
+:root{
+  --blue:#1769aa;
+  --blue-dark:#0d4778;
+  --blue-soft:#eaf4fc;
+  --green:#18733f;
+  --green-soft:#e9f7ee;
+  --red:#a52d2d;
+  --red-soft:#fff0f0;
+  --orange:#8b5315;
+  --orange-soft:#fff5e8;
+  --ink:#17212b;
+  --muted:#5f6d78;
+  --line:#d8e4ed;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--ink);
+}
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:8px;
+}
+.app{
+  width:min(100%,1000px);
+  aspect-ratio:16/9;
+  max-height:calc(100vh - 16px);
+  background:#fff;
+  border:1px solid rgba(23,105,170,.18);
+  border-radius:22px;
+  box-shadow:0 14px 34px rgba(17,63,103,.14);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:12px;
+  align-items:center;
+  padding:14px 20px 8px;
+}
+.track{
+  height:12px;
+  background:#dceaf5;
+  border-radius:999px;
+  overflow:hidden;
+}
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--blue),#4f9ed8);
+  transition:width .2s ease;
+}
+.pill{
+  background:var(--blue-soft);
+  color:var(--blue-dark);
+  border-radius:999px;
+  padding:8px 13px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:4px 18px 14px;
+}
+.instruction{
+  margin:0;
+  text-align:center;
+  font-size:clamp(1.25rem,2.35vw,1.75rem);
+  font-weight:900;
+  line-height:1.15;
+}
+.card{
+  flex:1;
+  min-height:0;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  padding:16px 22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
+}
+.math-row{
+  width:min(900px,100%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+}
+.frac{
+  display:inline-grid;
+  grid-template-rows:auto auto;
+  justify-items:center;
+  align-items:center;
+  min-width:90px;
+  font-size:clamp(2rem,4vw,3.2rem);
+  font-weight:900;
+  line-height:1;
+}
+.frac .num{
+  border-bottom:4px solid currentColor;
+  width:100%;
+  padding:0 10px 7px;
+  text-align:center;
+}
+.frac .den{
+  padding:7px 10px 0;
+  text-align:center;
+}
+.equal,.percent-sign{
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:900;
+  color:var(--blue-dark);
+}
+.answer-frac{
+  display:inline-grid;
+  grid-template-rows:auto auto;
+  justify-items:center;
+  align-items:center;
+  min-width:120px;
+}
+.answer-frac input{
+  width:120px;
+  height:66px;
+  border:4px solid #8bb8d6;
+  border-radius:14px;
+  outline:none;
+  text-align:center;
+  color:var(--blue-dark);
+  background:#fff;
+  font-size:2.2rem;
+  font-weight:900;
+}
+.answer-frac .den100{
+  width:120px;
+  border-top:4px solid var(--ink);
+  text-align:center;
+  padding-top:7px;
+  margin-top:5px;
+  font-size:2rem;
+  font-weight:900;
+}
+.percent-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.percent-box input{
+  width:120px;
+  height:66px;
+  border:4px solid #8bb8d6;
+  border-radius:14px;
+  outline:none;
+  text-align:center;
+  color:var(--blue-dark);
+  background:#fff;
+  font-size:2.2rem;
+  font-weight:900;
+}
+input:focus{
+  border-color:var(--blue)!important;
+  box-shadow:0 0 0 4px rgba(23,105,170,.12);
+}
+input.good{
+  border-color:#56aa77!important;
+  background:var(--green-soft)!important;
+  color:var(--green)!important;
+}
+input.bad{
+  border-color:#d06a6a!important;
+  background:var(--red-soft)!important;
+  color:var(--red)!important;
+}
+input.reveal{
+  border-color:#dda15b!important;
+  background:var(--orange-soft)!important;
+  color:var(--orange)!important;
+}
+.attempt{
+  margin:0;
+  min-height:20px;
+  color:var(--muted);
+  font-size:1rem;
+  font-weight:750;
+}
+.feedback{
+  display:none;
+  width:min(820px,100%);
+  padding:12px 16px;
+  border-radius:14px;
+  text-align:center;
+  line-height:1.3;
+}
+.feedback.show{display:block}
+.feedback.success{
+  background:var(--green-soft);
+  color:var(--green);
+  border:2px solid #91cfaa;
+}
+.feedback.error{
+  background:var(--red-soft);
+  color:var(--red);
+  border:2px solid #e0a2a2;
+}
+.feedback.correction{
+  background:var(--orange-soft);
+  color:var(--orange);
+  border:2px solid #e0af72;
+}
+.feedback-title{
+  font-size:clamp(1.12rem,2vw,1.42rem);
+  font-weight:950;
+  margin-bottom:4px;
+}
+.feedback-text{
+  font-size:clamp(.98rem,1.7vw,1.16rem);
+  font-weight:800;
+}
+.correction-math{
+  margin-top:7px;
+  font-size:clamp(1.25rem,2.4vw,1.65rem);
+  font-weight:950;
+}
+.controls{
+  min-height:48px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}
+button{
+  border:0;
+  border-radius:12px;
+  min-height:44px;
+  padding:0 24px;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:1rem;
+  font-weight:900;
+  cursor:pointer;
+}
+button.primary{
+  background:var(--blue);
+  color:#fff;
+}
+button.secondary{
+  background:var(--blue-soft);
+  color:var(--blue-dark);
+}
+button:disabled{
+  opacity:.45;
+  cursor:default;
+}
+.final{
+  display:none;
+  flex:1;
+  place-items:center;
+  padding:24px;
+}
+.final.show{display:grid}
+.final-card{
+  width:min(650px,100%);
+  padding:28px;
+  text-align:center;
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(17,63,103,.10);
+}
+.final-card h2{
+  margin:0 0 10px;
+  color:var(--blue-dark);
+  font-size:2rem;
+}
+.final-score{
+  margin:8px 0;
+  font-size:1.45rem;
+  font-weight:950;
+}
+.final-message{
+  margin:8px 0 20px;
+  color:var(--muted);
+  font-size:1.08rem;
+  line-height:1.4;
+}
+
+@media(max-width:720px),(max-height:650px){
+  body{padding:4px}
+  .app{
+    height:calc(100vh - 8px);
+    aspect-ratio:auto;
+    max-height:none;
+    border-radius:14px;
+  }
+  .top{
+    grid-template-columns:1fr auto;
+    gap:7px;
+    padding:8px 10px 5px;
+  }
+  .track{grid-column:1/-1}
+  .pill{padding:6px 9px;font-size:.82rem}
+  .main{padding:2px 8px 8px;gap:6px}
+  .instruction{font-size:1.05rem}
+  .card{padding:8px 10px;gap:8px}
+  .math-row{gap:10px}
+  .frac{min-width:62px;font-size:1.7rem}
+  .frac .num{border-bottom-width:3px;padding:0 6px 4px}
+  .frac .den{padding:4px 6px 0}
+  .equal,.percent-sign{font-size:1.65rem}
+  .answer-frac{min-width:80px}
+  .answer-frac input,.percent-box input{
+    width:82px;height:50px;border-width:3px;border-radius:10px;font-size:1.65rem;
+  }
+  .answer-frac .den100{
+    width:82px;border-top-width:3px;padding-top:4px;margin-top:3px;font-size:1.5rem;
+  }
+  .attempt{font-size:.76rem;min-height:15px}
+  .feedback{padding:7px 9px}
+  .feedback-title{font-size:.9rem}
+  .feedback-text{font-size:.78rem}
+  .correction-math{font-size:1rem;margin-top:4px}
+  .controls{min-height:38px}
+  button{min-height:34px;height:34px;padding:0 15px;font-size:.86rem}
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <header class="top">
+    <div class="track"><div class="bar" id="bar"></div></div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction">Ramène la fraction sur 100, puis écris le pourcentage.</p>
+
+    <div class="card">
+      <div class="math-row">
+        <div class="frac" aria-label="Fraction de départ">
+          <div class="num" id="startNum">3</div>
+          <div class="den" id="startDen">4</div>
+        </div>
+
+        <div class="equal">=</div>
+
+        <div class="answer-frac" aria-label="Fraction de dénominateur 100">
+          <input id="hundredNum" inputmode="numeric" autocomplete="off" aria-label="Numérateur sur 100">
+          <div class="den100">100</div>
+        </div>
+
+        <div class="equal">=</div>
+
+        <div class="percent-box">
+          <input id="percentAnswer" inputmode="numeric" autocomplete="off" aria-label="Pourcentage">
+          <span class="percent-sign">%</span>
+        </div>
+      </div>
+
+      <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+      <div class="feedback" id="feedback" role="status" aria-live="assertive">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+        <div class="correction-math" id="feedbackMath"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" id="validate" disabled>Valider</button>
+      <button class="secondary" id="next" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée !</h2>
+      <p class="final-score" id="finalScore"></p>
+      <p class="final-message" id="finalMessage"></p>
+      <button class="primary" id="restart">Rejouer avec de nouvelles fractions</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const TOTAL = 8;
+const MAX_ATTEMPTS = 2;
+
+const $ = id => document.getElementById(id);
+const startNumEl = $('startNum');
+const startDenEl = $('startDen');
+const hundredNumEl = $('hundredNum');
+const percentAnswerEl = $('percentAnswer');
+const attemptEl = $('attempt');
+const feedbackEl = $('feedback');
+const feedbackTitleEl = $('feedbackTitle');
+const feedbackTextEl = $('feedbackText');
+const feedbackMathEl = $('feedbackMath');
+const validateBtn = $('validate');
+const nextBtn = $('next');
+const counterEl = $('counter');
+const scoreEl = $('score');
+const barEl = $('bar');
+const exerciseEl = $('exercise');
+const finalEl = $('final');
+const finalScoreEl = $('finalScore');
+const finalMessageEl = $('finalMessage');
+const restartBtn = $('restart');
+
+let questions = [];
+let index = 0;
+let score = 0;
+let attempts = 0;
+let resolved = false;
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+function pick(arr){
+  return arr[ri(0,arr.length-1)];
+}
+function fmt(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+function intValue(input){
+  const t = input.value.trim();
+  if(!/^\d+$/.test(t)) return null;
+  return Number(t);
+}
+function resetFeedback(){
+  feedbackEl.className = 'feedback';
+  feedbackTitleEl.textContent = '';
+  feedbackTextEl.textContent = '';
+  feedbackMathEl.innerHTML = '';
+}
+function showFeedback(type,title,text,math=''){
+  feedbackEl.className = `feedback show ${type}`;
+  feedbackTitleEl.textContent = title;
+  feedbackTextEl.textContent = text;
+  feedbackMathEl.innerHTML = math;
+}
+
+/* Difficulté croissante :
+   1: /10
+   2: /20
+   3: /25
+   4: /50
+   5: /4
+   6: /5
+   7-8: mélange
+*/
+const levels = [
+  [10],
+  [20],
+  [25],
+  [50],
+  [4],
+  [5],
+  [2,4,5,10,20,25,50],
+  [2,4,5,10,20,25,50,100]
+];
+
+function makeQuestion(allowedDenoms){
+  const den = pick(allowedDenoms);
+
+  let num;
+  if(den === 2){
+    num = 1;
+  }else{
+    num = ri(1,den-1);
+  }
+
+  // Évite les fractions égales à 100 % dans le cœur de l'activité.
+  // Pour /100, on garde une vraie valeur <100.
+  const factor = 100 / den;
+  const hundred = num * factor;
+
+  return {
+    num,
+    den,
+    factor,
+    hundred,
+    percent: hundred
+  };
+}
+
+function generateQuestions(){
+  const qs = [];
+  const seen = new Set();
+
+  for(const level of levels){
+    let q;
+    let tries = 0;
+    do{
+      q = makeQuestion(level);
+      tries++;
+    }while(seen.has(`${q.num}/${q.den}`) && tries < 30);
+
+    seen.add(`${q.num}/${q.den}`);
+    qs.push(q);
+  }
+  return qs;
+}
+
+function render(){
+  const item = questions[index];
+  attempts = 0;
+  resolved = false;
+
+  startNumEl.textContent = item.num;
+  startDenEl.textContent = item.den;
+
+  hundredNumEl.value = '';
+  percentAnswerEl.value = '';
+  hundredNumEl.disabled = false;
+  percentAnswerEl.disabled = false;
+  hundredNumEl.className = '';
+  percentAnswerEl.className = '';
+
+  attemptEl.textContent = 'Tu as 2 essais.';
+  resetFeedback();
+
+  validateBtn.hidden = false;
+  validateBtn.disabled = true;
+  nextBtn.hidden = true;
+  nextBtn.disabled = false;
+
+  counterEl.textContent = `Question ${index+1} / ${TOTAL}`;
+  scoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+  barEl.style.width = `${((index+1)/TOTAL)*100}%`;
+
+  setTimeout(()=>hundredNumEl.focus(),0);
+}
+
+function updateValidate(){
+  if(resolved){
+    validateBtn.disabled = true;
+    return;
+  }
+  validateBtn.disabled = !(hundredNumEl.value.trim() && percentAnswerEl.value.trim());
+}
+
+function markInputs(item){
+  const h = intValue(hundredNumEl);
+  const p = intValue(percentAnswerEl);
+
+  hundredNumEl.className = h === item.hundred ? 'good' : 'bad';
+  percentAnswerEl.className = p === item.percent ? 'good' : 'bad';
+}
+
+function showNextButton(){
+  validateBtn.hidden = true;
+  nextBtn.hidden = false;
+  nextBtn.disabled = true;
+  setTimeout(()=>{ nextBtn.disabled = false; }, 700);
+}
+
+function handleCorrect(item){
+  resolved = true;
+  const points = attempts === 1 ? 1 : 0.5;
+  score += points;
+
+  hundredNumEl.className = 'good';
+  percentAnswerEl.className = 'good';
+  hundredNumEl.disabled = true;
+  percentAnswerEl.disabled = true;
+
+  showFeedback(
+    'success',
+    '✓ Bravo !',
+    attempts === 1
+      ? 'Tu as correctement ramené la fraction sur 100.'
+      : 'Tu as correctement ramené la fraction sur 100 au deuxième essai.',
+    `${item.num}/${item.den} = ${item.hundred}/100 = ${item.percent} %`
+  );
+
+  attemptEl.textContent = points === 1 ? '1 point gagné.' : '0,5 point gagné.';
+  scoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+  showNextButton();
+}
+
+function handleFirstError(item){
+  markInputs(item);
+
+  showFeedback(
+    'error',
+    'Ce n’est pas encore ça.',
+    `Cherche par quel nombre il faut multiplier ${item.den} pour obtenir 100.`,
+    ''
+  );
+
+  attemptEl.textContent = 'Il te reste 1 essai.';
+  hundredNumEl.focus();
+}
+
+function handleSecondError(item){
+  resolved = true;
+
+  hundredNumEl.value = item.hundred;
+  percentAnswerEl.value = item.percent;
+  hundredNumEl.className = 'reveal';
+  percentAnswerEl.className = 'reveal';
+  hundredNumEl.disabled = true;
+  percentAnswerEl.disabled = true;
+
+  showFeedback(
+    'correction',
+    'Correction',
+    `Pour passer de ${item.den} à 100, on multiplie par ${item.factor}. Il faut donc multiplier aussi le numérateur par ${item.factor}.`,
+    `${item.num}/${item.den} = ${item.hundred}/100 = ${item.percent} %`
+  );
+
+  attemptEl.textContent = 'La correction est affichée.';
+  showNextButton();
+}
+
+function validate(){
+  if(resolved) return;
+
+  const h = intValue(hundredNumEl);
+  const p = intValue(percentAnswerEl);
+
+  if(h === null || p === null){
+    showFeedback('error','Réponse incomplète','Écris un nombre dans chaque case.');
+    return;
+  }
+
+  attempts++;
+
+  const item = questions[index];
+  const correct = (h === item.hundred && p === item.percent);
+
+  if(correct){
+    handleCorrect(item);
+    return;
+  }
+
+  if(attempts < MAX_ATTEMPTS){
+    handleFirstError(item);
+  }else{
+    handleSecondError(item);
+  }
+}
+
+function next(){
+  if(nextBtn.disabled) return;
+
+  index++;
+  if(index >= TOTAL){
+    finish();
+  }else{
+    render();
+  }
+}
+
+function finish(){
+  exerciseEl.style.display = 'none';
+  finalEl.classList.add('show');
+
+  finalScoreEl.textContent = `Score : ${fmt(score)} / ${TOTAL}`;
+
+  if(score >= 7){
+    finalMessageEl.textContent = 'Très bien : tu sais ramener une fraction sur 100 et lire le pourcentage correspondant.';
+  }else if(score >= 5){
+    finalMessageEl.textContent = 'Bon travail. Pense toujours à multiplier le numérateur et le dénominateur par le même nombre.';
+  }else{
+    finalMessageEl.textContent = 'Entraîne-toi encore : cherche d’abord comment transformer le dénominateur en 100.';
+  }
+}
+
+function restart(){
+  questions = generateQuestions();
+  index = 0;
+  score = 0;
+  attempts = 0;
+  resolved = false;
+
+  finalEl.classList.remove('show');
+  exerciseEl.style.display = 'flex';
+
+  render();
+}
+
+hundredNumEl.addEventListener('input',()=>{
+  hundredNumEl.className = '';
+  updateValidate();
+});
+percentAnswerEl.addEventListener('input',()=>{
+  percentAnswerEl.className = '';
+  updateValidate();
+});
+
+hundredNumEl.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !validateBtn.disabled && !validateBtn.hidden){
+    e.preventDefault();
+    validate();
+  }
+});
+percentAnswerEl.addEventListener('keydown',e=>{
+  if(e.key === 'Enter' && !validateBtn.disabled && !validateBtn.hidden){
+    e.preventDefault();
+    validate();
+  }
+});
+
+validateBtn.addEventListener('click',validate);
+nextBtn.addEventListener('click',next);
+restartBtn.addEventListener('click',restart);
+
+restart();
+})();
+</script>
+</body>
+</html>
