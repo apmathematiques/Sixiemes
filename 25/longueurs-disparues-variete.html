@@ -1,0 +1,1300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Longueurs disparues</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:44px;
+  margin:0;
+  padding:0 7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:clamp(1.03rem,1.9vw,1.28rem);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+.figure{
+  flex:1;
+  min-height:300px;
+  overflow:hidden;
+  position:relative;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:300px;
+  display:block;
+}
+
+.shape{
+  fill:rgba(23,105,170,.08);
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.guide-line{
+  fill:none;
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.guide-line.dashed{
+  stroke:#8798a8;
+  stroke-dasharray:9 7;
+}
+
+.guide-tick{
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.edge-label rect,
+.guide-label rect{
+  fill:#fff;
+  stroke:#b9d4e8;
+  stroke-width:2.2;
+  rx:9;
+  ry:9;
+}
+
+.edge-label text,
+.guide-label text{
+  fill:var(--bd);
+  font:800 20px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.edge-label.missing rect{
+  fill:var(--os);
+  stroke:var(--oline);
+}
+
+.edge-label.missing text{
+  fill:var(--o);
+}
+
+.edge-label.found rect{
+  fill:var(--gs);
+  stroke:#79c798;
+}
+
+.edge-label.found text{
+  fill:#165e36;
+}
+
+.guide-label rect{
+  fill:var(--bs);
+  stroke:#8ab8da;
+}
+
+.guide-label text{
+  fill:var(--bd);
+  font-size:19px;
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+  color:#8493a0;
+  font-size:.76rem;
+  font-weight:650;
+}
+
+/* ---------- Zone de réponse ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:130px;
+  height:44px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.14rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:44px;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:118px;
+  padding:0 15px;
+
+  border:0;
+  border-radius:13px;
+
+  font-size:.93rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.3rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.02rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.82rem}
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:36px;
+    font-size:.91rem;
+  }
+
+  .figure,#scene{min-height:245px}
+
+  .edge-label text,.guide-label text{font-size:17px}
+
+  .answer-row{min-height:46px}
+  .answer-label,.unit{font-size:.9rem}
+  .answer-input{height:39px;width:105px;font-size:1rem}
+
+  .attempt{font-size:.74rem}
+
+  .feedback{
+    min-height:38px;
+    padding:4px 7px;
+    font-size:.77rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:102px;
+    padding:0 10px;
+    font-size:.83rem;
+  }
+}
+
+@media(pointer:coarse){
+  button.action{min-height:50px}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 920 380"
+           preserveAspectRatio="xMidYMid meet"
+           aria-label="Figure géométrique avec longueurs manquantes"></svg>
+      <div class="note">Figure non à l'échelle</div>
+    </div>
+
+    <div class="answer-row">
+      <span class="answer-label" id="answerLabel">Longueur ? =</span>
+      <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off">
+      <span class="unit" id="answerUnit">cm</span>
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe les longueurs indiquées sur la figure.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>Valider</button>
+      <button class="action secondary" id="continueBtn" type="button" hidden>Continuer</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2 id="finalTitle">Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const scene=$('scene');
+const instruction=$('instruction');
+const answer=$('answer');
+const answerLabel=$('answerLabel');
+const answerUnit=$('answerUnit');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const validate=$('validate');
+const continueBtn=$('continueBtn');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalTitle=$('finalTitle');
+const finalScore=$('finalScore');
+const finalHint=$('finalHint');
+const restart=$('restart');
+
+const NS='http://www.w3.org/2000/svg';
+
+let questions=[];
+let index=0;
+let score=0;
+let stageIndex=0;
+let stageAttempts=0;
+let questionValue=1;
+let locked=false;
+let resolved={};
+
+function svg(name,attrs={}){
+  const el=document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function formatScore(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+
+function cleanNumber(text){
+  return Number(String(text).trim().replace(',','.'));
+}
+
+function edge(pos,value,key=null){
+  return {pos,value,key};
+}
+
+function guide(a,b,pos,value,dashed=false){
+  return {a,b,pos,value,dashed};
+}
+
+function makeEscalier(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(3,7), b=ri(2,6), c=ri(2,6);
+  const h1=ri(2,5), h2=ri(2,5), h3=ri(2,5);
+  const W=a+b+c, H=h1+h2+h3;
+
+  return {
+    name:'Escalier',
+    level:'simple',
+    unit,
+    points:[[150,310],[150,75],[360,75],[360,145],[515,145],[515,220],[720,220],[720,310]],
+    edges:[
+      edge([118,195],H),
+      edge([255,55],a),
+      edge([390,110],h1),
+      edge([438,125],b,'m1'),
+      edge([545,183],h2),
+      edge([620,200],c),
+      edge([750,265],h3),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:b,hint:'Compare la longueur totale horizontale avec les morceaux déjà connus.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeU(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,6), m=ri(3,7), c=ri(2,6);
+  const H=ri(7,13), d=ri(3,H-2);
+  const W=a+m+c;
+
+  return {
+    name:'Forme en U',
+    level:'simple',
+    unit,
+    points:[[150,310],[150,75],[300,75],[300,220],[550,220],[550,75],[720,75],[720,310]],
+    edges:[
+      edge([118,195],H),
+      edge([225,55],a),
+      edge([330,145],d),
+      edge([425,200],m,'m1'),
+      edge([580,145],d),
+      edge([635,55],c),
+      edge([750,195],H),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:m,hint:'Compare la largeur totale avec les deux morceaux horizontaux déjà connus.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeEncocheDroite(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,5), m=ri(3,7), b=ri(2,5);
+  const d=ri(2,5);
+  const H=a+m+b, W=ri(8,15);
+
+  return {
+    name:'Encoche latérale',
+    level:'simple',
+    unit,
+    points:[[150,310],[150,70],[720,70],[720,145],[610,145],[610,235],[720,235],[720,310]],
+    edges:[
+      edge([118,190],H),
+      edge([435,50],W),
+      edge([750,108],a),
+      edge([665,125],d),
+      edge([580,190],m,'m1'),
+      edge([665,255],d),
+      edge([750,273],b),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:m,hint:'Compare la hauteur totale avec les deux morceaux verticaux déjà indiqués.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeCoinCoupe(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(3,7), b=ri(3,7);
+  const v=ri(2,5), c=ri(3,7);
+  const W=a+b, H=v+c;
+
+  return {
+    name:'Coin découpé',
+    level:'medium',
+    unit,
+    points:[[150,310],[150,70],[470,70],[470,165],[720,165],[720,310]],
+    edges:[
+      edge([118,190],H),
+      edge([310,50],a),
+      edge([500,118],v),
+      edge([595,145],b,'m1'),
+      edge([750,240],c,'m2'),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:b,hint:'Compare la largeur totale avec la partie horizontale déjà connue.'},
+      {key:'m2',answer:c,hint:'Compare la hauteur totale avec la partie verticale déjà connue.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeT(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,5), s=ri(3,6), b=ri(2,5);
+  const t=ri(2,4), h=ri(5,10);
+  const W=a+s+b, H=t+h;
+
+  return {
+    name:'Forme en T',
+    level:'medium',
+    unit,
+    points:[[150,70],[720,70],[720,145],[550,145],[550,310],[330,310],[330,145],[150,145]],
+    edges:[
+      edge([435,50],W),
+      edge([750,108],t),
+      edge([635,165],b,'m1'),
+      edge([580,230],h,'m2'),
+      edge([440,335],s),
+      edge([300,230],h,'m2'),
+      edge([240,165],a),
+      edge([120,108],t)
+    ],
+    missing:[
+      {key:'m1',answer:b,hint:'Sur la largeur totale, repère les trois morceaux horizontaux qui se suivent.'},
+      {key:'m2',answer:h,hint:'Compare la hauteur totale de la figure avec l’épaisseur de la barre du haut.'}
+    ],
+    guides:[
+      guide([775,70],[775,310],[815,190],H)
+    ]
+  };
+}
+
+function makeDoubleMarche(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,6), b=ri(2,6), c=ri(2,6);
+  const v1=ri(2,4), v2=ri(2,5), v3=ri(2,4);
+  const W=a+b+c, H=v1+v2+v3;
+
+  return {
+    name:'Double marche',
+    level:'medium',
+    unit,
+    points:[[150,310],[150,70],[330,70],[330,135],[505,135],[505,215],[720,215],[720,310]],
+    edges:[
+      edge([118,190],H),
+      edge([240,50],a),
+      edge([360,102],v1),
+      edge([418,115],b,'m1'),
+      edge([535,175],v2,'m2'),
+      edge([615,195],c),
+      edge([750,263],v3),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:b,hint:'Compare la longueur totale horizontale avec les deux autres morceaux horizontaux.'},
+      {key:'m2',answer:v2,hint:'Compare la hauteur totale avec les deux autres morceaux verticaux.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeDoubleEncoche(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,5), m1=ri(3,6), c=ri(3,6);
+  const u=ri(2,4), m2=ri(3,6), l=ri(2,4);
+  const dt=ri(2,4), dr=ri(2,4);
+  const W=a+m1+c, H=u+m2+l;
+
+  return {
+    name:'Double encoche',
+    level:'complex',
+    unit,
+    points:[[150,310],[150,70],[300,70],[300,145],[470,145],[470,70],[720,70],[720,150],[620,150],[620,235],[720,235],[720,310]],
+    edges:[
+      edge([118,190],H),
+      edge([225,50],a),
+      edge([330,108],dt),
+      edge([385,125],m1,'m1'),
+      edge([500,108],dt),
+      edge([595,50],c),
+      edge([750,110],u),
+      edge([670,130],dr),
+      edge([590,192],m2,'m2'),
+      edge([670,255],dr),
+      edge([750,273],l),
+      edge([435,335],W)
+    ],
+    missing:[
+      {key:'m1',answer:m1,hint:'Pour la première longueur, compare la largeur totale avec les deux morceaux du haut.'},
+      {key:'m2',answer:m2,hint:'Pour la deuxième longueur, compare la hauteur totale avec les deux morceaux de droite.'}
+    ],
+    guides:[]
+  };
+}
+
+function makeCroix(){
+  const unit=pick(['cm','dm','m']);
+  const left=ri(2,5), stem=ri(3,6), right=ri(2,5);
+  const top=ri(3,6), thick=ri(2,4), bottom=ri(3,6);
+  const W=left+stem+right, H=top+thick+bottom;
+
+  return {
+    name:'Croix',
+    level:'complex',
+    unit,
+    points:[[350,70],[520,70],[520,140],[700,140],[700,240],[520,240],[520,310],[350,310],[350,240],[160,240],[160,140],[350,140]],
+    edges:[
+      edge([435,50],stem),
+      edge([550,105],top,'m2'),
+      edge([610,120],right),
+      edge([730,190],thick),
+      edge([610,260],right),
+      edge([550,275],bottom),
+      edge([435,335],stem),
+      edge([320,275],bottom),
+      edge([255,260],left,'m1'),
+      edge([130,190],thick),
+      edge([255,120],left,'m1'),
+      edge([320,105],top,'m2')
+    ],
+    missing:[
+      {key:'m1',answer:left,hint:'Utilise la largeur totale : elle est formée du bras gauche, de la partie centrale et du bras droit.'},
+      {key:'m2',answer:top,hint:'Utilise la hauteur totale : elle est formée de la partie haute, de l’épaisseur centrale et de la partie basse.'}
+    ],
+    guides:[
+      guide([160,345],[700,345],[430,365],W),
+      guide([760,70],[760,310],[800,190],H)
+    ]
+  };
+}
+
+function makeDeuxEncoches(){
+  const unit=pick(['cm','dm','m']);
+  const a=ri(2,5), m1=ri(3,6), c=ri(3,6);
+  const d=ri(2,5), m2=ri(3,6), e=ri(2,5);
+  const dt=ri(2,4), db=ri(2,4);
+  const W1=a+m1+c, W2=d+m2+e;
+
+  // On impose la même largeur totale.
+  const W=Math.max(W1,W2);
+  const c2=W-a-m1;
+  const e2=W-d-m2;
+  const H=ri(8,14);
+  const junk=ri(3,12);
+
+  return {
+    name:'Deux encoches opposées',
+    level:'complex',
+    unit,
+    points:[[150,310],[150,70],[300,70],[300,145],[480,145],[480,70],[720,70],[720,310],[560,310],[560,230],[340,230],[340,310]],
+    edges:[
+      edge([118,190],H),
+      edge([225,50],a),
+      edge([330,108],dt),
+      edge([390,125],m1,'m1'),
+      edge([510,108],dt),
+      edge([600,50],c2),
+      edge([750,190],H),
+      edge([640,335],e2),
+      edge([590,270],db),
+      edge([450,210],m2,'m2'),
+      edge([310,270],db),
+      edge([245,335],d)
+    ],
+    missing:[
+      {key:'m1',answer:m1,hint:'En haut, compare la largeur totale avec les deux morceaux connus.'},
+      {key:'m2',answer:m2,hint:'En bas, compare la même largeur totale avec les deux morceaux connus.'}
+    ],
+    guides:[
+      guide([205,185],[665,185],[435,170],junk,true)
+    ]
+  };
+}
+
+const BANKS={
+  simple:[makeEscalier,makeU,makeEncocheDroite],
+  medium:[makeCoinCoupe,makeT,makeDoubleMarche],
+  complex:[makeDoubleEncoche,makeCroix,makeDeuxEncoches]
+};
+
+function perimeterOf(q){
+  return q.edges.reduce((sum,e)=>sum+e.value,0);
+}
+
+function missingAnswersAreVaried(list){
+  const answers=list.flatMap(q=>q.missing.map(m=>m.answer));
+
+  // Pas deux réponses identiques à la suite.
+  for(let i=1;i<answers.length;i++){
+    if(answers[i]===answers[i-1]) return false;
+  }
+
+  // Une même valeur ne peut apparaître plus de deux fois
+  // parmi toutes les longueurs manquantes de la série.
+  const counts=new Map();
+  for(const value of answers){
+    const n=(counts.get(value)||0)+1;
+    if(n>2) return false;
+    counts.set(value,n);
+  }
+
+  return true;
+}
+
+function buildQuestions(){
+  // On régénère la série tant que les réponses sont trop répétitives.
+  // Cela conserve le hasard sur les formes et les mesures,
+  // mais évite les séries pédagogiquement monotones.
+  for(let attempt=0;attempt<800;attempt++){
+    const simple=shuffle(BANKS.simple).slice(0,2).map(f=>f());
+    const medium=shuffle(BANKS.medium).slice(0,2).map(f=>f());
+    const complex=shuffle(BANKS.complex).slice(0,2).map(f=>f());
+
+    const candidate=[...simple,...medium,...complex].map(q=>{
+      q.perimeter=perimeterOf(q);
+      return q;
+    });
+
+    if(missingAnswersAreVaried(candidate)){
+      return candidate;
+    }
+  }
+
+  // Sécurité : extrêmement improbable, mais on renvoie quand même
+  // une série valide si aucun tirage n'a satisfait le filtre.
+  const simple=shuffle(BANKS.simple).slice(0,2).map(f=>f());
+  const medium=shuffle(BANKS.medium).slice(0,2).map(f=>f());
+  const complex=shuffle(BANKS.complex).slice(0,2).map(f=>f());
+
+  return [...simple,...medium,...complex].map(q=>{
+    q.perimeter=perimeterOf(q);
+    return q;
+  });
+}
+
+function pathData(points){
+  return points.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ')+' Z';
+}
+
+function addLabel(parent,pos,text,className='edge-label'){
+  const g=svg('g',{class:className});
+  const width=Math.max(54,String(text).length*11.2+22);
+
+  const rect=svg('rect',{
+    x:pos[0]-width/2,
+    y:pos[1]-17,
+    width,
+    height:34
+  });
+
+  const label=svg('text',{x:pos[0],y:pos[1]+1});
+  label.textContent=text;
+
+  g.append(rect,label);
+  parent.appendChild(g);
+  return g;
+}
+
+function drawGuide(g,q){
+  const line=svg('line',{
+    x1:g.a[0],y1:g.a[1],
+    x2:g.b[0],y2:g.b[1],
+    class:'guide-line'+(g.dashed?' dashed':'')
+  });
+  scene.appendChild(line);
+
+  if(!g.dashed){
+    const vertical=Math.abs(g.a[0]-g.b[0])<5;
+    if(vertical){
+      scene.appendChild(svg('line',{
+        x1:g.a[0]-7,y1:g.a[1],x2:g.a[0]+7,y2:g.a[1],class:'guide-tick'
+      }));
+      scene.appendChild(svg('line',{
+        x1:g.b[0]-7,y1:g.b[1],x2:g.b[0]+7,y2:g.b[1],class:'guide-tick'
+      }));
+    }else{
+      scene.appendChild(svg('line',{
+        x1:g.a[0],y1:g.a[1]-7,x2:g.a[0],y2:g.a[1]+7,class:'guide-tick'
+      }));
+      scene.appendChild(svg('line',{
+        x1:g.b[0],y1:g.b[1]-7,x2:g.b[0],y2:g.b[1]+7,class:'guide-tick'
+      }));
+    }
+  }
+
+  addLabel(scene,g.pos,`${g.value} ${q.unit}`,'guide-label');
+}
+
+function missingDisplay(q,key){
+  const i=q.missing.findIndex(m=>m.key===key);
+  return q.missing.length===1 ? '?' : `?${i+1}`;
+}
+
+function drawQuestion(){
+  const q=questions[index];
+  scene.replaceChildren();
+
+  scene.appendChild(svg('path',{
+    d:pathData(q.points),
+    class:'shape'
+  }));
+
+  q.guides.forEach(g=>drawGuide(g,q));
+
+  q.edges.forEach(e=>{
+    let text=`${e.value} ${q.unit}`;
+    let cls='edge-label';
+
+    if(e.key){
+      if(Object.prototype.hasOwnProperty.call(resolved,e.key)){
+        text=`${resolved[e.key]} ${q.unit}`;
+        cls+=' found';
+      }else{
+        text=missingDisplay(q,e.key);
+        cls+=' missing';
+      }
+    }
+
+    addLabel(scene,e.pos,text,cls);
+  });
+}
+
+function currentStage(){
+  const q=questions[index];
+
+  if(stageIndex<q.missing.length){
+    return {
+      type:'missing',
+      item:q.missing[stageIndex],
+      number:stageIndex+1,
+      total:q.missing.length+1
+    };
+  }
+
+  return {
+    type:'perimeter',
+    answer:q.perimeter,
+    number:q.missing.length+1,
+    total:q.missing.length+1
+  };
+}
+
+function setFeedback(text,type=''){
+  feedback.className='feedback'+(type?' '+type:'');
+  feedback.textContent=text;
+}
+
+function setInputReady(){
+  answer.value='';
+  answer.disabled=false;
+  answer.className='answer-input';
+  validate.hidden=false;
+  validate.disabled=true;
+  continueBtn.hidden=true;
+  locked=false;
+  stageAttempts=0;
+  setTimeout(()=>answer.focus(),0);
+}
+
+function renderStage(){
+  const q=questions[index];
+  const stage=currentStage();
+
+  drawQuestion();
+  setInputReady();
+
+  if(stage.type==='missing'){
+    const mark=missingDisplay(q,stage.item.key);
+    instruction.innerHTML=
+      `Retrouve la longueur <strong>${mark}</strong>&nbsp;à partir des mesures indiquées.`;
+    answerLabel.textContent=`Longueur ${mark} =`;
+    answerUnit.textContent=q.unit;
+    attempt.textContent=`Étape ${stage.number} / ${stage.total} — Tu as 2 essais.`;
+    setFeedback('Observe les longueurs qui composent la longueur totale.');
+  }else{
+    instruction.innerHTML=
+      `Toutes les longueurs sont maintenant connues. Calcule le <strong>périmètre</strong>&nbsp;de la figure.`;
+    answerLabel.textContent='Périmètre =';
+    answerUnit.textContent=q.unit;
+    attempt.textContent=`Étape ${stage.number} / ${stage.total} — Tu as 2 essais.`;
+    setFeedback('Fais le tour complet de la figure et additionne les longueurs du contour.');
+  }
+}
+
+function renderQuestion(){
+  const q=questions[index];
+
+  stageIndex=0;
+  stageAttempts=0;
+  questionValue=1;
+  locked=false;
+  resolved={};
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  renderStage();
+}
+
+function revealMissing(key,value){
+  resolved[key]=value;
+  drawQuestion();
+}
+
+function stageSuccess(){
+  const q=questions[index];
+  const stage=currentStage();
+
+  answer.disabled=true;
+  answer.classList.add('correct');
+  validate.hidden=true;
+  continueBtn.hidden=false;
+  locked=true;
+
+  if(stage.type==='missing'){
+    revealMissing(stage.item.key,stage.item.answer);
+    setFeedback(`Correct : ${missingDisplay(q,stage.item.key)} = ${stage.item.answer} ${q.unit}.`,'success');
+  }else{
+    setFeedback(`Correct : le périmètre est ${q.perimeter} ${q.unit}.`,'success');
+  }
+
+  attempt.textContent=stageAttempts===1
+    ? 'Réussi au premier essai.'
+    : 'Réussi au deuxième essai.';
+
+  continueBtn.textContent=stage.type==='perimeter'
+    ? (index===TOTAL-1?'Voir mon résultat':'Question suivante')
+    : 'Continuer';
+}
+
+function stageCorrection(){
+  const q=questions[index];
+  const stage=currentStage();
+
+  answer.disabled=true;
+  answer.classList.add('wrong');
+  validate.hidden=true;
+  continueBtn.hidden=false;
+  locked=true;
+
+  if(stage.type==='missing'){
+    revealMissing(stage.item.key,stage.item.answer);
+    setFeedback(
+      `Correction : ${missingDisplay(q,stage.item.key)} = ${stage.item.answer} ${q.unit}. La valeur est reportée sur la figure.`,
+      'correction'
+    );
+  }else{
+    setFeedback(
+      `Correction : le périmètre est ${q.perimeter} ${q.unit}.`,
+      'correction'
+    );
+  }
+
+  attempt.textContent='Correction affichée.';
+  continueBtn.textContent=stage.type==='perimeter'
+    ? (index===TOTAL-1?'Voir mon résultat':'Question suivante')
+    : 'Continuer';
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  const q=questions[index];
+  const stage=currentStage();
+  const value=cleanNumber(answer.value);
+
+  if(!Number.isFinite(value)) return;
+
+  stageAttempts++;
+
+  const expected=stage.type==='missing' ? stage.item.answer : stage.answer;
+  const correct=Math.abs(value-expected)<1e-9;
+
+  if(correct){
+    stageSuccess();
+    return;
+  }
+
+  answer.classList.add('wrong');
+
+  if(stageAttempts===1){
+    questionValue=Math.min(questionValue,.5);
+
+    if(stage.type==='missing'){
+      setFeedback(`Pas encore. ${stage.item.hint}`,'error');
+    }else{
+      setFeedback(
+        'Pas encore. Vérifie que tu as fait tout le tour de la figure et utilisé toutes les longueurs du contour.',
+        'error'
+      );
+    }
+
+    attempt.textContent=`Étape ${stage.number} / ${stage.total} — Il te reste 1 essai.`;
+    answer.focus();
+    answer.select();
+    return;
+  }
+
+  questionValue=0;
+  stageCorrection();
+}
+
+function continueFlow(){
+  const q=questions[index];
+  const stage=currentStage();
+
+  if(stage.type==='missing'){
+    stageIndex++;
+    renderStage();
+    return;
+  }
+
+  score+=questionValue;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalTitle.textContent=score===TOTAL ? 'Bravo !' : 'Activité terminée';
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  finalHint.textContent=score===TOTAL
+    ? 'Tout est réussi !'
+    : `Encore un peu d’entraînement : rejoue pour viser ${TOTAL}/${TOTAL}.`;
+}
+
+function restartGame(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  stageIndex=0;
+  stageAttempts=0;
+  questionValue=1;
+  locked=false;
+  resolved={};
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  renderQuestion();
+}
+
+answer.addEventListener('input',()=>{
+  answer.value=answer.value.replace(/[^0-9.,]/g,'');
+  answer.classList.remove('wrong','correct');
+  validate.disabled=!answer.value.trim();
+});
+
+answer.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validate.disabled&&!locked){
+    validateAnswer();
+  }
+});
+
+validate.addEventListener('click',validateAnswer);
+continueBtn.addEventListener('click',continueFlow);
+restart.addEventListener('click',restartGame);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>
