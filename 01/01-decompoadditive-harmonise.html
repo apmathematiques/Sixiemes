@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Décomposition additive</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  text-align:center;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  margin:0;
+  min-height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--i);
+  font-size:clamp(1.02rem,1.9vw,1.28rem);
+  font-weight:750;
+  line-height:1.25;
+}
+
+.question strong{color:var(--bd)}
+
+.number{
+  min-width:250px;
+  padding:10px 24px;
+  color:var(--bd);
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:17px;
+  box-shadow:0 7px 18px rgba(17,63,103,.06);
+  font-size:clamp(2.2rem,5vw,3.6rem);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:.025em;
+  font-variant-numeric:tabular-nums;
+}
+
+.help{
+  max-width:900px;
+  min-height:25px;
+  margin:0;
+  color:var(--m);
+  font-size:clamp(.82rem,1.4vw,.95rem);
+  font-weight:600;
+  line-height:1.3;
+}
+
+.blocks{
+  width:100%;
+  min-height:92px;
+  padding:8px 10px;
+  display:flex;
+  flex-wrap:wrap;
+  align-content:center;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:16px;
+}
+
+.block{
+  min-height:42px;
+  min-width:0;
+  padding:0 12px;
+  border:2px solid #b9d4e8;
+  border-radius:12px;
+  background:#fff;
+  color:var(--bd);
+  font-size:clamp(.88rem,1.55vw,1.03rem);
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,background 120ms ease,border-color 120ms ease;
+}
+
+.block:hover:not(:disabled){
+  border-color:#74a9cf;
+}
+
+.block:active:not(:disabled){transform:scale(.98)}
+
+.block.selected{
+  background:var(--bs);
+  border-color:var(--b);
+  color:var(--bd);
+}
+
+.block:disabled{cursor:default}
+
+.answer-zone{
+  width:100%;
+  min-height:61px;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:6px;
+
+  background:#f8fbfe;
+  border:2px dashed #b9d4e8;
+  border-radius:15px;
+}
+
+.answer-zone.empty:after{
+  content:"Clique sur les termes de la décomposition";
+  color:#8798a8;
+  font-size:clamp(.82rem,1.45vw,.95rem);
+  font-style:italic;
+  font-weight:600;
+}
+
+.term{
+  padding:6px 10px;
+  color:var(--bd);
+  background:#fff;
+  border:1px solid #b9d4e8;
+  border-radius:10px;
+  font-size:clamp(.9rem,1.55vw,1.04rem);
+  font-weight:800;
+}
+
+.plus{
+  color:var(--bd);
+  font-size:1.15rem;
+  font-weight:900;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:50px;
+  padding:8px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(.88rem,1.45vw,1rem);
+  font-weight:650;
+  line-height:1.34;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.action{
+  min-height:46px;
+  min-width:132px;
+  padding:0 15px;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:.93rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.block:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.secondary{
+  color:var(--bd);
+  background:var(--bs);
+}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:7px 9px;
+    gap:5px;
+  }
+
+  .question{min-height:28px;font-size:.92rem}
+  .number{min-width:190px;padding:6px 18px;font-size:clamp(1.8rem,6vw,2.7rem)}
+  .help{min-height:20px;font-size:.73rem}
+
+  .blocks{
+    min-height:72px;
+    padding:5px 6px;
+    gap:5px;
+  }
+
+  .block{
+    min-height:35px;
+    padding:0 8px;
+    border-radius:9px;
+    font-size:.78rem;
+  }
+
+  .answer-zone{
+    min-height:48px;
+    padding:5px 7px;
+  }
+
+  .answer-zone.empty:after{font-size:.76rem}
+  .term{padding:4px 7px;font-size:.79rem}
+  .plus{font-size:.95rem}
+
+  #feedback{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.77rem;
+  }
+
+  .actions{min-height:42px;gap:6px}
+  .action{min-height:40px;min-width:105px;padding:0 10px;font-size:.8rem}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="question">Construis la <strong>&nbsp;décomposition additive&nbsp;</strong> de :</p>
+
+      <div class="number" id="number"></div>
+
+      <p class="help">Sélectionne uniquement les termes utiles. Clique de nouveau sur un terme pour le retirer.</p>
+
+      <div class="blocks" id="blocks"></div>
+
+      <div class="answer-zone empty" id="answerZone"></div>
+
+      <div id="feedback"></div>
+
+      <div class="actions">
+        <button class="action secondary" id="clearBtn" type="button">Effacer</button>
+        <button class="action" id="validateBtn" type="button">Valider</button>
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var questions=[],current=0,score=0,attempts=0,resolved=false,q=null,selected=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+
+function generateNumber(){
+  var digits=rand(4,12),s=String(rand(1,9));
+  for(var i=1;i<digits;i++)s+=String(rand(0,9));
+  if(digits>=6 && Math.random()<0.75){
+    var zeroCount=rand(1,Math.min(3,digits-2));
+    for(var z=0;z<zeroCount;z++){
+      var p=rand(1,digits-2);
+      s=s.slice(0,p)+"0"+s.slice(p+1);
+    }
+  }
+  return s;
+}
+
+function correctTerms(s){
+  var terms=[];
+  for(var i=0;i<s.length;i++){
+    var d=Number(s[i]);
+    if(d!==0)terms.push(d*Math.pow(10,s.length-1-i));
+  }
+  return terms;
+}
+
+function makeTrapTerms(s,correct){
+  var traps=[];
+  var len=s.length;
+
+  for(var i=0;i<len;i++){
+    var d=Number(s[i]);
+    if(d>0){
+      var power=len-1-i;
+      var wrongDigit=d===9?8:d+1;
+      var t=wrongDigit*Math.pow(10,power);
+      if(correct.indexOf(t)<0)traps.push(t);
+    }
+  }
+
+  for(var j=0;j<len;j++){
+    var dj=Number(s[j]);
+    if(dj>0){
+      var pj=len-1-j;
+      if(pj>0){
+        var right=dj*Math.pow(10,pj-1);
+        if(correct.indexOf(right)<0)traps.push(right);
+      }
+      if(pj<len-1){
+        var left=dj*Math.pow(10,pj+1);
+        if(correct.indexOf(left)<0)traps.push(left);
+      }
+    }
+  }
+
+  for(var k=0;k<len;k++){
+    if(s[k]==="0"){
+      var pk=len-1-k;
+      var fake=rand(1,9)*Math.pow(10,pk);
+      if(correct.indexOf(fake)<0)traps.push(fake);
+    }
+  }
+
+  var unique=[];
+  traps.forEach(function(x){if(unique.indexOf(x)<0)unique.push(x)});
+  shuffle(unique);
+  return unique.slice(0,Math.min(4,unique.length));
+}
+
+function makeQuestion(){
+  var s=generateNumber();
+  var correct=correctTerms(s);
+  var traps=makeTrapTerms(s,correct);
+  return {s:s,correct:correct,options:shuffle(correct.concat(traps))};
+}
+
+function makeQuestions(){
+  var a=[];for(var i=0;i<10;i++)a.push(makeQuestion());return a;
+}
+
+function sameSet(a,b){
+  if(a.length!==b.length)return false;
+  var x=a.slice().sort(function(m,n){return m-n});
+  var y=b.slice().sort(function(m,n){return m-n});
+  for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;
+  return true;
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+  el("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function showQuestion(){
+  q=questions[current];attempts=0;resolved=false;selected=[];updateHud();
+  el("number").textContent=fmt(q.s);
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").innerHTML="";
+  el("validateBtn").style.display="inline-flex";
+  el("clearBtn").style.display="inline-flex";
+  el("nextBtn").style.display="none";
+  renderBlocks();renderAnswer();
+}
+
+function renderBlocks(){
+  var box=el("blocks");box.innerHTML="";
+  q.options.forEach(function(value){
+    var b=document.createElement("button");
+    b.className="block"+(selected.indexOf(value)>=0?" selected":"");
+    b.textContent=fmt(value);
+    b.disabled=resolved;
+    b.onclick=function(){
+      var idx=selected.indexOf(value);
+      if(idx>=0)selected.splice(idx,1);else selected.push(value);
+      renderBlocks();renderAnswer();
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderAnswer(){
+  var zone=el("answerZone");zone.innerHTML="";
+  if(selected.length===0){zone.className="answer-zone empty";return}
+  zone.className="answer-zone";
+  var ordered=selected.slice().sort(function(a,b){return b-a});
+  ordered.forEach(function(v,i){
+    if(i>0){
+      var p=document.createElement("span");
+      p.className="plus";
+      p.textContent="+";
+      zone.appendChild(p);
+    }
+    var t=document.createElement("span");
+    t.className="term";
+    t.textContent=fmt(v);
+    zone.appendChild(t);
+  });
+}
+
+function hint(){
+  var missing=q.correct.filter(function(x){return selected.indexOf(x)<0});
+  var extras=selected.filter(function(x){return q.correct.indexOf(x)<0});
+  if(extras.length>0 && missing.length===0)return "Indice : tu as sélectionné au moins un terme en trop. Un chiffre 0 n'ajoute aucun terme à la décomposition.";
+  if(missing.length>0 && extras.length===0)return "Indice : il manque au moins une valeur. Pour chaque chiffre non nul, demande-toi quelle valeur il représente selon son rang.";
+  return "Indice : vérifie chaque chiffre non nul et son rang. Attention aux décalages d’un rang et aux zéros, qui ne donnent aucun terme.";
+}
+
+function validate(){
+  if(resolved)return;
+  if(selected.length===0)return;
+  var fb=el("feedback");
+
+  if(sameSet(selected,q.correct)){
+    resolved=true;
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! Bonne décomposition.";
+    }else{
+      score+=.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+    }
+    finish();
+  }else{
+    attempts++;
+    if(attempts===1){
+      fb.className="hint";
+      fb.textContent=hint();
+    }else{
+      resolved=true;
+      fb.className="error";
+      fb.innerHTML="<strong>Correction :</strong><div>"+q.correct.map(fmt).join(" + ")+"</div>";
+      finish();
+    }
+  }
+}
+
+function finish(){
+  updateHud();renderBlocks();
+  el("validateBtn").style.display="none";
+  el("clearBtn").style.display="none";
+  el("nextBtn").style.display="inline-flex";
+}
+
+function clearSelection(){
+  if(resolved)return;
+  selected=[];renderBlocks();renderAnswer();
+}
+
+function next(){
+  if(current<9){current++;showQuestion()}else showFinal();
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var m=score<=4.5
+    ?"Revois la valeur des chiffres selon leur rang, puis recommence."
+    :score<=7.5
+      ?"C’est en bonne voie ! Attention aux zéros et aux changements de rang."
+      :score<=9.5
+        ?"Très bon travail !"
+        :"Excellent ! Tu maîtrises la décomposition additive.";
+
+  el("advice").textContent=m;
+}
+
+function restart(){
+  current=0;score=0;attempts=0;resolved=false;questions=makeQuestions();
+  el("final").style.display="none";
+  el("game").style.display="flex";
+  showQuestion();
+}
+
+el("validateBtn").onclick=validate;
+el("clearBtn").onclick=clearSelection;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>

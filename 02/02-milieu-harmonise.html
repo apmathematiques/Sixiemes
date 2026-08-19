@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Milieu d'un segment</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --o:#9a5a11;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.instruction{
+  width:min(930px,100%);
+  min-height:54px;
+  padding:7px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  font-size:clamp(1.42rem,2.7vw,1.95rem);
+  font-weight:850;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{color:var(--bd)}
+
+.figure{
+  width:min(930px,100%);
+  min-height:275px;
+  max-height:315px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle,rgba(23,105,170,.11) 1px,transparent 1.3px);
+  background-size:20px 20px;
+  pointer-events:none;
+}
+
+.figure svg{
+  width:97%;
+  height:94%;
+  position:relative;
+  z-index:1;
+  overflow:visible;
+}
+
+.answers{
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.choice{
+  min-height:50px;
+  min-width:145px;
+  padding:0 24px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  color:var(--bd);
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+
+  font-size:clamp(1.25rem,2.3vw,1.6rem);
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:#9fc8e5;
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.98)}
+.choice:disabled{opacity:1;cursor:default}
+
+.choice.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:52px;
+  padding:8px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(1rem,1.65vw,1.18rem);
+  font-weight:650;
+  line-height:1.34;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.explain{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.choice:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:6px 8px;
+    gap:5px;
+  }
+
+  .instruction{
+    min-height:38px;
+    padding:4px 7px;
+    font-size:1.12rem;
+  }
+
+  .figure{
+    min-height:215px;
+    max-height:250px;
+  }
+
+  .answers{min-height:43px;gap:8px}
+
+  .choice{
+    min-height:40px;
+    min-width:110px;
+    padding:0 14px;
+    font-size:1rem;
+  }
+
+  #feedback{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.84rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.88rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <div class="instruction" id="instruction"></div>
+      <div class="figure" id="figure"></div>
+
+      <div class="answers">
+        <button class="choice" id="yesBtn" type="button">Oui</button>
+        <button class="choice" id="noBtn" type="button">Non</button>
+      </div>
+
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var current=0,score=0,answered=false,questions=[];
+
+function E(id){return document.getElementById(id)}
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function pointTick(x,y,label,dx,dy){
+  dx=dx===undefined?0:dx;
+  dy=dy===undefined?-18:dy;
+
+  return '<line x1="'+x+'" y1="'+(y-12)+'" x2="'+x+'" y2="'+(y+12)+'" stroke="#17212b" stroke-width="4"/>'+
+         '<text x="'+(x+dx)+'" y="'+(y+dy)+'" text-anchor="middle" font-size="24" font-weight="bold" fill="#0d4778">'+label+'</text>';
+}
+
+function cross(x,y,label){
+  return '<line x1="'+(x-10)+'" y1="'+(y-10)+'" x2="'+(x+10)+'" y2="'+(y+10)+'" stroke="#17212b" stroke-width="4"/>'+
+         '<line x1="'+(x-10)+'" y1="'+(y+10)+'" x2="'+(x+10)+'" y2="'+(y-10)+'" stroke="#17212b" stroke-width="4"/>'+
+         '<text x="'+(x+20)+'" y="'+(y-14)+'" font-size="24" font-weight="bold" fill="#0d4778">'+label+'</text>';
+}
+
+function tickOn(x1,y1,x2,y2,n){
+  var mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1;
+  var len=Math.sqrt(dx*dx+dy*dy),nx=-dy/len,ny=dx/len,s="";
+
+  for(var i=0;i<n;i++){
+    var off=(i-(n-1)/2)*11,cx=mx+dx/len*off,cy=my+dy/len*off;
+    s+='<line x1="'+(cx-nx*13)+'" y1="'+(cy-ny*13)+'" x2="'+(cx+nx*13)+'" y2="'+(cy+ny*13)+'" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>';
+  }
+
+  return s;
+}
+
+function seg(x1,y1,x2,y2){
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#1769aa" stroke-width="5.5" stroke-linecap="round"/>';
+}
+
+function prolongement(x1,y1,x2,y2){
+  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#8A94A6" stroke-width="4" stroke-dasharray="9 8"/>';
+}
+
+function makeQuestions(){
+  var q=[];
+
+  q.push({
+    point:"M",a:"A",b:"B",truth:true,
+    svg:seg(110,135,530,135)+pointTick(110,135,"A",-20,28)+pointTick(320,135,"M",0,-18)+pointTick(530,135,"B",20,28)+tickOn(110,135,320,135,2)+tickOn(320,135,530,135,2),
+    reason:"M appartient à [AB] et les codages indiquent AM = MB."
+  });
+
+  q.push({
+    point:"R",a:"S",b:"P",truth:false,
+    svg:seg(100,145,540,145)+pointTick(100,145,"S",-20,28)+pointTick(300,145,"R",0,-18)+pointTick(540,145,"P",20,28)+tickOn(100,145,300,145,1)+tickOn(300,145,540,145,2),
+    reason:"R appartient bien à [SP], mais SR et RP ne portent pas le même codage."
+  });
+
+  q.push({
+    point:"I",a:"C",b:"D",truth:false,
+    svg:seg(110,155,530,155)+pointTick(110,155,"C",-20,28)+pointTick(530,155,"D",20,28)+
+        seg(110,155,320,70)+seg(320,70,530,155)+cross(320,70,"I")+
+        tickOn(110,155,320,70,2)+tickOn(320,70,530,155,2),
+    reason:"IC = ID, mais I n’appartient pas au segment [CD]."
+  });
+
+  q.push({
+    point:"N",a:"E",b:"F",truth:true,
+    svg:seg(120,170,520,80)+pointTick(120,170,"E",-20,28)+pointTick(320,125,"N",0,-20)+pointTick(520,80,"F",20,-18)+
+        tickOn(120,170,320,125,1)+tickOn(320,125,520,80,1),
+    reason:"N appartient à [EF] et EN = NF."
+  });
+
+  q.push({
+    point:"T",a:"G",b:"H",truth:false,
+    svg:seg(90,135,330,135)+prolongement(330,135,500,135)+
+        pointTick(90,135,"G",-20,28)+pointTick(330,135,"H",0,-18)+pointTick(500,135,"T",0,-18)+
+        tickOn(90,135,330,135,1)+tickOn(330,135,500,135,1),
+    reason:"T n’appartient pas au segment [GH] : il est situé au-delà de H."
+  });
+
+  q.push({
+    point:"O",a:"J",b:"K",truth:false,
+    svg:seg(120,145,520,145)+pointTick(120,145,"J",-20,28)+pointTick(320,145,"O",0,-18)+pointTick(520,145,"K",20,28),
+    reason:"O appartient à [JK], mais aucun codage ni aucune longueur ne permet d’affirmer JO = OK."
+  });
+
+  q.push({
+    point:"U",a:"L",b:"M",truth:true,
+    svg:seg(115,85,525,190)+pointTick(115,85,"L",-20,-18)+pointTick(320,138,"U",0,-18)+pointTick(525,190,"M",20,28)+
+        tickOn(115,85,320,138,3)+tickOn(320,138,525,190,3),
+    reason:"U appartient à [LM] et LU = UM."
+  });
+
+  q.push({
+    point:"V",a:"P",b:"Q",truth:false,
+    svg:seg(100,150,540,150)+pointTick(100,150,"P",-20,28)+pointTick(285,150,"V",0,-18)+pointTick(540,150,"Q",20,28)+
+        tickOn(100,150,285,150,2)+tickOn(285,150,540,150,1),
+    reason:"V appartient à [PQ], mais PV ≠ VQ d’après les codages."
+  });
+
+  q.push({
+    point:"X",a:"R",b:"S",truth:true,
+    svg:seg(110,190,530,70)+pointTick(110,190,"R",-20,28)+pointTick(320,130,"X",0,-18)+pointTick(530,70,"S",20,-18)+
+        tickOn(110,190,320,130,2)+tickOn(320,130,530,70,2),
+    reason:"X appartient à [RS] et RX = XS."
+  });
+
+  q.push({
+    point:"Y",a:"A",b:"C",truth:false,
+    svg:seg(95,145,300,145)+prolongement(300,145,480,145)+
+        pointTick(95,145,"A",-20,28)+pointTick(300,145,"C",0,-18)+pointTick(480,145,"Y",0,-18)+
+        tickOn(95,145,300,145,2)+tickOn(300,145,480,145,2),
+    reason:"Y est à égale distance de A et C dans la figure codée, mais Y n’appartient pas au segment [AC] : il est au-delà de C."
+  });
+
+  return shuffle(q);
+}
+
+function updateHud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+  E("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function show(){
+  answered=false;
+  updateHud();
+
+  var q=questions[current];
+
+  E("instruction").innerHTML="Le point <strong>&nbsp;"+q.point+"&nbsp;</strong> est-il le milieu du segment <strong>&nbsp;["+q.a+q.b+"]&nbsp;</strong> ?";
+  E("figure").innerHTML='<svg viewBox="0 0 640 260">'+q.svg+'</svg>';
+
+  [E("yesBtn"),E("noBtn")].forEach(function(b){
+    b.disabled=false;
+    b.className="choice";
+  });
+
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("feedback").textContent="";
+  E("nextBtn").style.display="none";
+}
+
+function choose(value,btn){
+  if(answered)return;
+  answered=true;
+
+  var q=questions[current];
+  var ok=value===q.truth;
+  var correctBtn=q.truth?E("yesBtn"):E("noBtn");
+
+  correctBtn.classList.add("correct");
+  E("yesBtn").disabled=true;
+  E("noBtn").disabled=true;
+
+  var f=E("feedback");
+
+  if(ok){
+    score++;
+    updateHud();
+    f.className="success";
+    f.textContent="Bravo ! Bonne réponse.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.textContent=q.reason;
+  }
+
+  E("nextBtn").style.display="inline-flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    show();
+  }else{
+    done();
+  }
+}
+
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="grid";
+  E("finalScore").textContent=score+"/10";
+
+  E("advice").textContent=
+    score<=4
+    ?"Rappelle-toi : un milieu doit appartenir au segment et être à égale distance des deux extrémités."
+    :score<=7
+      ?"C’est en bonne voie ! Vérifie toujours les deux conditions."
+      :score<=9
+        ?"Très bon travail !"
+        :"Excellent ! Tu sais reconnaître le milieu d’un segment.";
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=makeQuestions();
+
+  E("final").style.display="none";
+  E("game").style.display="flex";
+
+  show();
+}
+
+E("yesBtn").onclick=function(){choose(true,this)};
+E("noBtn").onclick=function(){choose(false,this)};
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>

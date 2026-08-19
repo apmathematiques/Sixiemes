@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Maîtrise les notations</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --o:#9a5a11;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.title{
+  margin:0;
+  color:var(--bd);
+  font-size:clamp(1.35rem,2.5vw,1.8rem);
+  font-weight:900;
+  line-height:1.2;
+}
+
+.instruction{
+  width:min(930px,100%);
+  min-height:58px;
+  padding:8px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--i);
+  font-size:clamp(1.3rem,2.35vw,1.72rem);
+  font-weight:850;
+  line-height:1.3;
+}
+
+.workspace{
+  width:min(930px,100%);
+  min-height:200px;
+  padding:14px 16px;
+  position:relative;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.workspace:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle,rgba(23,105,170,.10) 1px,transparent 1.3px);
+  background-size:20px 20px;
+  pointer-events:none;
+  border-radius:18px;
+}
+
+.answer{
+  position:relative;
+  z-index:1;
+  min-height:78px;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--bd);
+  background:rgba(255,255,255,.94);
+  border:2px dashed #b9d4e8;
+  border-radius:14px;
+  font-size:clamp(2rem,4.4vw,3.2rem);
+  font-weight:900;
+  letter-spacing:2px;
+  line-height:1;
+}
+
+.answer.empty:after{
+  content:"Construis ta notation";
+  color:#8798a8;
+  font-size:clamp(1rem,1.8vw,1.18rem);
+  font-weight:650;
+  letter-spacing:0;
+  font-style:italic;
+}
+
+.tiles{
+  position:relative;
+  z-index:1;
+  min-height:78px;
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.tile{
+  min-width:64px;
+  min-height:50px;
+  padding:0 15px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:var(--bd);
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:12px;
+  font-size:clamp(1.4rem,2.8vw,2rem);
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.tile:hover:not(:disabled){
+  border-color:#9fc8e5;
+  transform:translateY(-1px);
+}
+
+.tile:active:not(:disabled){transform:scale(.98)}
+.tile:disabled{opacity:.45;cursor:default}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:52px;
+  padding:8px 14px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.34;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.action{
+  min-height:46px;
+  min-width:138px;
+  padding:0 15px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.tile:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.clear{
+  color:var(--bd);
+  background:var(--bs);
+}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:6px 8px;
+    gap:5px;
+  }
+
+  .title{font-size:1.12rem}
+
+  .instruction{
+    min-height:42px;
+    padding:4px 7px;
+    font-size:1.02rem;
+  }
+
+  .workspace{
+    min-height:155px;
+    padding:8px 9px;
+  }
+
+  .answer{
+    min-height:58px;
+    font-size:1.8rem;
+  }
+
+  .answer.empty:after{font-size:.82rem}
+
+  .tiles{
+    min-height:58px;
+    margin-top:7px;
+    gap:5px;
+  }
+
+  .tile{
+    min-width:48px;
+    min-height:38px;
+    padding:0 9px;
+    font-size:1.2rem;
+  }
+
+  #feedback{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.8rem;
+  }
+
+  .actions{min-height:41px;gap:6px}
+
+  .action{
+    min-height:40px;
+    min-width:106px;
+    padding:0 10px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <h1 class="title">Maîtrise les notations</h1>
+      <div class="instruction" id="instruction"></div>
+
+      <div class="workspace">
+        <div class="answer empty" id="answer"></div>
+        <div class="tiles" id="tiles"></div>
+      </div>
+
+      <div id="feedback"></div>
+
+      <div class="actions">
+        <button class="action clear" id="clearBtn" type="button">Effacer</button>
+        <button class="action" id="validateBtn" type="button">Valider</button>
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var current=0,score=0,attempts=0,resolved=false,answer=[],questions=[];
+
+function E(x){return document.getElementById(x)}
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=R(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+function letters(){
+  var s="ABCDEFGHJKLMNPRSTUV",a=s[R(0,s.length-1)],b=a;
+  while(b===a)b=s[R(0,s.length-1)];
+  return[a,b];
+}
+
+function makeQ(type){
+ var l=letters(),A=l[0],B=l[1];
+
+ if(type==="point"){
+   return{
+     type:type,A:A,B:B,
+     text:"Écris la notation du point "+A+".",
+     valid:[A],
+     tiles:[A,"(",")","[","]"]
+   };
+ }
+
+ if(type==="droite"){
+   return{
+     type:type,A:A,B:B,
+     text:"Écris la notation de la droite passant par "+A+" et "+B+".",
+     valid:["("+A+B+")","("+B+A+")"],
+     tiles:["(",")","[","]",A,B]
+   };
+ }
+
+ if(type==="segment"){
+   return{
+     type:type,A:A,B:B,
+     text:"Écris la notation du segment d’extrémités "+A+" et "+B+".",
+     valid:["["+A+B+"]","["+B+A+"]"],
+     tiles:["(",")","[","]",A,B]
+   };
+ }
+
+ return{
+   type:type,A:A,B:B,
+   text:"Écris la notation de la demi-droite d’origine "+A+" passant par "+B+".",
+   valid:["["+A+B+")","("+B+A+"]"],
+   tiles:["(",")","[","]",A,B]
+ };
+}
+
+function makeQuestions(){
+ var t=["point","point","droite","droite","segment","segment","demi","demi","demi","demi"];
+ return sh(t.map(makeQ));
+}
+
+function hud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+  E("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function renderAnswer(){
+  var a=E("answer");
+  a.textContent=answer.join("");
+  a.className=answer.length?"answer":"answer empty";
+}
+
+function renderTiles(){
+  var box=E("tiles");
+  box.innerHTML="";
+
+  sh(questions[current].tiles.slice()).forEach(function(v){
+    var b=document.createElement("button");
+    b.className="tile";
+    b.textContent=v;
+    b.type="button";
+
+    b.onclick=function(){
+      if(!resolved){
+        answer.push(v);
+        renderAnswer();
+      }
+    };
+
+    box.appendChild(b);
+  });
+}
+
+function show(){
+ attempts=0;
+ resolved=false;
+ answer=[];
+ hud();
+
+ var q=questions[current];
+ E("instruction").textContent=q.text;
+
+ renderAnswer();
+ renderTiles();
+
+ E("feedback").className="";
+ E("feedback").style.display="none";
+ E("feedback").textContent="";
+
+ E("validateBtn").style.display="inline-flex";
+ E("clearBtn").style.display="inline-flex";
+ E("nextBtn").style.display="none";
+}
+
+function hint(q,s){
+ if(q.type==="point"){
+   return"Indice : un point se désigne simplement par sa lettre majuscule.";
+ }
+ if(q.type==="droite"){
+   return"Indice : une droite se note avec deux parenthèses. L’ordre des lettres n’a pas d’importance.";
+ }
+ if(q.type==="segment"){
+   return"Indice : un segment se note avec deux crochets. L’ordre des lettres n’a pas d’importance.";
+ }
+ return"Indice : le crochet fermé doit être du côté de l’origine. La même demi-droite peut s’écrire dans les deux sens.";
+}
+
+function validate(){
+ if(resolved||answer.length===0)return;
+
+ var q=questions[current];
+ var s=answer.join("");
+ var ok=q.valid.indexOf(s)>=0;
+ var f=E("feedback");
+
+ if(ok){
+  resolved=true;
+
+  if(attempts===0){
+    score+=1;
+    f.className="success";
+    f.textContent="Bravo ! Bonne notation.";
+  }else{
+    score+=.5;
+    f.className="success";
+    f.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+  }
+
+  finish();
+ }else{
+  attempts++;
+
+  if(attempts===1){
+    f.className="hint";
+    f.textContent=hint(q,s);
+    answer=[];
+    renderAnswer();
+  }else{
+    resolved=true;
+    f.className="error";
+    f.innerHTML="<strong>Correction :</strong><div>"+q.valid.join(" ou ")+"</div>";
+    finish();
+  }
+ }
+}
+
+function finish(){
+ hud();
+
+ E("validateBtn").style.display="none";
+ E("clearBtn").style.display="none";
+ E("nextBtn").style.display="inline-flex";
+
+ var bs=E("tiles").querySelectorAll("button");
+ for(var i=0;i<bs.length;i++)bs[i].disabled=true;
+}
+
+function clear(){
+  if(!resolved){
+    answer=[];
+    renderAnswer();
+  }
+}
+
+function next(){
+  if(current<9){
+    current++;
+    show();
+  }else{
+    done();
+  }
+}
+
+function done(){
+ E("game").style.display="none";
+ E("final").style.display="grid";
+ E("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+ E("advice").textContent=
+   score<=4.5
+   ?"Revois les symboles et le rôle de l’origine d’une demi-droite."
+   :score<=7.5
+     ?"C’est en bonne voie ! Attention au crochet placé du côté de l’origine."
+     :score<=9.5
+       ?"Très bon travail !"
+       :"Excellent ! Tu maîtrises les notations géométriques.";
+}
+
+function restart(){
+ current=0;
+ score=0;
+ questions=makeQuestions();
+
+ E("final").style.display="none";
+ E("game").style.display="flex";
+
+ show();
+}
+
+E("clearBtn").onclick=clear;
+E("validateBtn").onclick=validate;
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>

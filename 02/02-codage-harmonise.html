@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Lire les codages</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --o:#9a5a11;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:10px 18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.instruction{
+  width:min(930px,100%);
+  min-height:52px;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  font-size:clamp(1.35rem,2.55vw,1.85rem);
+  font-weight:850;
+  line-height:1.25;
+}
+
+.figure{
+  width:min(930px,100%);
+  min-height:250px;
+  max-height:290px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle,rgba(23,105,170,.11) 1px,transparent 1.3px);
+  background-size:20px 20px;
+  pointer-events:none;
+}
+
+.figure svg{
+  width:97%;
+  height:94%;
+  position:relative;
+  z-index:1;
+  overflow:visible;
+}
+
+.answers{
+  width:min(930px,100%);
+  min-height:96px;
+
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.choice{
+  min-height:43px;
+  padding:0 14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:2px solid #b9d4e8;
+  border-radius:12px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.05rem,1.9vw,1.3rem);
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:var(--b);
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.99)}
+.choice:disabled{opacity:1;cursor:default}
+
+.choice.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:50px;
+  padding:8px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(.98rem,1.55vw,1.12rem);
+  font-weight:650;
+  line-height:1.34;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.explain{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+
+.action:focus-visible,
+.choice:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+
+  .instruction{
+    min-height:38px;
+    padding:3px 6px;
+    font-size:1.05rem;
+  }
+
+  .figure{
+    min-height:195px;
+    max-height:220px;
+  }
+
+  .answers{
+    min-height:74px;
+    gap:5px;
+  }
+
+  .choice{
+    min-height:34px;
+    padding:0 8px;
+    font-size:.84rem;
+  }
+
+  #feedback{
+    min-height:39px;
+    padding:5px 8px;
+    font-size:.78rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <div class="instruction">Quelle égalité peut-on affirmer grâce aux codages ?</div>
+      <div class="figure" id="figure"></div>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var current=0,score=0,answered=false,questions=[];
+
+function E(id){return document.getElementById(id)}
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+
+function tickOn(x1,y1,x2,y2,n){
+  var mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1;
+  var len=Math.sqrt(dx*dx+dy*dy),nx=-dy/len,ny=dx/len,s="";
+
+  for(var i=0;i<n;i++){
+    var off=(i-(n-1)/2)*11;
+    var cx=mx+dx/len*off,cy=my+dy/len*off;
+    s+='<line x1="'+(cx-nx*13)+'" y1="'+(cy-ny*13)+'" x2="'+(cx+nx*13)+'" y2="'+(cy+ny*13)+'" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>';
+  }
+
+  return s;
+}
+
+function point(x,y,l,dx,dy){
+  dx=dx===undefined?20:dx;
+  dy=dy===undefined?-14:dy;
+
+  return '<line x1="'+(x-9)+'" y1="'+(y-9)+'" x2="'+(x+9)+'" y2="'+(y+9)+'" stroke="#17212b" stroke-width="3.5"/>'+
+         '<line x1="'+(x-9)+'" y1="'+(y+9)+'" x2="'+(x+9)+'" y2="'+(y-9)+'" stroke="#17212b" stroke-width="3.5"/>'+
+         '<text x="'+(x+dx)+'" y="'+(y+dy)+'" font-size="23" font-weight="bold" fill="#0d4778" font-family="Arial">'+l+'</text>';
+}
+
+function segment(x1,y1,x2,y2,code){
+  var s='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#1769aa" stroke-width="5.5" stroke-linecap="round"/>';
+  if(code>0)s+=tickOn(x1,y1,x2,y2,code);
+  return s;
+}
+
+function q1(){
+  var svg=
+    segment(110,175,315,55,2)+
+    segment(315,55,520,175,1)+
+    segment(520,175,110,175,2)+
+    point(110,175,"A",-28,28)+point(315,55,"B",18,-12)+point(520,175,"C",18,28);
+
+  return {
+    svg:svg,
+    good:"AB = AC",
+    options:["AB = AC","AB = BC","AC = BC","AB = BA"],
+    explanation:"Les côtés [AB] et [AC] portent le même double codage."
+  };
+}
+
+function q2(){
+  var svg=
+    segment(95,155,225,75,1)+
+    segment(225,75,365,155,1)+
+    segment(365,155,535,95,2)+
+    point(95,155,"D",-28,24)+point(225,75,"E",15,-14)+point(365,155,"F",15,25)+point(535,95,"G",15,-14);
+
+  return {
+    svg:svg,
+    good:"DE = EF",
+    options:["DE = EF","EF = FG","DE = FG","DF = EG"],
+    explanation:"Les segments [DE] et [EF] portent le même codage simple."
+  };
+}
+
+function q3(){
+  var svg=
+    segment(85,130,220,90,2)+
+    segment(220,90,350,130,1)+
+    segment(350,130,520,80,2)+
+    point(85,130,"H",-28,22)+point(220,90,"I",15,-14)+point(350,130,"J",15,24)+point(520,80,"K",15,-14);
+
+  return {
+    svg:svg,
+    good:"HI = JK",
+    options:["HI = JK","IJ = JK","HI = IJ","HJ = IK"],
+    explanation:"Les segments [HI] et [JK] portent le même double codage."
+  };
+}
+
+function q4(){
+  var svg=
+    segment(115,85,300,60,1)+
+    segment(300,60,525,115,2)+
+    segment(525,115,395,205,1)+
+    segment(395,205,170,190,3)+
+    segment(170,190,115,85,2)+
+    point(115,85,"L",-28,-12)+point(300,60,"M",14,-14)+point(525,115,"N",14,-14)+
+    point(395,205,"P",14,28)+point(170,190,"Q",-28,28);
+
+  return {
+    svg:svg,
+    good:"LM = NP",
+    options:["LM = NP","MN = QL","PQ = LM","MN = NP"],
+    explanation:"Les segments [LM] et [NP] portent le même codage simple."
+  };
+}
+
+function q5(){
+  var svg=
+    segment(100,180,250,75,2)+
+    segment(250,75,400,180,2)+
+    segment(400,180,545,90,1)+
+    point(100,180,"R",-28,28)+point(250,75,"S",14,-14)+point(400,180,"T",14,28)+point(545,90,"U",14,-14);
+
+  return {
+    svg:svg,
+    good:"RS = ST",
+    options:["RS = ST","ST = TU","RS = TU","RT = SU"],
+    explanation:"Les segments [RS] et [ST] portent le même double codage."
+  };
+}
+
+function q6(){
+  var svg=
+    segment(95,95,260,70,3)+
+    segment(260,70,450,110,1)+
+    segment(450,110,540,205,3)+
+    point(95,95,"A",-28,-12)+point(260,70,"B",14,-14)+point(450,110,"C",14,-14)+point(540,205,"D",14,28);
+
+  return {
+    svg:svg,
+    good:"AB = CD",
+    options:["AB = CD","AB = BC","BC = CD","AC = BD"],
+    explanation:"Les segments [AB] et [CD] portent le même triple codage."
+  };
+}
+
+function q7(){
+  var svg=
+    segment(120,170,260,70,1)+
+    segment(260,70,430,100,2)+
+    segment(430,100,540,190,1)+
+    point(120,170,"E",-28,28)+point(260,70,"F",14,-14)+point(430,100,"G",14,-14)+point(540,190,"H",14,28);
+
+  return {
+    svg:svg,
+    good:"EF = GH",
+    options:["EF = GH","FG = GH","EF = FG","EG = FH"],
+    explanation:"Les segments [EF] et [GH] portent le même codage simple."
+  };
+}
+
+function q8(){
+  var svg=
+    segment(100,120,250,60,2)+
+    segment(250,60,400,120,3)+
+    segment(400,120,550,60,2)+
+    point(100,120,"I",-28,22)+point(250,60,"J",14,-14)+point(400,120,"K",14,24)+point(550,60,"L",14,-14);
+
+  return {
+    svg:svg,
+    good:"IJ = KL",
+    options:["IJ = KL","JK = KL","IJ = JK","IK = JL"],
+    explanation:"Les segments [IJ] et [KL] portent le même double codage."
+  };
+}
+
+function q9(){
+  var svg=
+    segment(120,185,270,75,1)+
+    segment(270,75,430,185,2)+
+    segment(430,185,535,95,1)+
+    point(120,185,"M",-28,28)+point(270,75,"N",14,-14)+point(430,185,"P",14,28)+point(535,95,"Q",14,-14);
+
+  return {
+    svg:svg,
+    good:"MN = PQ",
+    options:["MN = PQ","NP = PQ","MN = NP","MP = NQ"],
+    explanation:"Les segments [MN] et [PQ] portent le même codage simple."
+  };
+}
+
+function q10(){
+  var svg=
+    segment(95,150,225,75,2)+
+    segment(225,75,355,150,1)+
+    segment(355,150,500,80,2)+
+    segment(500,80,565,170,3)+
+    point(95,150,"R",-28,24)+point(225,75,"S",14,-14)+point(355,150,"T",14,24)+
+    point(500,80,"U",14,-14)+point(565,170,"V",14,28);
+
+  return {
+    svg:svg,
+    good:"RS = TU",
+    options:["RS = TU","ST = TU","RS = UV","ST = UV"],
+    explanation:"Les segments [RS] et [TU] portent le même double codage."
+  };
+}
+
+function makeQuestions(){
+  return shuffle([q1(),q2(),q3(),q4(),q5(),q6(),q7(),q8(),q9(),q10()]);
+}
+
+function renderFigure(q){
+  return '<svg viewBox="0 0 640 250">'+q.svg+'</svg>';
+}
+
+function updateHud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+  E("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function show(){
+  answered=false;
+  updateHud();
+
+  var q=questions[current];
+
+  E("figure").innerHTML=renderFigure(q);
+
+  var box=E("answers");
+  box.innerHTML="";
+
+  shuffle(q.options.slice()).forEach(function(o){
+    var b=document.createElement("button");
+    b.className="choice";
+    b.textContent=o;
+    b.dataset.v=o;
+    b.onclick=function(){choose(this)};
+    box.appendChild(b);
+  });
+
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("feedback").textContent="";
+  E("nextBtn").style.display="none";
+}
+
+function choose(btn){
+  if(answered)return;
+  answered=true;
+
+  var q=questions[current];
+  var ok=btn.dataset.v===q.good;
+  var buttons=E("answers").querySelectorAll("button");
+
+  for(var i=0;i<buttons.length;i++){
+    buttons[i].disabled=true;
+    if(buttons[i].dataset.v===q.good)buttons[i].classList.add("correct");
+  }
+
+  var f=E("feedback");
+
+  if(ok){
+    score++;
+    updateHud();
+    f.className="success";
+    f.textContent="Bravo ! Tu as bien lu le codage.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.innerHTML="<div>"+q.explanation+"</div><div>La bonne égalité est : <strong>"+q.good+"</strong>.</div>";
+  }
+
+  E("nextBtn").style.display="inline-flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    show();
+  }else{
+    done();
+  }
+}
+
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="grid";
+  E("finalScore").textContent=score+"/10";
+
+  E("advice").textContent=
+    score<=4
+    ?"Observe bien les petits traits : seuls des codages identiques permettent d’affirmer que deux longueurs sont égales."
+    :score<=7
+      ?"C’est en bonne voie ! Lis les codages avant de te fier à l’apparence de la figure."
+      :score<=9
+        ?"Très bon travail !"
+        :"Excellent ! Tu sais lire les codages.";
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=makeQuestions();
+
+  E("final").style.display="none";
+  E("game").style.display="flex";
+
+  show();
+}
+
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>
