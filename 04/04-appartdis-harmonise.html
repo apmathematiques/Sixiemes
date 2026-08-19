@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Appartenance au cercle et au disque</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:14px 20px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  width:min(930px,100%);
+  min-height:68px;
+  margin:0;
+  padding:8px 14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  font-size:clamp(1.55rem,2.9vw,2.1rem);
+  font-weight:850;
+  line-height:1.28;
+}
+
+.data{
+  width:min(820px,100%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.data span{
+  min-height:92px;
+  padding:16px 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--bd);
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:16px;
+
+  font-size:clamp(1.18rem,2.1vw,1.5rem);
+  font-weight:850;
+  line-height:1.35;
+
+  box-shadow:0 6px 16px rgba(17,63,103,.05);
+}
+
+.choice-row{
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+}
+
+.choice{
+  min-height:54px;
+  min-width:150px;
+  padding:0 26px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  color:var(--bd);
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+
+  font-size:clamp(1.25rem,2.3vw,1.6rem);
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:#9fc8e5;
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.98)}
+.choice:disabled{opacity:1;cursor:default}
+
+.choice.chosen{
+  outline:4px solid rgba(23,105,170,.16);
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:62px;
+  padding:9px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(1rem,1.7vw,1.18rem);
+  font-weight:650;
+  line-height:1.38;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:46px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.choice:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:8px 10px;
+    gap:8px;
+  }
+
+  .question{
+    min-height:48px;
+    padding:5px 8px;
+    font-size:1.18rem;
+  }
+
+  .data{
+    gap:8px;
+  }
+
+  .data span{
+    min-height:66px;
+    padding:9px 10px;
+    font-size:.92rem;
+  }
+
+  .choice-row{min-height:46px;gap:8px}
+
+  .choice{
+    min-height:42px;
+    min-width:112px;
+    padding:0 14px;
+    font-size:1rem;
+  }
+
+  #feedback{
+    min-height:44px;
+    padding:5px 8px;
+    font-size:.82rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(max-width:560px){
+  .data{grid-template-columns:1fr}
+  .data span{min-height:54px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="progress-bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="question" id="question"></p>
+
+      <div class="data">
+        <span id="distanceText"></span>
+        <span id="radiusText"></span>
+      </div>
+
+      <div class="choice-row">
+        <button class="choice" id="yesBtn" type="button">Oui</button>
+        <button class="choice" id="noBtn" type="button">Non</button>
+      </div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,attempts=0,resolved=false,questions=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t
+  }
+  return a
+}
+function fmt(n){
+  return Number.isInteger(n)?String(n):n.toFixed(1).replace(".",",")
+}
+
+function makeQuestion(decimal,useDiameter){
+  var target=choice(["circle","disk"]);
+  var relation=choice(["less","equal","greater"]);
+  var radius,dist;
+
+  if(decimal){
+    radius=rand(10,45)/10;
+
+    if(relation==="equal"){
+      dist=radius;
+    }else{
+      var delta=rand(1,8)/10;
+      dist=relation==="less"?radius-delta:radius+delta;
+      if(dist<=0.1)dist=0.2;
+      dist=Math.round(dist*10)/10;
+      if(dist===radius)dist+=relation==="less"?-0.1:0.1;
+    }
+  }else{
+    radius=rand(1,8);
+
+    if(relation==="equal"){
+      dist=radius;
+    }else if(relation==="less"){
+      dist=rand(1,Math.max(1,radius-1));
+      if(dist===radius)dist=Math.max(0,radius-1);
+    }else{
+      dist=rand(radius+1,Math.min(12,radius+5));
+    }
+  }
+
+  var answer;
+
+  if(target==="circle"){
+    answer=relation==="equal";
+  }else{
+    answer=relation==="less"||relation==="equal";
+  }
+
+  return{
+    target:target,
+    relation:relation,
+    radius:radius,
+    diameter:Math.round(radius*2*10)/10,
+    dist:dist,
+    answer:answer,
+    useDiameter:useDiameter
+  };
+}
+
+function buildQuestions(){
+  var decimalFlags=[false,false,false,false,false,false,false,true,true,true];
+  var measureFlags=[false,false,false,false,false,true,true,true,true,true];
+
+  shuffle(decimalFlags);
+  shuffle(measureFlags);
+
+  var out=[];
+
+  for(var i=0;i<10;i++){
+    out.push(makeQuestion(decimalFlags[i],measureFlags[i]));
+  }
+
+  return out;
+}
+
+function comparisonSymbol(q){
+  if(q.relation==="less")return "<";
+  if(q.relation==="equal")return "=";
+  return ">";
+}
+
+function correctionText(q){
+  var intro=q.useDiameter
+    ?"Le diamètre vaut "+fmt(q.diameter)+" cm, donc le rayon vaut "+fmt(q.radius)+" cm. "
+    :"Le rayon vaut "+fmt(q.radius)+" cm. ";
+
+  var cmp=fmt(q.dist)+" "+comparisonSymbol(q)+" "+fmt(q.radius)+". ";
+
+  if(q.relation==="equal"){
+    return intro+cmp+"Le point A appartient au cercle et au disque.";
+  }
+
+  if(q.relation==="less"){
+    return intro+cmp+"Le point A appartient au disque, mais pas au cercle.";
+  }
+
+  return intro+cmp+"Le point A n’appartient ni au cercle ni au disque.";
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+  el("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function showQuestion(){
+  attempts=0;
+  resolved=false;
+  updateHud();
+
+  var q=questions[current];
+
+  el("question").textContent=
+    "Le point A appartient-il au "+(q.target==="circle"?"cercle":"disque")+" de centre O ?";
+
+  el("distanceText").textContent="OA = "+fmt(q.dist)+" cm";
+
+  el("radiusText").textContent=q.useDiameter
+    ?"Le diamètre du "+(q.target==="circle"?"cercle":"disque")+" de centre O est de "+fmt(q.diameter)+" cm."
+    :"Le rayon du "+(q.target==="circle"?"cercle":"disque")+" de centre O est de "+fmt(q.radius)+" cm.";
+
+  el("yesBtn").disabled=false;
+  el("noBtn").disabled=false;
+  el("yesBtn").className="choice";
+  el("noBtn").className="choice";
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("nextBtn").style.display="none";
+}
+
+function answer(value){
+  if(resolved)return;
+
+  var q=questions[current];
+  var ok=value===q.answer;
+  var fb=el("feedback");
+
+  (value?el("yesBtn"):el("noBtn")).classList.add("chosen");
+
+  if(ok){
+    resolved=true;
+
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! "+correctionText(q);
+    }else{
+      score+=0.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point. "+correctionText(q);
+    }
+
+    finish();
+    return;
+  }
+
+  attempts++;
+
+  if(attempts===1){
+    fb.className="hint";
+    fb.textContent="Indice : compare la distance OA au rayon.";
+    fb.style.display="flex";
+
+    el("yesBtn").className="choice";
+    el("noBtn").className="choice";
+  }else{
+    resolved=true;
+    fb.className="error";
+    fb.innerHTML="<strong>Correction :</strong><div>"+correctionText(q)+"</div>";
+    finish();
+  }
+}
+
+function finish(){
+  updateHud();
+
+  el("yesBtn").disabled=true;
+  el("noBtn").disabled=true;
+
+  el("feedback").style.display="flex";
+  el("nextBtn").style.display="inline-flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var advice=score<=4.5
+    ?"Revois la différence entre cercle et disque, puis recommence."
+    :score<=7.5
+      ?"C’est en bonne voie ! Compare toujours OA au rayon."
+      :score<=9.5
+        ?"Très bon travail !"
+        :"Excellent ! Tu maîtrises l’appartenance au cercle et au disque.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="flex";
+
+  showQuestion();
+}
+
+el("yesBtn").onclick=function(){answer(true)};
+el("noBtn").onclick=function(){answer(false)};
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>

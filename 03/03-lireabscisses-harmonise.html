@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Lire une abscisse</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --o:#9a5a11;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:10px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  width:min(940px,100%);
+  min-height:48px;
+  margin:0;
+  padding:5px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--i);
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:850;
+  line-height:1.25;
+}
+
+.figure-wrap{
+  width:min(940px,100%);
+  min-height:190px;
+  max-height:225px;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure-wrap svg{
+  width:100%;
+  max-width:860px;
+  height:auto;
+  max-height:205px;
+  display:block;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:clamp(1.1rem,2vw,1.35rem);
+  font-weight:850;
+}
+
+.fraction-input{
+  display:grid;
+  grid-template-rows:auto 5px auto;
+  gap:6px;
+  align-items:center;
+  justify-items:center;
+}
+
+.fraction-input input{
+  width:122px;
+  height:50px;
+  border:2px solid #b9d4e8;
+  border-radius:12px;
+  text-align:center;
+  font-size:clamp(1.45rem,3vw,2rem);
+  font-weight:850;
+  color:var(--bd);
+  outline:none;
+  background:#fff;
+}
+
+.fraction-input input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.fraction-bar{
+  width:142px;
+  height:5px;
+  background:var(--i);
+  border-radius:4px;
+}
+
+.help{
+  color:var(--m);
+  font-size:clamp(.92rem,1.5vw,1.04rem);
+  font-weight:650;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:54px;
+  padding:8px 14px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:disabled{opacity:.55;cursor:default}
+.action:focus-visible,input:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+
+  .question{
+    min-height:36px;
+    padding:3px 6px;
+    font-size:1.12rem;
+  }
+
+  .figure-wrap{
+    min-height:145px;
+    max-height:165px;
+    padding:4px 7px;
+  }
+
+  .figure-wrap svg{max-height:155px}
+
+  .answer-label{font-size:.98rem}
+
+  .fraction-input{
+    gap:4px;
+    grid-template-rows:auto 4px auto;
+  }
+
+  .fraction-input input{
+    width:94px;
+    height:39px;
+    font-size:1.25rem;
+  }
+
+  .fraction-bar{width:110px;height:4px}
+  .help{font-size:.76rem}
+
+  #feedback{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.79rem;
+  }
+
+  .actions{min-height:40px}
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="progress-bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="question">Quelle est l’abscisse du point A&nbsp;?</p>
+
+      <div class="figure-wrap" id="figureWrap"></div>
+
+      <div class="answer-label">A a pour abscisse :</div>
+
+      <div class="fraction-input" aria-label="Saisir l'abscisse">
+        <input id="numInput" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Numérateur">
+        <div class="fraction-bar"></div>
+        <input id="denInput" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Dénominateur">
+      </div>
+
+      <div class="help">Pour un entier, laisse la case du bas vide.</div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="validateBtn" type="button">Valider</button>
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,attempts=0,resolved=false,questions=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function gcd(a,b){while(b){var t=b;b=a%b;a=t}return Math.abs(a)}
+function sameFraction(a,b,c,d){return b!==0 && d!==0 && a*d===c*b}
+
+function makeQuestion(mode){
+  var fractional=Math.random()<0.65;
+  var stepNum,stepDen;
+
+  if(fractional){
+    stepNum=1;
+    stepDen=rand(2,8);
+  }else{
+    stepNum=rand(1,4);
+    stepDen=1;
+  }
+
+  var firstLabelIndex;
+
+  if(mode==="zeroOne" || mode==="zeroOther"){
+    firstLabelIndex=0;
+  }else{
+    firstLabelIndex=rand(2,5);
+  }
+
+  var labelledGap;
+  var firstLabelValue;
+  var secondLabelValue;
+
+  if(mode==="zeroOne"){
+    firstLabelValue=0;
+    secondLabelValue=1;
+    labelledGap=stepDen;
+    stepNum=1;
+  }else if(mode==="zeroOther"){
+    firstLabelValue=0;
+    secondLabelValue=rand(2,10);
+
+    if(fractional){
+      labelledGap=secondLabelValue*stepDen;
+
+      if(labelledGap>10){
+        stepDen=choice([2,3,4,5]);
+        labelledGap=secondLabelValue*stepDen;
+      }
+    }else{
+      stepNum=choice([1,2]);
+      stepDen=1;
+      labelledGap=secondLabelValue/stepNum;
+
+      if(!Number.isInteger(labelledGap) || labelledGap<2 || labelledGap>10){
+        stepNum=1;
+        labelledGap=secondLabelValue;
+      }
+    }
+  }else{
+    firstLabelValue=rand(1,7);
+
+    if(fractional){
+      labelledGap=stepDen;
+      secondLabelValue=firstLabelValue+1;
+    }else{
+      labelledGap=rand(2,5);
+      secondLabelValue=firstLabelValue+labelledGap*stepNum;
+    }
+  }
+
+  var secondLabelIndex=firstLabelIndex+labelledGap;
+  var totalIntervals=Math.max(secondLabelIndex+rand(2,4),10);
+  totalIntervals=Math.min(totalIntervals,18);
+
+  if(secondLabelIndex>totalIntervals-2){
+    totalIntervals=secondLabelIndex+2;
+  }
+
+  var possiblePointIndices=[];
+
+  for(var i=0;i<=totalIntervals;i++){
+    if(i!==firstLabelIndex && i!==secondLabelIndex){
+      var valueNum=firstLabelValue*stepDen+(i-firstLabelIndex)*stepNum;
+      if(valueNum>=0)possiblePointIndices.push(i);
+    }
+  }
+
+  var pointIndex=choice(possiblePointIndices);
+  var pointNum=firstLabelValue*stepDen+(pointIndex-firstLabelIndex)*stepNum;
+  var pointDen=stepDen;
+  var g=gcd(pointNum,pointDen);
+
+  pointNum/=g;
+  pointDen/=g;
+
+  return{
+    stepNum:stepNum,
+    stepDen:stepDen,
+    firstLabelIndex:firstLabelIndex,
+    secondLabelIndex:secondLabelIndex,
+    firstLabelValue:firstLabelValue,
+    secondLabelValue:secondLabelValue,
+    totalIntervals:totalIntervals,
+    pointIndex:pointIndex,
+    pointNum:pointNum,
+    pointDen:pointDen
+  };
+}
+
+function buildQuestions(){
+  var modes=[
+    "zeroOne","zeroOne","zeroOne",
+    "zeroOther","zeroOther","zeroOther",
+    "nonZero","nonZero","nonZero","nonZero"
+  ];
+
+  for(var i=modes.length-1;i>0;i--){
+    var j=rand(0,i),t=modes[i];
+    modes[i]=modes[j];
+    modes[j]=t;
+  }
+
+  var out=[];
+  var seen={};
+
+  modes.forEach(function(mode){
+    var q,key;
+
+    do{
+      q=makeQuestion(mode);
+      key=[
+        mode,q.stepNum,q.stepDen,q.firstLabelValue,
+        q.secondLabelValue,q.firstLabelIndex,
+        q.secondLabelIndex,q.pointIndex
+      ].join("-");
+    }while(seen[key]);
+
+    seen[key]=true;
+    out.push(q);
+  });
+
+  return out;
+}
+
+function formatNumber(n){
+  return Number.isInteger(n)?String(n):String(n).replace(".",",");
+}
+
+function formatFraction(n,d){
+  return d===1?String(n):n+"/"+d;
+}
+
+function drawAxis(q){
+  var x0=40,x1=640,y=112,arrowEnd=675;
+  var step=(x1-x0)/q.totalIntervals;
+  var parts=[];
+
+  var lineStart=(q.firstLabelValue===0 && q.firstLabelIndex===0)?x0:(x0-20);
+
+  parts.push(`<line x1="${lineStart}" y1="${y}" x2="${arrowEnd}" y2="${y}" stroke="#17212b" stroke-width="5" stroke-linecap="round"/>`);
+  parts.push(`<path d="M ${arrowEnd-16} ${y-11} L ${arrowEnd} ${y} L ${arrowEnd-16} ${y+11}" fill="none" stroke="#17212b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+  for(var i=0;i<=q.totalIntervals;i++){
+    var x=x0+i*step;
+    parts.push(`<line x1="${x}" y1="${y-16}" x2="${x}" y2="${y+16}" stroke="#17212b" stroke-width="4"/>`);
+  }
+
+  var xA=x0+q.pointIndex*step;
+
+  parts.push(`<line x1="${xA-8}" y1="${y-8}" x2="${xA+8}" y2="${y+8}" stroke="#c63d3d" stroke-width="5" stroke-linecap="round"/>`);
+  parts.push(`<line x1="${xA-8}" y1="${y+8}" x2="${xA+8}" y2="${y-8}" stroke="#c63d3d" stroke-width="5" stroke-linecap="round"/>`);
+  parts.push(`<text x="${xA}" y="${y-30}" text-anchor="middle" font-size="28" font-weight="800" fill="#a32f2f">A</text>`);
+
+  var xL1=x0+q.firstLabelIndex*step;
+  var xL2=x0+q.secondLabelIndex*step;
+
+  parts.push(`<text x="${xL1}" y="${y+50}" text-anchor="middle" font-size="29" font-weight="750" fill="#17212b">${formatNumber(q.firstLabelValue)}</text>`);
+  parts.push(`<text x="${xL2}" y="${y+50}" text-anchor="middle" font-size="29" font-weight="750" fill="#17212b">${formatNumber(q.secondLabelValue)}</text>`);
+
+  return `<svg viewBox="0 0 700 205" role="img" aria-label="Demi-droite graduée avec un point A">${parts.join("")}</svg>`;
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+  el("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function showQuestion(){
+  attempts=0;
+  resolved=false;
+  updateHud();
+
+  var q=questions[current];
+
+  el("figureWrap").innerHTML=drawAxis(q);
+
+  el("numInput").value="";
+  el("denInput").value="";
+  el("numInput").disabled=false;
+  el("denInput").disabled=false;
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("validateBtn").disabled=false;
+  el("validateBtn").style.display="inline-flex";
+  el("nextBtn").style.display="none";
+
+  setTimeout(function(){el("numInput").focus()},0);
+}
+
+function readAnswer(){
+  var numText=el("numInput").value.trim();
+  var denText=el("denInput").value.trim();
+
+  if(numText==="")return null;
+
+  var a=Number(numText);
+  var b=denText===""?1:Number(denText);
+
+  if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0)return null;
+
+  return{num:a,den:b};
+}
+
+function validate(){
+  if(resolved)return;
+
+  var answer=readAnswer();
+  var fb=el("feedback");
+
+  if(!answer){
+    fb.className="error";
+    fb.textContent="Saisis un entier ou une fraction valide.";
+    fb.style.display="flex";
+    return;
+  }
+
+  var q=questions[current];
+  var ok=sameFraction(answer.num,answer.den,q.pointNum,q.pointDen);
+
+  if(ok){
+    resolved=true;
+
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! Tu as correctement lu l’abscisse du point A.";
+    }else{
+      score+=0.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.";
+    }
+
+    finish();
+    return;
+  }
+
+  attempts++;
+
+  if(attempts===1){
+    fb.className="hint";
+    fb.textContent="Indice : détermine d’abord le pas, puis compte les intervalles entre une graduation numérotée et le point A.";
+    fb.style.display="flex";
+    el("numInput").select();
+  }else{
+    resolved=true;
+    fb.className="error";
+    fb.innerHTML="<strong>Correction :</strong><div>Le point A a pour abscisse <strong>"+formatFraction(q.pointNum,q.pointDen)+"</strong>.</div>";
+    finish();
+  }
+}
+
+function finish(){
+  updateHud();
+
+  el("numInput").disabled=true;
+  el("denInput").disabled=true;
+
+  el("validateBtn").disabled=true;
+  el("validateBtn").style.display="none";
+
+  el("nextBtn").style.display="inline-flex";
+  el("feedback").style.display="flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var advice=score<=4.5
+    ?"Revois le pas et le comptage des intervalles, puis recommence."
+    :score<=7.5
+      ?"C’est en bonne voie ! Pense à partir d’une graduation numérotée."
+      :score<=9.5
+        ?"Très bon travail !"
+        :"Excellent ! Tu sais lire l’abscisse d’un point.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="flex";
+
+  showQuestion();
+}
+
+el("validateBtn").onclick=validate;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+el("numInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter")el("denInput").focus();
+});
+
+el("denInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter")validate();
+});
+
+restart();
+})();
+</script>
+</body>
+</html>

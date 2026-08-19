@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Reconnaître une fraction décimale</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#quizSection{
+  height:100%;
+  display:grid;
+  grid-template-rows:58px 1fr;
+}
+
+.topbar{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:11px 20px 7px;
+}
+
+.progress-wrap{display:contents}
+
+.progress-track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-fill{
+  width:20%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width .25s ease;
+}
+
+.progress-label,.score{
+  min-width:128px;
+  padding:7px 12px;
+
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+
+  font-size:.98rem;
+  font-weight:800;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.content{
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+
+  display:grid;
+  grid-template-rows:auto 1fr auto 46px;
+  gap:10px;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.instruction{
+  min-height:52px;
+  margin:0;
+  padding:4px 10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:900;
+  line-height:1.2;
+  text-align:center;
+}
+
+.fractions-grid{
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.fraction-card{
+  min-height:0;
+  padding:10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:2px solid #cfe1ef;
+  border-radius:15px;
+  background:#fff;
+  color:var(--bd);
+
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+
+  transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease;
+}
+
+.fraction-card:hover:not(.locked){
+  transform:translateY(-2px);
+  border-color:#9fc8e5;
+  box-shadow:0 7px 16px rgba(17,63,103,.08);
+}
+
+.fraction-card.selected{
+  border-color:var(--b);
+  background:var(--bs);
+  box-shadow:0 0 0 3px rgba(23,105,170,.11);
+}
+
+.fraction-card.correct{
+  border-color:var(--g);
+  background:var(--gs);
+}
+
+.fraction-card.wrong{
+  border-color:var(--r);
+  background:var(--rs);
+}
+
+.fraction-card.locked{
+  cursor:default;
+  opacity:1;
+}
+
+.fraction{
+  color:inherit;
+
+  display:inline-grid;
+  grid-template-rows:auto 4px auto;
+  align-items:center;
+  justify-items:center;
+
+  min-width:92px;
+
+  font-size:clamp(1.85rem,3.5vw,2.65rem);
+  line-height:1;
+  font-weight:900;
+}
+
+.fraction .bar{
+  width:100%;
+  min-width:84px;
+  height:4px;
+  margin:7px 0;
+
+  background:currentColor;
+  border-radius:3px;
+}
+
+.feedback{
+  width:min(920px,100%);
+  min-height:70px;
+  margin:0 auto;
+  padding:10px 15px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+
+  font-size:clamp(1rem,1.6vw,1.15rem);
+  font-weight:650;
+  line-height:1.38;
+  text-align:center;
+
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.feedback.show{display:flex}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback strong{
+  display:block;
+  margin:0;
+}
+
+.actions{
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#actionButton,
+#restartButton{
+  min-width:170px;
+  min-height:46px;
+  padding:0 18px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  background:var(--b);
+  color:#fff;
+
+  font-size:1.02rem;
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  transition:background .12s ease,transform .12s ease,opacity .12s ease;
+}
+
+#actionButton:hover:not(:disabled),
+#restartButton:hover:not(:disabled){
+  background:var(--bd);
+  transform:translateY(-1px);
+}
+
+#actionButton:disabled,
+#restartButton:disabled{
+  cursor:not-allowed;
+  opacity:.45;
+}
+
+#actionButton:focus-visible,
+#restartButton:focus-visible,
+.fraction-card:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+.final{
+  display:none;
+  height:100%;
+  padding:18px;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.final.show{display:flex}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final-title{
+  margin:0 0 14px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+.final-score{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+.final-text{
+  max-width:680px;
+  margin:0 auto 20px;
+
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  #quizSection{
+    grid-template-rows:48px 1fr;
+  }
+
+  .topbar{
+    grid-template-columns:1fr auto;
+    gap:5px;
+    padding:6px 8px 3px;
+  }
+
+  .progress-track{grid-column:1/-1}
+
+  .progress-label,.score{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.84rem;
+  }
+
+  .content{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    grid-template-rows:auto 1fr auto 40px;
+    gap:6px;
+  }
+
+  .instruction{
+    min-height:38px;
+    padding:2px 5px;
+    font-size:1.08rem;
+  }
+
+  .fractions-grid{
+    gap:6px;
+  }
+
+  .fraction-card{
+    padding:6px;
+    border-radius:10px;
+  }
+
+  .fraction{
+    min-width:68px;
+    font-size:1.45rem;
+    grid-template-rows:auto 3px auto;
+  }
+
+  .fraction .bar{
+    min-width:62px;
+    height:3px;
+    margin:4px 0;
+  }
+
+  .feedback{
+    min-height:48px;
+    padding:5px 8px;
+    font-size:.78rem;
+  }
+
+  .actions{min-height:40px}
+
+  #actionButton,
+  #restartButton{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(max-width:540px){
+  .fractions-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(4,minmax(0,1fr));
+  }
+
+  .fraction{
+    font-size:1.22rem;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 5</div>
+      </div>
+      <div class="score" id="scoreDisplay">Score : 0 / 5</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction">Clique sur toutes les fractions décimales.</p>
+
+      <div class="fractions-grid" id="fractionsGrid"></div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="actions">
+        <button id="actionButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div class="final-card">
+      <p class="final-title">Bilan final</p>
+      <div class="final-score" id="finalScore">0 / 5</div>
+      <p class="final-text" id="finalText"></p>
+      <button id="restartButton">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL_QUESTIONS = 5;
+  const CARDS_PER_QUESTION = 8;
+  const DECIMAL_DENOMINATORS = [10, 100, 1000, 10000];
+  const OTHER_DENOMINATORS = [2, 3, 4, 5, 6, 8, 9, 12, 20, 25, 40, 50, 75, 99, 200, 250, 500];
+
+  const grid = document.getElementById('fractionsGrid');
+  const feedback = document.getElementById('feedback');
+  const actionButton = document.getElementById('actionButton');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const quizSection = document.getElementById('quizSection');
+  const finalSection = document.getElementById('finalSection');
+  const finalScore = document.getElementById('finalScore');
+  const finalText = document.getElementById('finalText');
+  const restartButton = document.getElementById('restartButton');
+
+  let questionIndex = 0;
+  let score = 0;
+  let currentItems = [];
+  let answered = false;
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function makeNumerator(denominator) {
+    const max = Math.max(20, Math.min(9999, denominator * 3));
+    return randomInt(1, max);
+  }
+
+  function fractionKey(n, d) {
+    return `${n}/${d}`;
+  }
+
+  function generateQuestion() {
+    const goodCount = randomInt(2, 4);
+    const items = [];
+    const used = new Set();
+
+    while (items.length < goodCount) {
+      const denominator = DECIMAL_DENOMINATORS[randomInt(0, DECIMAL_DENOMINATORS.length - 1)];
+      const numerator = makeNumerator(denominator);
+      const key = fractionKey(numerator, denominator);
+      if (!used.has(key)) {
+        used.add(key);
+        items.push({ numerator, denominator, isDecimal: true, selected: false });
+      }
+    }
+
+    while (items.length < CARDS_PER_QUESTION) {
+      const denominator = OTHER_DENOMINATORS[randomInt(0, OTHER_DENOMINATORS.length - 1)];
+      const numerator = makeNumerator(denominator);
+      const key = fractionKey(numerator, denominator);
+      if (!used.has(key)) {
+        used.add(key);
+        items.push({ numerator, denominator, isDecimal: false, selected: false });
+      }
+    }
+
+    return shuffle(items);
+  }
+
+  function fractionHTML(numerator, denominator) {
+    return `
+      <span class="fraction" aria-label="${numerator} sur ${denominator}">
+        <span>${numerator.toLocaleString('fr-FR')}</span>
+        <span class="bar"></span>
+        <span>${denominator.toLocaleString('fr-FR')}</span>
+      </span>`;
+  }
+
+  function renderQuestion() {
+    answered = false;
+    currentItems = generateQuestion();
+    grid.innerHTML = '';
+    feedback.className = 'feedback';
+    feedback.innerHTML = '';
+    actionButton.textContent = 'Valider';
+    actionButton.disabled = true;
+
+    currentItems.forEach((item, index) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'fraction-card';
+      card.innerHTML = fractionHTML(item.numerator, item.denominator);
+      card.setAttribute('aria-pressed', 'false');
+      card.addEventListener('click', () => toggleCard(index, card));
+      grid.appendChild(card);
+    });
+
+    updateTopbar();
+  }
+
+  function toggleCard(index, card) {
+    if (answered) return;
+    currentItems[index].selected = !currentItems[index].selected;
+    card.classList.toggle('selected', currentItems[index].selected);
+    card.setAttribute('aria-pressed', String(currentItems[index].selected));
+    actionButton.disabled = !currentItems.some(item => item.selected);
+  }
+
+  function updateTopbar() {
+    progressLabel.textContent = `Question ${questionIndex + 1} / ${TOTAL_QUESTIONS}`;
+    progressFill.style.width = `${((questionIndex + 1) / TOTAL_QUESTIONS) * 100}%`;
+    scoreDisplay.textContent = `Score : ${score} / ${TOTAL_QUESTIONS}`;
+  }
+
+  function validateAnswer() {
+    answered = true;
+    const exact = currentItems.every(item => item.selected === item.isDecimal);
+    if (exact) score += 1;
+
+    [...grid.children].forEach((card, index) => {
+      const item = currentItems[index];
+      card.classList.remove('selected');
+      card.classList.add('locked');
+      card.disabled = true;
+
+      if (item.isDecimal) {
+        card.classList.add('correct');
+      } else if (item.selected) {
+        card.classList.add('wrong');
+      }
+    });
+
+    feedback.className = `feedback show ${exact ? 'success' : 'error'}`;
+    feedback.innerHTML = exact
+      ? '<strong>Très bien !</strong><div>Toutes les fractions choisies ont un dénominateur égal à 10, 100, 1 000 ou 10 000.</div>'
+      : '<strong>Correction</strong><div>Une fraction décimale a pour dénominateur 10, 100, 1 000, 10 000… Seul le dénominateur compte. Les fractions décimales apparaissent en vert ; les mauvaises sélections en rouge.</div>';
+
+    updateTopbar();
+    actionButton.textContent = questionIndex === TOTAL_QUESTIONS - 1 ? 'Voir le bilan' : 'Question suivante';
+    actionButton.disabled = false;
+  }
+
+  function nextStep() {
+    if (!answered) {
+      validateAnswer();
+      return;
+    }
+
+    if (questionIndex < TOTAL_QUESTIONS - 1) {
+      questionIndex += 1;
+      renderQuestion();
+    } else {
+      showFinal();
+    }
+  }
+
+  function showFinal() {
+    quizSection.style.display = 'none';
+    finalSection.classList.add('show');
+    finalScore.textContent = `${score} / ${TOTAL_QUESTIONS}`;
+
+    if (score === 5) {
+      finalText.textContent = 'Excellent ! Tu reconnais parfaitement les fractions décimales.';
+    } else if (score >= 3) {
+      finalText.textContent = 'C’est bien. Retiens qu’une fraction décimale a pour dénominateur 10, 100, 1 000, 10 000…';
+    } else {
+      finalText.textContent = 'Reprends la définition : pour reconnaître une fraction décimale, regarde uniquement son dénominateur.';
+    }
+  }
+
+  function restart() {
+    questionIndex = 0;
+    score = 0;
+    quizSection.style.display = '';
+    finalSection.classList.remove('show');
+    renderQuestion();
+  }
+
+  actionButton.addEventListener('click', nextStep);
+  restartButton.addEventListener('click', restart);
+
+  renderQuestion();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Chiffre ou nombre ?</title>
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#quizSection{
+  height:100%;
+  display:grid;
+  grid-template-rows:58px 1fr;
+}
+
+.topbar{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:11px 20px 7px;
+}
+
+.progress-wrap{display:contents}
+
+.progress-track{
+  height:12px;
+  background:#dceaf5;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width .2s ease;
+}
+
+.progress-label,.score{
+  min-width:128px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:var(--bs);
+  color:var(--bd);
+  font-size:.98rem;
+  font-weight:800;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.content{
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  grid-template-rows:auto 1fr auto auto;
+  grid-template-areas:
+    "instruction instruction"
+    "question keypad"
+    "feedback feedback"
+    "actions actions";
+  gap:10px 16px;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.instruction{
+  grid-area:instruction;
+  min-height:58px;
+  margin:0;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  text-align:center;
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:900;
+  line-height:1.2;
+}
+
+.question-panel{
+  grid-area:question;
+  min-height:0;
+  display:grid;
+  grid-template-rows:1fr 76px;
+  gap:12px;
+}
+
+.number-card{
+  min-height:0;
+  padding:14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+
+  color:var(--bd);
+  font-size:clamp(2.7rem,6vw,5rem);
+  font-weight:900;
+  letter-spacing:.02em;
+  text-align:center;
+
+  box-shadow:0 7px 18px rgba(17,63,103,.06);
+}
+
+.answer-display{
+  min-height:76px;
+  padding:8px 14px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#fff;
+  border:2px solid var(--b);
+  border-radius:15px;
+
+  color:var(--bd);
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:900;
+  letter-spacing:.03em;
+  text-align:center;
+
+  box-shadow:inset 0 0 0 3px rgba(23,105,170,.07);
+  overflow:hidden;
+}
+
+.answer-display.placeholder{
+  color:#8ea0af;
+  font-size:clamp(1.15rem,2vw,1.4rem);
+  font-weight:700;
+}
+
+.keypad{
+  grid-area:keypad;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(5,1fr);
+  gap:8px;
+}
+
+.key{
+  min-height:44px;
+  border:2px solid #cfe1ef;
+  border-radius:12px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.25rem,2.4vw,1.7rem);
+  font-weight:900;
+
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .1s ease,border-color .1s ease,background .1s ease;
+}
+
+.key:hover{
+  transform:translateY(-1px);
+  border-color:var(--b);
+  background:var(--bs);
+}
+
+.key:active{transform:translateY(0)}
+.key.wide{grid-column:1 / span 3}
+
+.key.utility{
+  font-size:clamp(.95rem,1.7vw,1.1rem);
+  font-weight:800;
+  background:var(--bs);
+}
+
+.feedback{
+  grid-area:feedback;
+  width:min(920px,100%);
+  min-height:56px;
+  margin:0 auto;
+  padding:8px 14px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(1rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.feedback:empty{visibility:hidden}
+.feedback.show{visibility:visible}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.hint{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+.feedback strong{
+  display:block;
+  margin:0;
+}
+
+.actions{
+  grid-area:actions;
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.main-button{
+  min-width:170px;
+  min-height:46px;
+  padding:0 18px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  background:var(--b);
+  color:#fff;
+
+  font-size:1.02rem;
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  transition:background .1s ease,transform .1s ease,opacity .1s ease;
+}
+
+.main-button:hover:not(:disabled){
+  background:var(--bd);
+  transform:translateY(-1px);
+}
+
+.main-button:disabled{
+  cursor:not-allowed;
+  opacity:.45;
+}
+
+.main-button:focus-visible,.key:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+.final{
+  display:none;
+  height:100%;
+  padding:18px;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  text-align:center;
+}
+
+.final.show{display:flex}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final-title{
+  margin-bottom:12px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+.final-score{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+.final-text{
+  max-width:680px;
+  margin:0 auto 20px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  #quizSection{grid-template-rows:48px 1fr}
+
+  .topbar{
+    grid-template-columns:1fr auto;
+    gap:5px;
+    padding:6px 8px 3px;
+  }
+
+  .progress-track{grid-column:1/-1}
+  .progress-label,.score{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.84rem;
+  }
+
+  .content{
+    margin:0 6px 6px;
+    padding:6px 8px;
+    gap:6px 8px;
+    grid-template-columns:1fr .88fr;
+    grid-template-rows:auto 1fr 44px 42px;
+  }
+
+  .instruction{
+    min-height:40px;
+    padding:3px 6px;
+    font-size:1.1rem;
+  }
+
+  .question-panel{
+    grid-template-rows:1fr 58px;
+    gap:7px;
+  }
+
+  .number-card{
+    font-size:clamp(2rem,6vw,3.2rem);
+    border-radius:13px;
+  }
+
+  .answer-display{
+    min-height:58px;
+    font-size:1.8rem;
+    border-radius:12px;
+  }
+
+  .answer-display.placeholder{font-size:.95rem}
+
+  .keypad{gap:5px}
+
+  .key{
+    min-height:34px;
+    border-radius:9px;
+    font-size:1.02rem;
+  }
+
+  .key.utility{font-size:.76rem}
+
+  .feedback{
+    min-height:44px;
+    padding:5px 8px;
+    font-size:.78rem;
+  }
+
+  .actions{min-height:40px}
+
+  .main-button{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+</style>
+</head>
+<body>
+<main class="app" aria-live="polite">
+  <section id="quizSection">
+    <div class="topbar">
+      <div class="progress-wrap">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">Question 1 / 10</div>
+      </div>
+      <div class="score" id="scoreLabel">Score : 0 / 10</div>
+    </div>
+
+    <div class="content">
+      <p class="instruction" id="instruction"></p>
+
+      <div class="question-panel">
+        <div class="number-card" id="numberCard"></div>
+        <div class="answer-display placeholder" id="answerDisplay">Ta réponse</div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button class="key" data-value="7">7</button>
+        <button class="key" data-value="8">8</button>
+        <button class="key" data-value="9">9</button>
+        <button class="key" data-value="4">4</button>
+        <button class="key" data-value="5">5</button>
+        <button class="key" data-value="6">6</button>
+        <button class="key" data-value="1">1</button>
+        <button class="key" data-value="2">2</button>
+        <button class="key" data-value="3">3</button>
+        <button class="key" data-value="0">0</button>
+        <button class="key utility" data-action="backspace">⌫</button>
+        <button class="key utility" data-action="clear">Effacer</button>
+        <button class="key utility wide" data-action="clear">Tout effacer</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="actions">
+        <button class="main-button" id="mainButton" disabled>Valider</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="finalSection">
+    <div class="final-card">
+      <div class="final-title">Exercice terminé</div>
+      <div class="final-score" id="finalScore">0 / 10</div>
+      <p class="final-text" id="finalText"></p>
+      <button class="main-button" id="restartButton">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const TOTAL = 10;
+
+  const RANKS = {
+    thousands:{label:"milliers", place:1000, kind:"integer"},
+    hundreds:{label:"centaines", place:100, kind:"integer"},
+    tens:{label:"dizaines", place:10, kind:"integer"},
+    tenths:{label:"dixièmes", scale:10, position:1, kind:"decimal"},
+    hundredths:{label:"centièmes", scale:100, position:2, kind:"decimal"},
+    thousandths:{label:"millièmes", scale:1000, position:3, kind:"decimal"}
+  };
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function randomInt(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function formatInteger(n){
+    return Number(n).toLocaleString("fr-FR");
+  }
+
+  function formatScore(n){
+    return Number.isInteger(n) ? String(n) : String(n).replace(".",",");
+  }
+
+  function makeNumberData(){
+    const intDigits = randomInt(2,5);
+    const min = 10 ** (intDigits-1);
+    const max = (10 ** intDigits)-1;
+    const integerPart = randomInt(min,max);
+    const decimalLength = randomInt(1,3);
+
+    let decimalDigits = "";
+    for(let i=0;i<decimalLength;i++){
+      decimalDigits += String(randomInt(0,9));
+    }
+    if(/^0+$/.test(decimalDigits)){
+      const pos = randomInt(0,decimalLength-1);
+      decimalDigits = decimalDigits.substring(0,pos) + String(randomInt(1,9)) + decimalDigits.substring(pos+1);
+    }
+
+    const padded3 = decimalDigits.padEnd(3,"0");
+    const scaled1000 = integerPart * 1000 + Number(padded3);
+    return {
+      integerPart,
+      decimalDigits,
+      padded3,
+      scaled1000,
+      display:`${formatInteger(integerPart)},${decimalDigits}`
+    };
+  }
+
+  function availableRanks(data){
+    const integerKeys = [];
+    if(data.integerPart >= 10) integerKeys.push("tens");
+    if(data.integerPart >= 100) integerKeys.push("hundreds");
+    if(data.integerPart >= 1000) integerKeys.push("thousands");
+    return [...integerKeys,"tenths","hundredths","thousandths"];
+  }
+
+  function digitAtRank(data,key){
+    const rank = RANKS[key];
+    if(rank.kind === "integer"){
+      return Math.floor(data.integerPart / rank.place) % 10;
+    }
+    return Number(data.padded3[rank.position-1]);
+  }
+
+  function countAtRank(data,key){
+    const rank = RANKS[key];
+    if(rank.kind === "integer"){
+      return Math.floor(data.integerPart / rank.place);
+    }
+    return Math.floor(data.scaled1000 / (1000 / rank.scale));
+  }
+
+  function makeQuestion(type){
+    const data = makeNumberData();
+    const ranks = availableRanks(data);
+    const rankKey = ranks[randomInt(0,ranks.length-1)];
+    const rank = RANKS[rankKey];
+    const answer = type === "digit"
+      ? digitAtRank(data,rankKey)
+      : countAtRank(data,rankKey);
+
+    return {
+      type,
+      data,
+      rankKey,
+      rank,
+      answer:String(answer),
+      instruction:type === "digit"
+        ? `Quel est le chiffre des ${rank.label} ?`
+        : `Quel est le nombre de ${rank.label} ?`,
+      hint:type === "digit"
+        ? `Cherche un seul chiffre, celui qui est écrit au rang des ${rank.label}.`
+        : `Compte toutes les ${rank.label} complètes contenues dans le nombre.`,
+      correction:type === "digit"
+        ? `Dans ${data.display}, le chiffre des ${rank.label} est <strong>${answer}</strong>.`
+        : `${data.display} contient <strong>${formatInteger(answer)}</strong> ${rank.label}.`
+    };
+  }
+
+  function buildQuestions(){
+    return shuffle([
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("digit"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count"),
+      makeQuestion("count")
+    ]);
+  }
+
+  let questions = buildQuestions();
+  let index = 0;
+  let score = 0;
+  let answer = "";
+  let attempt = 1;
+  let locked = false;
+
+  const quizSection = document.getElementById("quizSection");
+  const finalSection = document.getElementById("finalSection");
+  const instruction = document.getElementById("instruction");
+  const numberCard = document.getElementById("numberCard");
+  const answerDisplay = document.getElementById("answerDisplay");
+  const keypad = document.getElementById("keypad");
+  const feedback = document.getElementById("feedback");
+  const mainButton = document.getElementById("mainButton");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+  const scoreLabel = document.getElementById("scoreLabel");
+  const finalScore = document.getElementById("finalScore");
+  const finalText = document.getElementById("finalText");
+  const restartButton = document.getElementById("restartButton");
+
+  function currentQuestion(){
+    return questions[index];
+  }
+
+  function updateAnswerDisplay(){
+    if(answer){
+      answerDisplay.textContent = answer;
+      answerDisplay.classList.remove("placeholder");
+    }else{
+      answerDisplay.textContent = "Ta réponse";
+      answerDisplay.classList.add("placeholder");
+    }
+    mainButton.disabled = locked || answer.length === 0;
+  }
+
+  function render(){
+    const q = currentQuestion();
+    answer = "";
+    attempt = 1;
+    locked = false;
+    instruction.textContent = q.instruction;
+    numberCard.textContent = q.data.display;
+    feedback.className = "feedback";
+    feedback.innerHTML = "";
+    mainButton.textContent = "Valider";
+    progressLabel.textContent = `Question ${index+1} / ${TOTAL}`;
+    progressFill.style.width = `${((index+1)/TOTAL)*100}%`;
+    scoreLabel.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+    updateAnswerDisplay();
+  }
+
+  function appendValue(value){
+    if(locked || answer.length >= 12) return;
+    if(answer === "0") answer = value;
+    else answer += value;
+    updateAnswerDisplay();
+  }
+
+  function backspace(){
+    if(locked) return;
+    answer = answer.slice(0,-1);
+    updateAnswerDisplay();
+  }
+
+  function clearAnswer(){
+    if(locked) return;
+    answer = "";
+    updateAnswerDisplay();
+  }
+
+  function normalizedInteger(value){
+    const v = value.replace(/\s/g,"");
+    if(!/^\d+$/.test(v)) return null;
+    return String(Number(v));
+  }
+
+  function validate(){
+    if(locked || answer === "") return;
+    const q = currentQuestion();
+    const correct = normalizedInteger(answer) === q.answer;
+
+    if(correct){
+      locked = true;
+      score += attempt === 1 ? 1 : 0.5;
+      feedback.className = "feedback show success";
+      feedback.innerHTML = `<strong>✓</strong><div>${q.correction}</div>`;
+      scoreLabel.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+      mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+      mainButton.disabled = false;
+      return;
+    }
+
+    if(attempt === 1){
+      attempt = 2;
+      answer = "";
+      feedback.className = "feedback show hint";
+      feedback.innerHTML = `<strong>Indice</strong><div>${q.hint}</div>`;
+      mainButton.textContent = "Valider le 2ᵉ essai";
+      updateAnswerDisplay();
+    }else{
+      locked = true;
+      feedback.className = "feedback show error";
+      feedback.innerHTML = `<strong>✗</strong><div>${q.correction}</div>`;
+      mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
+      mainButton.disabled = false;
+    }
+  }
+
+  function next(){
+    if(!locked){
+      validate();
+      return;
+    }
+    index++;
+    if(index >= TOTAL){
+      showFinal();
+    }else{
+      render();
+    }
+  }
+
+  function showFinal(){
+    quizSection.style.display = "none";
+    finalSection.classList.add("show");
+    finalScore.textContent = `${formatScore(score)} / ${TOTAL}`;
+
+    if(score >= 9){
+      finalText.textContent = "Excellent ! Tu distingues très bien le chiffre d’un rang et le nombre d’unités de ce rang.";
+    }else if(score >= 7){
+      finalText.textContent = "Très bien. Reste attentif aux mots « chiffre » et « nombre » dans la consigne.";
+    }else if(score >= 4){
+      finalText.textContent = "Tu progresses. « Chiffre de » demande un seul chiffre ; « nombre de » demande combien d’unités du rang sont contenues.";
+    }else{
+      finalText.textContent = "Reprends calmement la distinction : un chiffre occupe une place, tandis qu’un nombre compte toutes les unités de ce rang.";
+    }
+  }
+
+  function restart(){
+    questions = buildQuestions();
+    index = 0;
+    score = 0;
+    finalSection.classList.remove("show");
+    quizSection.style.display = "";
+    render();
+  }
+
+  keypad.addEventListener("click",(e)=>{
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    if(btn.dataset.value !== undefined) appendValue(btn.dataset.value);
+    if(btn.dataset.action === "backspace") backspace();
+    if(btn.dataset.action === "clear") clearAnswer();
+  });
+
+  document.addEventListener("keydown",(e)=>{
+    if(finalSection.classList.contains("show")){
+      if(e.key === "Enter") restart();
+      return;
+    }
+    if(e.key >= "0" && e.key <= "9"){
+      e.preventDefault();
+      appendValue(e.key);
+    }else if(e.key === "Backspace"){
+      e.preventDefault();
+      backspace();
+    }else if(e.key === "Delete" || e.key === "Escape"){
+      e.preventDefault();
+      clearAnswer();
+    }else if(e.key === "Enter"){
+      e.preventDefault();
+      if(!mainButton.disabled) next();
+    }
+  });
+
+  mainButton.addEventListener("click",next);
+  restartButton.addEventListener("click",restart);
+
+  render();
+})();
+</script>
+</body>
+</html>
