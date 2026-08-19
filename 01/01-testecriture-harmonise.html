@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Se tester sur les règles</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:18px 24px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.title{
+  margin:0;
+  color:var(--i);
+  font-size:clamp(1.75rem,3.2vw,2.25rem);
+  font-weight:850;
+  line-height:1.2;
+}
+
+.prompt{
+  margin:0;
+  color:var(--m);
+  font-size:clamp(1.22rem,2.1vw,1.5rem);
+  font-weight:700;
+  line-height:1.3;
+}
+
+.choices{
+  width:min(940px,100%);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.choice{
+  min-height:128px;
+  padding:18px 18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:2px solid #b9d4e8;
+  border-radius:16px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.35rem,2.4vw,1.7rem);
+  font-weight:850;
+  line-height:1.35;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:var(--b);
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.99)}
+
+.choice:disabled{
+  cursor:default;
+  opacity:1;
+}
+
+.choice.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:58px;
+  padding:9px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(1.05rem,1.75vw,1.2rem);
+  font-weight:650;
+  line-height:1.36;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.explain{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1.05rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+
+.action:focus-visible,
+.choice:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:9px 11px;
+    gap:8px;
+  }
+
+  .title{font-size:1.38rem}
+  .prompt{font-size:1.02rem}
+
+  .choices{
+    gap:9px;
+  }
+
+  .choice{
+    min-height:88px;
+    padding:10px 9px;
+    font-size:1.02rem;
+  }
+
+  #feedback{
+    min-height:42px;
+    padding:6px 8px;
+    font-size:.88rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.9rem;
+  }
+}
+
+@media(max-width:560px){
+  .choices{
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+
+  .choice{
+    min-height:60px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <h1 class="title">Quelle écriture est correcte ?</h1>
+      <p class="prompt">Clique sur la bonne proposition.</p>
+
+      <div class="choices">
+        <button class="choice" id="choiceA" type="button"></button>
+        <button class="choice" id="choiceB" type="button"></button>
+      </div>
+
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var bank = [
+    {
+      good:"quatre-vingt-trois",
+      bad:"quatre-vingts-trois",
+      rule:"« vingt » ne prend pas de s lorsqu’il est suivi d’un autre nombre."
+    },
+    {
+      good:"quatre-vingts",
+      bad:"quatre-vingt",
+      rule:"« vingt » prend un s lorsqu’il est multiplié et qu’il termine le nombre."
+    },
+    {
+      good:"deux-cents",
+      bad:"deux-cent",
+      rule:"« cent » prend un s lorsqu’il est multiplié et qu’il termine le nombre."
+    },
+    {
+      good:"deux-cent-trois",
+      bad:"deux-cents-trois",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi d’un autre nombre."
+    },
+    {
+      good:"trois-mille",
+      bad:"trois-milles",
+      rule:"« mille » est invariable : il ne prend jamais de s."
+    },
+    {
+      good:"deux-millions",
+      bad:"deux-million",
+      rule:"« million » est un nom : il prend un s au pluriel."
+    },
+    {
+      good:"trois-milliards",
+      bad:"trois-milliard",
+      rule:"« milliard » est un nom : il prend un s au pluriel."
+    },
+    {
+      good:"cent-mille",
+      bad:"cents-mille",
+      rule:"Dans « cent-mille », « cent » n’est pas multiplié : il reste au singulier."
+    },
+    {
+      good:"deux-cent-mille",
+      bad:"deux-cents-mille",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi de « mille »."
+    },
+    {
+      good:"quatre-vingt-mille",
+      bad:"quatre-vingts-mille",
+      rule:"« vingt » ne prend pas de s lorsqu’il est suivi de « mille »."
+    },
+    {
+      good:"soixante-et-onze",
+      bad:"soixante et onze",
+      rule:"Les éléments du nombre composé sont reliés par des traits d’union."
+    },
+    {
+      good:"trente-et-un",
+      bad:"trente et un",
+      rule:"Les éléments du nombre composé sont reliés par des traits d’union."
+    },
+    {
+      good:"neuf-cent-quatre-vingt-douze",
+      bad:"neuf-cents-quatre-vingts-douze",
+      rule:"« cent » et « vingt » restent au singulier lorsqu’ils sont suivis d’un autre nombre."
+    },
+    {
+      good:"un-million-deux-cent-mille",
+      bad:"un-millions-deux-cents-mille",
+      rule:"« million » reste au singulier avec un ; « cent » ne prend pas de s devant « mille »."
+    },
+    {
+      good:"deux-milliards-trois-millions",
+      bad:"deux-milliard-trois-million",
+      rule:"« million » et « milliard » sont des noms : ils prennent un s au pluriel."
+    },
+    {
+      good:"huit-cent-millions",
+      bad:"huit-cents-millions",
+      rule:"« cent » ne prend pas de s lorsqu’il est suivi de « millions »."
+    }
+  ];
+
+  var questions=[];
+  var current=0;
+  var score=0;
+  var answered=false;
+
+  function el(id){return document.getElementById(id)}
+
+  function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function shuffle(array){
+    for(var i=array.length-1;i>0;i--){
+      var j=rand(0,i);
+      var t=array[i];
+      array[i]=array[j];
+      array[j]=t;
+    }
+    return array;
+  }
+
+  function makeQuestions(){
+    return shuffle(bank.slice()).slice(0,10);
+  }
+
+  function updateHud(){
+    el("progress").textContent="Question "+(current+1)+" / 10";
+    el("score").textContent="Score : "+score+" / 10";
+    el("bar").style.width=(((current+1)/10)*100)+"%";
+  }
+
+  function showQuestion(){
+    answered=false;
+    updateHud();
+
+    var q=questions[current];
+    var order=Math.random()<0.5;
+
+    el("choiceA").textContent=order?q.good:q.bad;
+    el("choiceA").dataset.correct=order?"yes":"no";
+
+    el("choiceB").textContent=order?q.bad:q.good;
+    el("choiceB").dataset.correct=order?"no":"yes";
+
+    el("choiceA").disabled=false;
+    el("choiceB").disabled=false;
+    el("choiceA").className="choice";
+    el("choiceB").className="choice";
+
+    el("feedback").className="";
+    el("feedback").style.display="none";
+    el("feedback").innerHTML="";
+
+    el("nextBtn").style.display="none";
+  }
+
+  function choose(button){
+    if(answered)return;
+    answered=true;
+
+    var q=questions[current];
+    var correct=button.dataset.correct==="yes";
+    var buttons=[el("choiceA"),el("choiceB")];
+
+    for(var i=0;i<buttons.length;i++){
+      buttons[i].disabled=true;
+      if(buttons[i].dataset.correct==="yes"){
+        buttons[i].classList.add("correct");
+      }
+    }
+
+    var fb=el("feedback");
+
+    if(correct){
+      score++;
+      updateHud();
+      fb.className="success";
+      fb.textContent="Bravo ! Bonne réponse.";
+    }else{
+      button.classList.add("wrong");
+      fb.className="explain";
+      fb.innerHTML="<strong>Règle :</strong><div>"+q.rule+"</div>";
+    }
+
+    el("nextBtn").style.display="inline-flex";
+  }
+
+  function next(){
+    if(current<9){
+      current++;
+      showQuestion();
+    }else{
+      showFinal();
+    }
+  }
+
+  function showFinal(){
+    el("game").style.display="none";
+    el("final").style.display="grid";
+    el("finalScore").textContent=score+"/10";
+
+    var msg;
+    if(score<=4)msg="Certaines règles sont encore à revoir. Tu peux recommencer pour t’entraîner.";
+    else if(score<=7)msg="C’est en bonne voie ! Encore quelques pièges à déjouer.";
+    else if(score<=9)msg="Très bon travail ! Tu connais bien les règles d’écriture.";
+    else msg="Excellent ! Les règles d’écriture n’ont plus de secret pour toi.";
+
+    el("advice").textContent=msg;
+  }
+
+  function restart(){
+    current=0;
+    score=0;
+    answered=false;
+    questions=makeQuestions();
+
+    el("final").style.display="none";
+    el("game").style.display="flex";
+
+    showQuestion();
+  }
+
+  el("choiceA").onclick=function(){choose(this)};
+  el("choiceB").onclick=function(){choose(this)};
+  el("nextBtn").onclick=next;
+  el("restartBtn").onclick=restart;
+
+  restart();
+})();
+</script>
+</body>
+</html>

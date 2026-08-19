@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Reconnais l’objet géométrique</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --o:#9a5a11;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:11px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.title{
+  margin:0;
+  color:var(--bd);
+  font-size:clamp(1.45rem,2.7vw,1.95rem);
+  font-weight:900;
+  line-height:1.2;
+}
+
+.prompt{
+  width:min(920px,100%);
+  margin:0;
+  color:var(--i);
+  font-size:clamp(1.15rem,2vw,1.4rem);
+  font-weight:750;
+  line-height:1.3;
+}
+
+.figure{
+  width:min(920px,100%);
+  min-height:245px;
+  max-height:285px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle,rgba(23,105,170,.11) 1px,transparent 1.3px);
+  background-size:20px 20px;
+  pointer-events:none;
+}
+
+.figure svg{
+  width:96%;
+  height:94%;
+  position:relative;
+  z-index:1;
+  overflow:visible;
+}
+
+.answers{
+  width:min(920px,100%);
+  min-height:98px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.choice{
+  min-height:43px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:var(--bd);
+  background:#fff;
+  border:2px solid #b9d4e8;
+  border-radius:12px;
+  font-size:clamp(1.15rem,2vw,1.4rem);
+  font-weight:850;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:var(--b);
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.99)}
+.choice:disabled{cursor:default;opacity:1}
+
+.choice.correct{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:52px;
+  padding:8px 14px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.34;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.explain{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.choice:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+  .title{font-size:1.18rem}
+  .prompt{font-size:.96rem}
+  .figure{
+    min-height:185px;
+    max-height:215px;
+  }
+  .answers{
+    min-height:76px;
+    gap:5px;
+  }
+  .choice{
+    min-height:35px;
+    padding:0 8px;
+    font-size:.9rem;
+  }
+  #feedback{
+    min-height:39px;
+    padding:5px 8px;
+    font-size:.79rem;
+  }
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(max-width:560px){
+  .answers{
+    grid-template-columns:1fr;
+    min-height:0;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <h1 class="title">Reconnais l’objet géométrique</h1>
+      <p class="prompt">Observe la figure, puis clique sur sa bonne notation.</p>
+      <div class="figure" id="figure"></div>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+      <button class="action" id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+var types=["point","droite","segment","demiAB","demiBA"],qs=[],current=0,score=0,answered=false;
+
+function E(x){return document.getElementById(x)}
+function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=R(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+function letters(){
+  var s="ABCDEFGHJKLMNPRSTUV",a=s[R(0,s.length-1)],b=a;
+  while(b===a)b=s[R(0,s.length-1)];
+  return[a,b];
+}
+
+function make(){
+  var list=[];
+  for(var i=0;i<10;i++){
+    var l=letters();
+    list.push({type:types[i%5],A:l[0],B:l[1],tilt:R(-22,22)});
+  }
+  return sh(list);
+}
+
+function note(q,t){
+  if(t==="point") return q.A;
+  if(t==="droite") return "("+q.A+q.B+")";
+  if(t==="segment") return "["+q.A+q.B+"]";
+  if(t==="demiAB") return "["+q.A+q.B+")";
+  return "["+q.B+q.A+")";
+}
+
+function pointMark(x,label){
+  return '<line x1="'+x+'" y1="86" x2="'+x+'" y2="114" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>'+
+         '<text x="'+x+'" y="72" text-anchor="middle" font-size="25" font-weight="bold" fill="#0d4778" font-family="Arial">'+label+'</text>';
+}
+
+function fig(q){
+  if(q.type==="point"){
+    return '<svg viewBox="0 0 600 200">'+
+           '<g transform="rotate('+q.tilt+' 300 100)">'+
+           '<line x1="288" y1="88" x2="312" y2="112" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>'+
+           '<line x1="288" y1="112" x2="312" y2="88" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>'+
+           '<text x="325" y="82" text-anchor="middle" font-size="27" font-weight="bold" fill="#0d4778" font-family="Arial">'+q.A+'</text>'+
+           '</g></svg>';
+  }
+
+  var ax=210,bx=390,x1,x2;
+
+  if(q.type==="droite"){
+    x1=45;x2=555;
+  }else if(q.type==="segment"){
+    x1=ax;x2=bx;
+  }else if(q.type==="demiAB"){
+    x1=ax;x2=555;
+  }else{
+    x1=45;x2=bx;
+  }
+
+  return '<svg viewBox="0 0 600 200">'+
+         '<g transform="rotate('+q.tilt+' 300 100)">'+
+         '<line x1="'+x1+'" y1="100" x2="'+x2+'" y2="100" stroke="#1769aa" stroke-width="5.5" stroke-linecap="round"/>'+
+         pointMark(ax,q.A)+pointMark(bx,q.B)+
+         '</g></svg>';
+}
+
+function exp(q){
+  var good=note(q,q.type);
+
+  if(q.type==="point"){
+    return "C’est le point "+q.A+". Un point se désigne par une lettre majuscule : "+good+".";
+  }
+
+  if(q.type==="droite"){
+    return "C’est une droite : elle dépasse des deux côtés. Elle se note "+good+".";
+  }
+
+  if(q.type==="segment"){
+    return "C’est un segment : il est limité par ses deux extrémités. Il se note "+good+".";
+  }
+
+  if(q.type==="demiAB"){
+    return "C’est une demi-droite d’origine "+q.A+" passant par "+q.B+" : elle se note "+good+".";
+  }
+
+  return "C’est une demi-droite d’origine "+q.B+" passant par "+q.A+" : elle se note "+good+".";
+}
+
+function hud(){
+  E("progress").textContent="Question "+(current+1)+" / 10";
+  E("score").textContent="Score : "+score+" / 10";
+  E("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function show(){
+  answered=false;
+  hud();
+
+  var q=qs[current];
+  E("figure").innerHTML=fig(q);
+
+  var box=E("answers");
+  box.innerHTML="";
+
+  var proposalTypes;
+
+  if(q.type==="point"){
+    proposalTypes=["point","pointParen","pointCrochet","pointDemi"];
+  }else{
+    proposalTypes=["droite","segment","demiAB","demiBA"];
+  }
+
+  sh(proposalTypes.slice()).forEach(function(t){
+    var b=document.createElement("button");
+    b.className="choice";
+    b.type="button";
+
+    if(t==="pointParen") b.textContent="("+q.A+")";
+    else if(t==="pointCrochet") b.textContent="["+q.A+"]";
+    else if(t==="pointDemi") b.textContent="["+q.A+")";
+    else b.textContent=note(q,t);
+
+    b.dataset.t=t;
+    b.onclick=function(){choose(this)};
+    box.appendChild(b);
+  });
+
+  E("feedback").className="";
+  E("feedback").style.display="none";
+  E("feedback").textContent="";
+  E("nextBtn").style.display="none";
+}
+
+function choose(btn){
+  if(answered)return;
+  answered=true;
+
+  var q=qs[current];
+  var ok=btn.dataset.t===q.type;
+  var buttons=E("answers").querySelectorAll("button");
+
+  for(var i=0;i<buttons.length;i++){
+    buttons[i].disabled=true;
+    if(buttons[i].dataset.t===q.type)buttons[i].classList.add("correct");
+  }
+
+  var f=E("feedback");
+
+  if(ok){
+    score++;
+    hud();
+    f.className="success";
+    f.textContent="Bravo ! Bonne réponse.";
+  }else{
+    btn.classList.add("wrong");
+    f.className="explain";
+    f.textContent=exp(q);
+  }
+
+  E("nextBtn").style.display="inline-flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    show();
+  }else{
+    done();
+  }
+}
+
+function done(){
+  E("game").style.display="none";
+  E("final").style.display="grid";
+  E("finalScore").textContent=score+"/10";
+
+  E("advice").textContent=
+    score<=4
+    ?"Revois les symboles utilisés pour noter les objets géométriques."
+    :score<=7
+      ?"C’est en bonne voie ! Attention aux crochets, aux parenthèses et à l’origine des demi-droites."
+      :score<=9
+        ?"Très bon travail !"
+        :"Excellent ! Tu maîtrises les notations.";
+}
+
+function restart(){
+  current=0;
+  score=0;
+  qs=make();
+
+  E("final").style.display="none";
+  E("game").style.display="flex";
+
+  show();
+}
+
+E("nextBtn").onclick=next;
+E("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>

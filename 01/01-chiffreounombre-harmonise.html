@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Chiffre ou nombre ?</title>
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:16px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.instruction{
+  max-width:900px;
+  margin:0;
+  color:var(--i);
+  font-size:clamp(1.08rem,2vw,1.35rem);
+  font-weight:750;
+  line-height:1.3;
+}
+
+.instruction .note{
+  display:block;
+  margin-top:5px;
+  color:var(--m);
+  font-size:.76em;
+  font-weight:600;
+  line-height:1.35;
+}
+
+.instruction strong{color:var(--bd)}
+
+.item-box{
+  min-width:260px;
+  max-width:90%;
+  min-height:150px;
+  padding:20px 34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 8px 20px rgba(17,63,103,.07);
+}
+
+#item{
+  color:var(--bd);
+  font-size:clamp(3.2rem,8vw,5.35rem);
+  font-weight:900;
+  line-height:1;
+  letter-spacing:.035em;
+  overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;
+}
+
+.choice-row{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+button{
+  min-height:48px;
+  min-width:170px;
+  padding:0 18px;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button:hover:not(:disabled){filter:brightness(1.03)}
+button:active:not(:disabled){transform:scale(.98)}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.choice-row button{
+  min-width:190px;
+  font-size:1.06rem;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:54px;
+  padding:10px 16px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-radius:14px;
+  font-size:clamp(.92rem,1.55vw,1.04rem);
+  font-weight:650;
+  line-height:1.36;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.error{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+  text-align:center;
+}
+
+.fb-question{
+  color:#8a4d08;
+  font-weight:850;
+  width:100%;
+  margin:0;
+}
+
+.fb-hint{
+  color:#9a5a11;
+  font-weight:650;
+  width:100%;
+  margin:0;
+}
+
+.fb-correction{
+  width:100%;
+  margin:0;
+  color:#6f3e08;
+  font-weight:750;
+}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+  #app{min-height:0;max-height:calc(100vh - 8px);border-radius:15px}
+  .hud{grid-template-columns:1fr auto;padding:6px 8px 3px;gap:5px}
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+  .card{margin:0 6px 6px;padding:10px 12px;gap:8px}
+  .instruction{font-size:.96rem}
+  .item-box{min-width:210px;min-height:110px;padding:14px 24px}
+  #item{font-size:clamp(2.5rem,9vw,4.15rem)}
+  .choice-row{gap:8px}
+  .choice-row button{min-width:145px;min-height:44px;font-size:.9rem}
+  #feedback{min-height:42px;padding:6px 9px;font-size:.82rem}
+  button{min-height:44px;min-width:145px;font-size:.9rem}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression"><div class="bar" id="bar"></div></div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="instruction">
+        Clique sur la bonne réponse.
+        <span class="note">Dans cet exercice, une écriture composée d’un seul chiffre est à classer dans <strong>CHIFFRE</strong> et non dans <strong>NOMBRE</strong>.</span>
+      </p>
+
+      <div class="item-box"><div id="item">---</div></div>
+
+      <div class="choice-row" id="choices">
+        <button type="button" data-choice="CHIFFRE">CHIFFRE</button>
+        <button type="button" data-choice="NOMBRE">NOMBRE</button>
+      </div>
+
+      <div id="feedback"></div>
+      <button id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore">0/10</div>
+      <div id="advice"></div>
+      <button id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function() {
+  var maxQuestions = 10;
+  var score = 0;
+  var current = 0;
+  var questions = [];
+  var answered = false;
+
+  function el(id) { return document.getElementById(id); }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shuffle(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = rand(0, i);
+      var temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+    return array;
+  }
+
+  function formatNumberString(s) {
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  }
+
+  function randomNumberString() {
+    var digits = rand(2, 12);
+    var s = String(rand(1, 9));
+    for (var i = 1; i < digits; i++) {
+      s += String(rand(0, 9));
+    }
+    return formatNumberString(s);
+  }
+
+  function makeQuestions() {
+    var list = [];
+
+    var digitPool = shuffle(["0","1","2","3","4","5","6","7","8","9"].slice());
+    for (var i = 0; i < 3; i++) {
+      list.push({ display: digitPool[i], type: "CHIFFRE" });
+    }
+
+    for (var j = 0; j < 6; j++) {
+      list.push({ display: randomNumberString(), type: "NOMBRE" });
+    }
+
+    var traps = ["007", "003", "0008", "042", "009", "0015"];
+    list.push({
+      display: traps[rand(0, traps.length - 1)],
+      type: "NOMBRE",
+      trap: true
+    });
+
+    return shuffle(list);
+  }
+
+  function updateHud() {
+    el("progress").textContent = "Question " + (current + 1) + " / " + maxQuestions;
+    el("score").textContent = "Score : " + score + " / 10";
+    el("bar").style.width = (((current + 1) / maxQuestions) * 100) + "%";
+  }
+
+  function showQuestion() {
+    answered = false;
+    updateHud();
+
+    var q = questions[current];
+    el("item").textContent = q.display;
+
+    el("feedback").className = "";
+    el("feedback").style.display = "none";
+    el("feedback").innerHTML = "";
+
+    el("choices").style.display = "flex";
+    el("nextBtn").style.display = "none";
+  }
+
+  function choose(choice) {
+    if (answered) return;
+    answered = true;
+
+    var q = questions[current];
+    var feedback = el("feedback");
+
+    if (choice === q.type) {
+      score++;
+      el("score").textContent = "Score : " + score + " / 10";
+      feedback.className = "success";
+      feedback.textContent = "Bravo ! Bonne réponse.";
+    } else {
+      feedback.className = "error";
+
+      var correction;
+      if (q.type === "CHIFFRE") {
+        correction = q.display + " est un chiffre.";
+      } else if (q.trap) {
+        correction = q.display + " est écrit avec plusieurs chiffres : on le classe ici parmi les nombres.";
+      } else {
+        correction = q.display + " est un nombre.";
+      }
+
+      feedback.innerHTML =
+        '<div class="fb-question">Quelle est la différence entre un chiffre et un nombre ?</div>' +
+        '<div class="fb-hint"><strong>Indice :</strong> les chiffres sont les équivalents des lettres pour écrire les nombres.</div>' +
+        '<div class="fb-correction"><strong>Correction :</strong><br>' + correction + '</div>';
+    }
+
+    el("choices").style.display = "none";
+    el("nextBtn").style.display = "block";
+  }
+
+  function next() {
+    if (current < maxQuestions - 1) {
+      current++;
+      showQuestion();
+    } else {
+      showFinal();
+    }
+  }
+
+  function showFinal() {
+    el("game").style.display = "none";
+    el("final").style.display = "grid";
+    el("finalScore").textContent = score + "/10";
+
+    var msg;
+    if (score <= 4) msg = "Tu peux revoir la différence entre chiffre et nombre, puis recommencer.";
+    else if (score <= 7) msg = "C’est en bonne voie ! Encore un peu d’entraînement.";
+    else if (score <= 9) msg = "Très bon travail !";
+    else msg = "Excellent ! Tu maîtrises la différence entre chiffre et nombre.";
+
+    el("advice").textContent = msg;
+  }
+
+  function restart() {
+    score = 0;
+    current = 0;
+    answered = false;
+    questions = makeQuestions();
+
+    el("final").style.display = "none";
+    el("game").style.display = "flex";
+
+    showQuestion();
+  }
+
+  var buttons = document.querySelectorAll("[data-choice]");
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].onclick = function() {
+      choose(this.getAttribute("data-choice"));
+    };
+  }
+
+  el("nextBtn").onclick = next;
+  el("restartBtn").onclick = restart;
+
+  restart();
+})();
+</script>
+</body>
+</html>
