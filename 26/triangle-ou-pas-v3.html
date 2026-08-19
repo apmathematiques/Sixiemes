@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Triangle ou pas ?</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.instruction{
+  min-height:54px;
+  margin:0;
+  padding:0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.08rem,2vw,1.32rem);
+  font-weight:750;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+/* ---------- Zone centrale ---------- */
+
+.problem{
+  flex:1;
+  min-height:280px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:22px;
+  padding:20px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.measurements{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  flex-wrap:nowrap;
+}
+
+.measure-card{
+  min-width:150px;
+  min-height:104px;
+  padding:16px 22px;
+  display:grid;
+  place-items:center;
+  color:var(--bd);
+  background:#fff;
+  border:3px solid #b9d4e8;
+  border-radius:18px;
+  box-shadow:0 5px 14px rgba(17,63,103,.07);
+  font-size:clamp(2rem,4.5vw,3.1rem);
+  font-weight:850;
+}
+
+.question-mark{
+  color:var(--m);
+  font-size:clamp(1rem,2vw,1.16rem);
+  font-weight:750;
+  text-align:center;
+}
+
+/* ---------- Oui / Non ---------- */
+
+.choice-row{
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+
+.choice{
+  min-width:165px;
+  min-height:58px;
+  padding:0 22px;
+  border:3px solid transparent;
+  border-radius:16px;
+  font-size:1.12rem;
+  font-weight:850;
+  cursor:pointer;
+  transition:transform 120ms ease,filter 120ms ease,border-color 120ms ease;
+}
+
+.choice:hover:not(:disabled){filter:brightness(1.02)}
+.choice:active:not(:disabled){transform:scale(.98)}
+.choice:disabled{opacity:.48;cursor:default}
+
+.choice.yes{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#a9ddbd;
+}
+
+.choice.no{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#efbcbc;
+}
+
+.choice.selected{
+  outline:4px solid rgba(23,105,170,.16);
+}
+
+/* ---------- Deuxième étape ---------- */
+
+.correction-stage{
+  width:min(760px,100%);
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:16px;
+}
+
+.correction-question{
+  margin:0;
+  color:var(--bd);
+  font-size:1.02rem;
+  font-weight:800;
+  text-align:center;
+  line-height:1.35;
+}
+
+.answer-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.answer-input{
+  width:120px;
+  height:45px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.18rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.answer-input.correction{
+  border-color:#d8a25e;
+  background:var(--os);
+  color:var(--o);
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.12rem;
+  font-weight:850;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:19px;
+  margin:0;
+  color:var(--m);
+  font-size:.9rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:48px;
+  padding:7px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:128px;
+  padding:0 16px;
+  border:0;
+  border-radius:13px;
+  font-size:.95rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(570px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.75rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 13px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.35rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.04rem;
+  font-weight:650;
+  line-height:1.45;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+
+  .pill{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.82rem;
+  }
+
+  .main{
+    padding:0 6px 6px;
+    gap:4px;
+  }
+
+  .instruction{
+    min-height:40px;
+    font-size:.93rem;
+  }
+
+  .problem{
+    min-height:230px;
+    gap:14px;
+    padding:12px;
+  }
+
+  .measurements{gap:10px}
+
+  .measure-card{
+    min-width:95px;
+    min-height:72px;
+    padding:10px 12px;
+    border-radius:14px;
+    font-size:1.65rem;
+  }
+
+  .choice-row{
+    min-height:58px;
+    gap:10px;
+  }
+
+  .choice{
+    min-width:118px;
+    min-height:48px;
+    font-size:.95rem;
+  }
+
+  .correction-stage{
+    padding:9px 10px;
+    gap:8px;
+  }
+
+  .correction-question{
+    font-size:.88rem;
+  }
+
+  .answer-input{
+    width:98px;
+    height:39px;
+    font-size:1rem;
+  }
+
+  .attempt{font-size:.75rem}
+
+  .feedback{
+    min-height:40px;
+    padding:4px 7px;
+    font-size:.78rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:104px;
+    padding:0 10px;
+    font-size:.84rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction" id="instruction">
+      Ces trois mesures peuvent-elles être celles des angles d’un triangle&nbsp;?
+    </p>
+
+    <div class="problem">
+
+      <div class="measurements" id="measurements"></div>
+
+      <div class="question-mark" id="questionMark">
+        À toi de décider.
+      </div>
+
+      <div class="choice-row" id="choiceRow">
+        <button class="choice yes" id="yesBtn" type="button">Oui</button>
+        <button class="choice no" id="noBtn" type="button">Non</button>
+      </div>
+
+      <div class="correction-stage" id="correctionStage" hidden>
+        <p class="correction-question" id="correctionQuestion"></p>
+
+        <div class="answer-row">
+          <input
+            class="answer-input"
+            id="answer"
+            inputmode="numeric"
+            autocomplete="off"
+            aria-label="Mesure correcte du troisième angle">
+          <span class="unit">°</span>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 1 essai.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      À toi de décider.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validateCorrection" type="button" hidden disabled>
+        Valider
+      </button>
+      <button class="action secondary" id="next" type="button" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL = 8;
+const $ = id => document.getElementById(id);
+
+const measurements       = $('measurements');
+const questionMark       = $('questionMark');
+const choiceRow          = $('choiceRow');
+const yesBtn             = $('yesBtn');
+const noBtn              = $('noBtn');
+const correctionStage    = $('correctionStage');
+const correctionQuestion = $('correctionQuestion');
+const answer             = $('answer');
+const attempt            = $('attempt');
+const feedback           = $('feedback');
+const validateCorrection = $('validateCorrection');
+const next               = $('next');
+const counter            = $('counter');
+const scoreBox           = $('score');
+const bar                = $('bar');
+const exercise           = $('exercise');
+const final              = $('final');
+const finalScore         = $('finalScore');
+const finalHint          = $('finalHint');
+const restart            = $('restart');
+
+let questions = [];
+let index = 0;
+let score = 0;
+
+let stage = 'choice';
+let locked = false;
+
+/* ---------- Outils ---------- */
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function shuffle(array){
+  const copy = [...array];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+function formatScore(value){
+  return Number.isInteger(value)
+    ? String(value)
+    : String(value).replace('.',',');
+}
+
+/* ---------- Génération ---------- */
+
+function validAngleValue(x){
+  return x >= 18 && x <= 140;
+}
+
+function generateValid(){
+  for(let tries=0;tries<2000;tries++){
+    const a = ri(22,125);
+    const b = ri(22,125);
+    const c = 180-a-b;
+
+    if(!validAngleValue(c)) continue;
+
+    if(a===b || a===c || b===c) continue;
+
+    return shuffle([a,b,c]);
+  }
+
+  return [43,68,69];
+}
+
+function generateInvalid(){
+  for(let tries=0;tries<2500;tries++){
+    const keep1 = ri(22,120);
+    const keep2 = ri(22,120);
+    const correctThird = 180-keep1-keep2;
+
+    if(!validAngleValue(correctThird)) continue;
+
+    /*
+     * On crée une valeur fausse proche ou plus éloignée
+     * de la bonne réponse, sans tomber sur 180°.
+     */
+    const offsets = [-18,-13,-9,-7,-4,4,7,9,13,18];
+    const offset = offsets[ri(0,offsets.length-1)];
+    const wrongThird = correctThird + offset;
+
+    if(!validAngleValue(wrongThird)) continue;
+
+    const items = [
+      {value:keep1, role:'keep'},
+      {value:keep2, role:'keep'},
+      {value:wrongThird, role:'wrong'}
+    ];
+
+    const shuffled = shuffle(items);
+
+    return {
+      displayed: shuffled.map(x=>x.value),
+      keep: [keep1,keep2],
+      correctThird
+    };
+  }
+
+  return {
+    displayed:[90,45,40],
+    keep:[90,45],
+    correctThird:45
+  };
+}
+
+function makeQuestions(){
+  const result = [];
+
+  for(let i=0;i<4;i++){
+    result.push({
+      possible:true,
+      displayed:generateValid()
+    });
+  }
+
+  for(let i=0;i<4;i++){
+    const q = generateInvalid();
+
+    result.push({
+      possible:false,
+      displayed:q.displayed,
+      keep:q.keep,
+      correctThird:q.correctThird
+    });
+  }
+
+  return shuffle(result);
+}
+
+/* ---------- Affichage ---------- */
+
+function updateHeader(){
+  counter.textContent = `Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width = `${((index+1)/TOTAL)*100}%`;
+}
+
+function renderMeasurements(values){
+  measurements.innerHTML = '';
+
+  values.forEach(value=>{
+    const card = document.createElement('div');
+    card.className = 'measure-card';
+    card.textContent = `${value}°`;
+    measurements.appendChild(card);
+  });
+}
+
+function resetChoiceButtons(){
+  yesBtn.disabled = false;
+  noBtn.disabled = false;
+  yesBtn.classList.remove('selected');
+  noBtn.classList.remove('selected');
+}
+
+function render(){
+  const q = questions[index];
+
+  stage = 'choice';
+  locked = false;
+
+  exercise.hidden = false;
+  final.classList.remove('show');
+
+  renderMeasurements(q.displayed);
+
+  questionMark.textContent =
+    'À toi de décider.';
+
+  resetChoiceButtons();
+  choiceRow.hidden = false;
+
+  correctionStage.hidden = true;
+
+  answer.value = '';
+  answer.disabled = false;
+  answer.className = 'answer-input';
+
+  validateCorrection.hidden = true;
+  validateCorrection.disabled = true;
+
+  next.hidden = true;
+  next.textContent =
+    index===TOTAL-1
+      ? 'Voir le résultat'
+      : 'Question suivante';
+
+  attempt.textContent = 'Tu as 1 essai.';
+
+  feedback.className = 'feedback';
+  feedback.textContent = 'À toi de décider.';
+
+  updateHeader();
+}
+
+/* ---------- Choix Oui / Non ---------- */
+
+function choose(userSaysPossible){
+  if(locked || stage!=='choice') return;
+
+  const q = questions[index];
+  const button = userSaysPossible ? yesBtn : noBtn;
+
+  yesBtn.classList.remove('selected');
+  noBtn.classList.remove('selected');
+  button.classList.add('selected');
+
+  const correct = userSaysPossible === q.possible;
+
+  if(correct){
+    if(q.possible){
+      finishValidQuestion(q);
+    }else{
+      startCorrectionStage(q);
+    }
+    return;
+  }
+
+  locked = true;
+  yesBtn.disabled = true;
+  noBtn.disabled = true;
+
+  const sum = q.displayed.reduce((a,b)=>a+b,0);
+
+  attempt.textContent = 'Correction affichée.';
+  feedback.className = 'feedback correction';
+
+  if(q.possible){
+    feedback.innerHTML =
+      `Oui.&nbsp;<strong>${q.displayed[0]}° + ${q.displayed[1]}° + ${q.displayed[2]}° = 180°</strong>.`;
+  }else{
+    feedback.innerHTML =
+      `Non.&nbsp;<strong>${q.displayed[0]}° + ${q.displayed[1]}° + ${q.displayed[2]}° = ${sum}°</strong>, et non 180°.`;
+  }
+
+  next.hidden = false;
+}
+
+/* ---------- Cas valide ---------- */
+
+function finishValidQuestion(q){
+  locked = true;
+
+  yesBtn.disabled = true;
+  noBtn.disabled = true;
+
+  score += 1;
+
+  const sum = q.displayed.reduce((a,b)=>a+b,0);
+
+  attempt.textContent = 'Réussi : +1 point.';
+
+  feedback.className = 'feedback success';
+  feedback.innerHTML =
+    `Oui.&nbsp;<strong>${q.displayed[0]}° + ${q.displayed[1]}° + ${q.displayed[2]}° = ${sum}°</strong>. Ces trois mesures peuvent donc être celles des angles d’un triangle.`;
+
+  next.hidden = false;
+  updateHeader();
+}
+
+/* ---------- Deuxième étape pour un cas impossible ---------- */
+
+function startCorrectionStage(q){
+  stage = 'correction';
+
+  yesBtn.disabled = true;
+  noBtn.disabled = true;
+
+  choiceRow.hidden = true;
+  correctionStage.hidden = false;
+
+  correctionQuestion.innerHTML =
+    `Si l’on garde <strong>${q.keep[0]}°</strong> et <strong>${q.keep[1]}°</strong>, quelle devrait être la mesure du troisième angle&nbsp;?`;
+
+  answer.value = '';
+  answer.disabled = false;
+  answer.className = 'answer-input';
+
+  validateCorrection.hidden = false;
+  validateCorrection.disabled = true;
+
+  attempt.textContent = 'Tu as 1 essai pour cette étape.';
+
+  feedback.className = 'feedback success';
+  feedback.textContent =
+    'Bien vu : ces trois mesures ne conviennent pas. Trouve maintenant la mesure correcte.';
+
+  setTimeout(()=>answer.focus(),50);
+}
+
+function parseAnswer(value){
+  const cleaned = value
+    .trim()
+    .replace(/\s/g,'')
+    .replace('°','')
+    .replace(',','.');
+
+  if(cleaned==='') return NaN;
+
+  return Number(cleaned);
+}
+
+function checkCorrection(){
+  if(locked || stage!=='correction') return;
+
+  const q = questions[index];
+  const student = parseAnswer(answer.value);
+
+  if(!Number.isFinite(student)) return;
+
+  const correct =
+    Math.abs(student-q.correctThird) < 0.0001;
+
+  if(correct){
+    locked = true;
+    score += 1;
+
+    answer.disabled = true;
+    answer.className = 'answer-input correct';
+
+    attempt.textContent = 'Réussi : +1 point.';
+
+    feedback.className = 'feedback success';
+    feedback.innerHTML =
+      `Exact.&nbsp;<strong>180° − ${q.keep[0]}° − ${q.keep[1]}° = ${q.correctThird}°</strong>.`;
+
+    validateCorrection.hidden = true;
+    next.hidden = false;
+
+    updateHeader();
+    return;
+  }
+
+  locked = true;
+
+  answer.value = String(q.correctThird);
+  answer.disabled = true;
+  answer.className = 'answer-input correction';
+
+  attempt.textContent = 'Correction affichée.';
+
+  feedback.className = 'feedback correction';
+  feedback.innerHTML =
+    `La somme des angles vaut&nbsp;180°. Donc&nbsp;<strong>180° − ${q.keep[0]}° − ${q.keep[1]}° = ${q.correctThird}°</strong>.`;
+
+  validateCorrection.hidden = true;
+  next.hidden = false;
+}
+
+/* ---------- Navigation ---------- */
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    render();
+  }else{
+    showFinal();
+  }
+}
+
+/* ---------- Fin ---------- */
+
+function showFinal(){
+  exercise.hidden = true;
+  final.classList.add('show');
+
+  bar.style.width = '100%';
+
+  scoreBox.textContent =
+    `Score : ${formatScore(score)} / ${TOTAL}`;
+
+  finalScore.textContent =
+    `${formatScore(score)} / ${TOTAL}`;
+
+  if(score===8){
+    finalHint.textContent =
+      'Bravo ! Tu sais vérifier si trois mesures peuvent être celles des angles d’un triangle.';
+  }
+  else if(score>=6.5){
+    finalHint.textContent =
+      'Très bon travail ! Rejoue une fois pour essayer d’obtenir le sans-faute.';
+  }
+  else if(score>=4){
+    finalHint.textContent =
+      'Tu progresses bien. Pense à vérifier systématiquement si la somme des trois angles vaut 180°.';
+  }
+  else{
+    finalHint.textContent =
+      'Rejoue l’activité : pour un triangle, la somme des trois angles doit toujours être égale à 180°.';
+  }
+}
+
+/* ---------- Rejouer ---------- */
+
+function restartGame(){
+  questions = makeQuestions();
+  index = 0;
+  score = 0;
+  render();
+}
+
+/* ---------- Événements ---------- */
+
+yesBtn.addEventListener('click',()=>choose(true));
+noBtn.addEventListener('click',()=>choose(false));
+
+answer.addEventListener('input',()=>{
+  validateCorrection.disabled =
+    answer.value.trim()==='';
+});
+
+answer.addEventListener('keydown',event=>{
+  if(
+    event.key==='Enter' &&
+    stage==='correction' &&
+    !validateCorrection.disabled &&
+    !validateCorrection.hidden
+  ){
+    checkCorrection();
+  }
+});
+
+validateCorrection.addEventListener('click',checkCorrection);
+next.addEventListener('click',nextQuestion);
+restart.addEventListener('click',restartGame);
+
+/* ---------- Démarrage ---------- */
+
+restartGame();
+
+})();
+</script>
+
+</body>
+</html>

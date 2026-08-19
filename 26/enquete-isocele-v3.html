@@ -1,0 +1,1286 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Enquête isocèle</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:46px;
+  margin:0;
+  padding:0 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.08rem,2vw,1.32rem);
+  font-weight:750;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+/* ---------- Figure ---------- */
+
+.figure{
+  flex:1;
+  min-height:285px;
+  overflow:hidden;
+  position:relative;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:285px;
+  display:block;
+}
+
+.triangle{
+  fill:rgba(23,105,170,.045);
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.side-mark{
+  stroke:var(--b);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.angle-arc{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.angle-arc.unknown{
+  stroke:var(--o);
+  stroke-width:6;
+}
+
+.angle-label rect{
+  fill:#fff;
+  stroke:#a9cbe3;
+  stroke-width:2;
+  rx:10;
+  ry:10;
+}
+
+.angle-label text{
+  fill:var(--bd);
+  font:850 24px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.angle-label.unknown rect{
+  fill:var(--os);
+  stroke:var(--oline);
+  stroke-width:2.5;
+}
+
+.angle-label.unknown text{
+  fill:var(--o);
+  font-size:30px;
+}
+
+.vertex text{
+  fill:var(--line);
+  font:850 23px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.note{
+  position:absolute;
+  right:13px;
+  bottom:8px;
+  color:#81909c;
+  font-size:.78rem;
+  font-weight:700;
+}
+
+/* ---------- Réponse ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:55px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.08rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:130px;
+  height:46px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.22rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.answer-input.correction{
+  border-color:#d8a25e;
+  background:var(--os);
+  color:var(--o);
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.15rem;
+  font-weight:850;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:48px;
+  padding:7px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:120px;
+  padding:0 16px;
+  border:0;
+  border-radius:13px;
+  font-size:.95rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(570px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.75rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 13px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.35rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.04rem;
+  font-weight:650;
+  line-height:1.45;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+
+  .pill{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.82rem;
+  }
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:36px;
+    font-size:.93rem;
+  }
+
+  .figure,#scene{min-height:230px}
+
+  .angle-label text{font-size:19px}
+  .angle-label.unknown text{font-size:24px}
+  .vertex text{font-size:18px}
+
+  .answer-row{min-height:46px}
+
+  .answer-label,.unit{font-size:.92rem}
+
+  .answer-input{
+    width:105px;
+    height:39px;
+    font-size:1rem;
+  }
+
+  .attempt{font-size:.75rem}
+
+  .feedback{
+    min-height:40px;
+    padding:4px 7px;
+    font-size:.78rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:104px;
+    padding:0 10px;
+    font-size:.84rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Calcule la mesure de l’angle marqué&nbsp;<strong>?</strong>
+    </p>
+
+    <div class="figure">
+      <svg
+        id="scene"
+        viewBox="0 0 920 380"
+        preserveAspectRatio="xMidYMid meet"
+        aria-label="Triangle isocèle codé avec un angle à calculer">
+      </svg>
+
+      <div class="note">Figure non à l’échelle</div>
+    </div>
+
+    <div class="answer-row">
+      <span class="answer-label">Angle&nbsp;? =</span>
+      <input
+        class="answer-input"
+        id="answer"
+        inputmode="numeric"
+        autocomplete="off"
+        aria-label="Mesure de l'angle manquant">
+      <span class="unit">°</span>
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe bien les codages.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>
+        Valider
+      </button>
+
+      <button class="action secondary" id="next" type="button" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL = 8;
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+
+const scene      = $('scene');
+const answer     = $('answer');
+const attempt    = $('attempt');
+const feedback   = $('feedback');
+const validate   = $('validate');
+const next       = $('next');
+const counter    = $('counter');
+const scoreBox   = $('score');
+const bar        = $('bar');
+const exercise   = $('exercise');
+const final      = $('final');
+const finalScore = $('finalScore');
+const finalHint  = $('finalHint');
+const restart    = $('restart');
+
+let questions = [];
+let index = 0;
+let score = 0;
+let attempts = 0;
+let locked = false;
+
+/* ---------- Outils ---------- */
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(array){
+  return array[Math.floor(Math.random()*array.length)];
+}
+
+function shuffle(array){
+  const copy = [...array];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+function formatScore(value){
+  return Number.isInteger(value)
+    ? String(value)
+    : String(value).replace('.',',');
+}
+
+function svg(name,attrs={}){
+  const el = document.createElementNS(NS,name);
+
+  for(const [key,value] of Object.entries(attrs)){
+    el.setAttribute(key,value);
+  }
+
+  return el;
+}
+
+/* ---------- Génération des questions ---------- */
+
+/*
+ * type "baseKnown" :
+ * un angle à la base est donné ;
+ * on cherche l'angle au sommet principal.
+ *
+ * type "apexKnown" :
+ * l'angle au sommet principal est donné ;
+ * on cherche un angle à la base.
+ */
+
+function generateBaseKnown(){
+  /*
+   * Base entre 32° et 74° :
+   * l'angle principal reste lisible et positif.
+   */
+  const base = ri(32,74);
+  const apex = 180 - 2*base;
+
+  return {
+    type:'baseKnown',
+    base,
+    apex
+  };
+}
+
+function generateApexKnown(){
+  /*
+   * On prend un angle principal pair pour obtenir
+   * des angles à la base entiers.
+   */
+  const candidates = [
+    32,36,40,44,48,52,56,64,68,72,76,80,84,88,92,96,100
+  ];
+
+  const apex = pick(candidates);
+  const base = (180-apex)/2;
+
+  return {
+    type:'apexKnown',
+    base,
+    apex
+  };
+}
+
+function makeQuestions(){
+  const qs = [
+    generateBaseKnown(),
+    generateBaseKnown(),
+    generateBaseKnown(),
+    generateBaseKnown(),
+    generateApexKnown(),
+    generateApexKnown(),
+    generateApexKnown(),
+    generateApexKnown()
+  ];
+
+  /*
+   * On évite les doublons parfaits dans une même partie.
+   */
+  const seen = new Set();
+
+  for(let i=0;i<qs.length;i++){
+    let guard = 0;
+
+    while(
+      seen.has(`${qs[i].type}-${qs[i].base}-${qs[i].apex}`) &&
+      guard<100
+    ){
+      qs[i] =
+        qs[i].type==='baseKnown'
+          ? generateBaseKnown()
+          : generateApexKnown();
+
+      guard++;
+    }
+
+    seen.add(`${qs[i].type}-${qs[i].base}-${qs[i].apex}`);
+  }
+
+  return shuffle(qs);
+}
+
+/* ---------- Gabarits ---------- */
+
+const templates = [
+  [
+    {x:170,y:305},
+    {x:750,y:305},
+    {x:460,y:62}
+  ],
+  [
+    {x:180,y:85},
+    {x:180,y:315},
+    {x:725,y:205}
+  ],
+  [
+    {x:745,y:85},
+    {x:745,y:315},
+    {x:200,y:205}
+  ],
+  [
+    {x:185,y:290},
+    {x:735,y:250},
+    {x:370,y:60}
+  ],
+  [
+    {x:220,y:300},
+    {x:760,y:270},
+    {x:600,y:60}
+  ],
+  [
+    {x:155,y:220},
+    {x:690,y:70},
+    {x:720,y:320}
+  ]
+];
+
+/* ---------- Géométrie SVG ---------- */
+
+function unitVector(from,to){
+  const dx = to.x-from.x;
+  const dy = to.y-from.y;
+  const length = Math.hypot(dx,dy);
+
+  return {
+    x:dx/length,
+    y:dy/length
+  };
+}
+
+function anglePath(vertex,p1,p2,radius){
+  const v1 = unitVector(vertex,p1);
+  const v2 = unitVector(vertex,p2);
+
+  const start = {
+    x:vertex.x + v1.x*radius,
+    y:vertex.y + v1.y*radius
+  };
+
+  const end = {
+    x:vertex.x + v2.x*radius,
+    y:vertex.y + v2.y*radius
+  };
+
+  const a1 = Math.atan2(v1.y,v1.x);
+  const a2 = Math.atan2(v2.y,v2.x);
+
+  let delta = a2-a1;
+
+  while(delta<=-Math.PI) delta += Math.PI*2;
+  while(delta>Math.PI) delta -= Math.PI*2;
+
+  const sweep = delta>0 ? 1 : 0;
+
+  return `M ${start.x} ${start.y}
+          A ${radius} ${radius}
+          0 0 ${sweep}
+          ${end.x} ${end.y}`;
+}
+
+function labelPosition(vertex,p1,p2,distance){
+  const v1 = unitVector(vertex,p1);
+  const v2 = unitVector(vertex,p2);
+
+  let bx = v1.x+v2.x;
+  let by = v1.y+v2.y;
+
+  const length = Math.hypot(bx,by);
+
+  bx /= length;
+  by /= length;
+
+  return {
+    x:vertex.x + bx*distance,
+    y:vertex.y + by*distance
+  };
+}
+
+function addAngleLabel(position,text,isUnknown){
+  const group = svg('g',{
+    class:'angle-label' + (isUnknown?' unknown':'')
+  });
+
+  const width = isUnknown ? 52 : 78;
+  const height = isUnknown ? 48 : 43;
+
+  const rect = svg('rect',{
+    x:position.x-width/2,
+    y:position.y-height/2,
+    width,
+    height,
+    rx:10,
+    ry:10
+  });
+
+  const txt = svg('text',{
+    x:position.x,
+    y:position.y+1
+  });
+
+  txt.textContent = text;
+
+  group.append(rect,txt);
+  scene.appendChild(group);
+}
+
+function addSideMark(p1,p2){
+  const mx = (p1.x+p2.x)/2;
+  const my = (p1.y+p2.y)/2;
+
+  const dx = p2.x-p1.x;
+  const dy = p2.y-p1.y;
+  const length = Math.hypot(dx,dy);
+
+  const nx = -dy/length;
+  const ny = dx/length;
+
+  const half = 11;
+
+  scene.appendChild(svg('line',{
+    class:'side-mark',
+    x1:mx-nx*half,
+    y1:my-ny*half,
+    x2:mx+nx*half,
+    y2:my+ny*half
+  }));
+}
+
+function addVertexLabel(point,centroid,letter){
+  let dx = point.x-centroid.x;
+  let dy = point.y-centroid.y;
+
+  const length = Math.hypot(dx,dy);
+
+  dx /= length;
+  dy /= length;
+
+  const text = svg('text',{
+    x:point.x+dx*31,
+    y:point.y+dy*31+1,
+    class:'vertex'
+  });
+
+  text.textContent = letter;
+  scene.appendChild(text);
+}
+
+/* ---------- Préparation d'une figure ---------- */
+
+function prepareGeometry(q){
+  const raw = pick(templates).map(p=>({...p}));
+
+  /*
+   * L'indice du sommet principal varie.
+   */
+  const apexIndex = ri(0,2);
+
+  /*
+   * On associe les trois points du gabarit
+   * de façon que le sommet principal puisse être
+   * n'importe lequel des trois sommets.
+   */
+  const points = new Array(3);
+
+  if(apexIndex===0){
+    points[0]=raw[2];
+    points[1]=raw[0];
+    points[2]=raw[1];
+  }
+  else if(apexIndex===1){
+    points[1]=raw[2];
+    points[0]=raw[0];
+    points[2]=raw[1];
+  }
+  else{
+    points[2]=raw[2];
+    points[0]=raw[0];
+    points[1]=raw[1];
+  }
+
+  /*
+   * Les lettres tournent aussi.
+   */
+  const letters = shuffle(['A','B','C']);
+
+  const baseIndices = [0,1,2].filter(i=>i!==apexIndex);
+
+  /*
+   * Pour un angle à la base donné,
+   * on choisit aléatoirement lequel.
+   * Pour un angle à la base demandé,
+   * même logique.
+   */
+  const givenBaseIndex = pick(baseIndices);
+  const unknownBaseIndex = pick(baseIndices);
+
+  return {
+    ...q,
+    points,
+    letters,
+    apexIndex,
+    baseIndices,
+    givenBaseIndex,
+    unknownBaseIndex
+  };
+}
+
+/* ---------- Dessin ---------- */
+
+function drawQuestion(){
+  const q = questions[index];
+  const g = q.geometry;
+
+  scene.innerHTML='';
+
+  const polygon = svg('polygon',{
+    class:'triangle',
+    points:g.points.map(p=>`${p.x},${p.y}`).join(' ')
+  });
+
+  scene.appendChild(polygon);
+
+  const centroid = {
+    x:(g.points[0].x+g.points[1].x+g.points[2].x)/3,
+    y:(g.points[0].y+g.points[1].y+g.points[2].y)/3
+  };
+
+  /*
+   * Les deux côtés égaux sont ceux qui partent
+   * du sommet principal.
+   */
+  addSideMark(
+    g.points[g.apexIndex],
+    g.points[g.baseIndices[0]]
+  );
+
+  addSideMark(
+    g.points[g.apexIndex],
+    g.points[g.baseIndices[1]]
+  );
+
+  /*
+   * Angles affichés.
+   */
+  if(q.type==='baseKnown'){
+    addAngleAt(g,g.givenBaseIndex,`${q.base}°`,false);
+    addAngleAt(g,g.apexIndex,'?',true);
+  }
+  else{
+    addAngleAt(g,g.apexIndex,`${q.apex}°`,false);
+    addAngleAt(g,g.unknownBaseIndex,'?',true);
+  }
+
+  g.letters.forEach((letter,i)=>{
+    addVertexLabel(
+      g.points[i],
+      centroid,
+      letter
+    );
+  });
+}
+
+function addAngleAt(g,indexToDraw,text,isUnknown){
+  const vertex = g.points[indexToDraw];
+
+  const others = [0,1,2].filter(i=>i!==indexToDraw);
+
+  const p1 = g.points[others[0]];
+  const p2 = g.points[others[1]];
+
+  const arc = svg('path',{
+    class:'angle-arc' + (isUnknown?' unknown':''),
+    d:anglePath(
+      vertex,
+      p1,
+      p2,
+      isUnknown ? 52 : 48
+    )
+  });
+
+  scene.appendChild(arc);
+
+  const pos = labelPosition(
+    vertex,
+    p1,
+    p2,
+    isUnknown ? 96 : 90
+  );
+
+  addAngleLabel(
+    pos,
+    text,
+    isUnknown
+  );
+}
+
+/* ---------- Textes mathématiques ---------- */
+
+function sideName(letter1,letter2){
+  return `${letter1}${letter2}`;
+}
+
+function angleName(g,index){
+  const others = [0,1,2].filter(i=>i!==index);
+
+  return `${g.letters[others[0]]}${g.letters[index]}${g.letters[others[1]]}`;
+}
+
+function equalSidesText(g){
+  const apexLetter = g.letters[g.apexIndex];
+  const b1 = g.letters[g.baseIndices[0]];
+  const b2 = g.letters[g.baseIndices[1]];
+
+  return {
+    side1:sideName(apexLetter,b1),
+    side2:sideName(apexLetter,b2),
+    baseAngle1:angleName(g,g.baseIndices[0]),
+    baseAngle2:angleName(g,g.baseIndices[1])
+  };
+}
+
+/* ---------- Interface ---------- */
+
+function updateHeader(){
+  counter.textContent = `Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width = `${((index+1)/TOTAL)*100}%`;
+}
+
+function render(){
+  locked = false;
+  attempts = 0;
+
+  exercise.hidden = false;
+  final.classList.remove('show');
+
+  answer.disabled = false;
+  answer.value = '';
+  answer.className = 'answer-input';
+
+  validate.hidden = false;
+  validate.disabled = true;
+
+  next.hidden = true;
+  next.textContent =
+    index===TOTAL-1
+      ? 'Voir le résultat'
+      : 'Question suivante';
+
+  attempt.textContent = 'Tu as 2 essais.';
+
+  feedback.className = 'feedback';
+  feedback.textContent = 'Observe bien les codages.';
+
+  updateHeader();
+  drawQuestion();
+
+  setTimeout(()=>answer.focus(),50);
+}
+
+function parseAnswer(value){
+  const cleaned = value
+    .trim()
+    .replace(/\s/g,'')
+    .replace('°','')
+    .replace(',','.');
+
+  if(cleaned==='') return NaN;
+
+  return Number(cleaned);
+}
+
+function expectedAnswer(q){
+  return q.type==='baseKnown'
+    ? q.apex
+    : q.base;
+}
+
+/* ---------- Feedbacks ---------- */
+
+function firstErrorMessage(){
+  return 'Observe quels côtés sont codés de même longueur. Quels angles sont alors de même mesure&nbsp;?';
+}
+
+function successMessage(q){
+  const g = q.geometry;
+  const names = equalSidesText(g);
+
+  if(q.type==='baseKnown'){
+    return `Bravo&nbsp;! Les segments&nbsp;<strong>[${names.side1}]</strong>&nbsp;et&nbsp;<strong>[${names.side2}]</strong>&nbsp;sont égaux, donc les angles à la base ont la même mesure.&nbsp;Ainsi&nbsp;<strong>180° − ${q.base}° − ${q.base}° = ${q.apex}°</strong>.`;
+  }
+
+  return `Bravo&nbsp;! Les deux angles à la base ont la même mesure.&nbsp;<strong>180° − ${q.apex}° = ${180-q.apex}°</strong>, puis&nbsp;<strong>${180-q.apex}° ÷ 2 = ${q.base}°</strong>.`;
+}
+
+function correctionMessage(q){
+  const g = q.geometry;
+  const names = equalSidesText(g);
+
+  if(q.type==='baseKnown'){
+    return `Les segments&nbsp;<strong>[${names.side1}]</strong>&nbsp;et&nbsp;<strong>[${names.side2}]</strong>&nbsp;sont égaux, donc les deux angles à la base mesurent ${q.base}°.&nbsp;Donc&nbsp;<strong>180° − ${q.base}° − ${q.base}° = ${q.apex}°</strong>.`;
+  }
+
+  return `Les segments&nbsp;<strong>[${names.side1}]</strong>&nbsp;et&nbsp;<strong>[${names.side2}]</strong>&nbsp;sont égaux, donc les deux angles à la base ont la même mesure.&nbsp;<strong>180° − ${q.apex}° = ${180-q.apex}°</strong>, puis&nbsp;<strong>${180-q.apex}° ÷ 2 = ${q.base}°</strong>.`;
+}
+
+/* ---------- Validation ---------- */
+
+function check(){
+  if(locked) return;
+
+  const student = parseAnswer(answer.value);
+
+  if(!Number.isFinite(student)) return;
+
+  const q = questions[index];
+  const expected = expectedAnswer(q);
+
+  attempts++;
+
+  if(Math.abs(student-expected)<0.0001){
+    locked = true;
+
+    const gain = attempts===1 ? 1 : 0.5;
+    score += gain;
+
+    answer.disabled = true;
+    answer.className = 'answer-input correct';
+
+    attempt.textContent =
+      attempts===1
+        ? 'Réussi au 1er essai : +1 point.'
+        : 'Réussi au 2e essai : +0,5 point.';
+
+    feedback.className = 'feedback success';
+    feedback.innerHTML = successMessage(q);
+
+    validate.hidden = true;
+    next.hidden = false;
+
+    updateHeader();
+    return;
+  }
+
+  if(attempts===1){
+    answer.className = 'answer-input wrong';
+
+    attempt.textContent = 'Il te reste 1 essai.';
+
+    feedback.className = 'feedback error';
+    feedback.innerHTML = firstErrorMessage();
+
+    setTimeout(()=>{
+      answer.className = 'answer-input';
+      answer.focus();
+      answer.select();
+    },260);
+
+    return;
+  }
+
+  locked = true;
+
+  answer.value = String(expected);
+  answer.disabled = true;
+  answer.className = 'answer-input correction';
+
+  attempt.textContent = 'Correction affichée.';
+
+  feedback.className = 'feedback correction';
+  feedback.innerHTML = correctionMessage(q);
+
+  validate.hidden = true;
+  next.hidden = false;
+}
+
+/* ---------- Navigation ---------- */
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    render();
+  }else{
+    showFinal();
+  }
+}
+
+/* ---------- Fin ---------- */
+
+function showFinal(){
+  exercise.hidden = true;
+  final.classList.add('show');
+
+  bar.style.width = '100%';
+
+  scoreBox.textContent =
+    `Score : ${formatScore(score)} / ${TOTAL}`;
+
+  finalScore.textContent =
+    `${formatScore(score)} / ${TOTAL}`;
+
+  if(score===8){
+    finalHint.textContent =
+      'Bravo ! Tu sais utiliser les propriétés du triangle isocèle, quelle que soit son orientation.';
+  }
+  else if(score>=6.5){
+    finalHint.textContent =
+      'Très bon travail ! Rejoue une fois pour essayer d’obtenir le sans-faute.';
+  }
+  else if(score>=4){
+    finalHint.textContent =
+      'Tu progresses bien. Continue à repérer les deux côtés égaux avant de chercher quels angles sont égaux.';
+  }
+  else{
+    finalHint.textContent =
+      'Rejoue l’activité : commence toujours par repérer les deux côtés égaux, puis les deux angles à la base.';
+  }
+}
+
+/* ---------- Rejouer ---------- */
+
+function restartGame(){
+  questions = makeQuestions().map(q=>({
+    ...q,
+    geometry:prepareGeometry(q)
+  }));
+
+  index = 0;
+  score = 0;
+  attempts = 0;
+  locked = false;
+
+  render();
+}
+
+/* ---------- Événements ---------- */
+
+answer.addEventListener('input',()=>{
+  validate.disabled = answer.value.trim()==='';
+});
+
+answer.addEventListener('keydown',event=>{
+  if(
+    event.key==='Enter' &&
+    !validate.disabled &&
+    !validate.hidden
+  ){
+    check();
+  }
+});
+
+validate.addEventListener('click',check);
+next.addEventListener('click',nextQuestion);
+restart.addEventListener('click',restartGame);
+
+/* ---------- Démarrage ---------- */
+
+restartGame();
+
+})();
+</script>
+
+</body>
+</html>

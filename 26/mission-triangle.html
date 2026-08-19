@@ -1,0 +1,1998 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Mission triangle</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.instruction{
+  min-height:48px;
+  margin:0;
+  padding:0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.02rem,1.9vw,1.26rem);
+  font-weight:750;
+  line-height:1.3;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+/* ---------- Zone mission ---------- */
+
+.problem{
+  flex:1;
+  min-height:280px;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.context{
+  flex:0 0 auto;
+  min-height:48px;
+  padding:9px 18px 4px;
+  color:var(--m);
+  font-size:1rem;
+  font-weight:700;
+  line-height:1.35;
+  text-align:center;
+}
+
+.visual-wrap{
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:2px 12px 10px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:210px;
+  display:block;
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:7px;
+  color:#81909c;
+  font-size:.75rem;
+  font-weight:700;
+}
+
+.triangle{
+  fill:rgba(23,105,170,.045);
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.angle-arc{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.angle-arc.unknown{
+  stroke:var(--o);
+  stroke-width:6;
+}
+
+.angle-label rect{
+  fill:#fff;
+  stroke:#a9cbe3;
+  stroke-width:2;
+  rx:10;
+  ry:10;
+}
+
+.angle-label text{
+  fill:var(--bd);
+  font:850 23px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.angle-label.unknown rect{
+  fill:var(--os);
+  stroke:var(--oline);
+  stroke-width:2.5;
+}
+
+.angle-label.unknown text{
+  fill:var(--o);
+  font-size:29px;
+}
+
+.vertex text{
+  fill:var(--line);
+  font:850 22px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.right-mark{
+  fill:none;
+  stroke:var(--bd);
+  stroke-width:4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.side-mark{
+  stroke:var(--b);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+/* ---------- Réponse calcul ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.05rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:125px;
+  height:44px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.18rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.answer-input.correction{
+  border-color:#d8a25e;
+  background:var(--os);
+  color:var(--o);
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.12rem;
+  font-weight:850;
+}
+
+/* ---------- Choix ---------- */
+
+.choice-area{
+  flex:0 0 auto;
+  width:100%;
+  padding:3px 12px 2px;
+}
+
+.choice-grid{
+  width:min(850px,100%);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.choice{
+  min-height:48px;
+  padding:8px 12px;
+  border:3px solid #c4d9e8;
+  border-radius:14px;
+  color:var(--bd);
+  background:#fff;
+  font-size:.96rem;
+  font-weight:800;
+  line-height:1.25;
+  text-align:center;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+.choice:hover:not(:disabled){background:#f7fbfe}
+.choice:active:not(:disabled){transform:scale(.99)}
+
+.choice.selected{
+  background:var(--bs);
+  border-color:var(--b);
+  box-shadow:0 0 0 3px rgba(23,105,170,.09);
+}
+
+.choice.correct-choice{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong-choice{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+.choice.missed-choice{
+  color:var(--o);
+  background:var(--os);
+  border-color:#d8a25e;
+}
+
+.choice:disabled{cursor:default}
+
+/* ---------- Construction ---------- */
+
+.construction-box{
+  width:min(900px,96%);
+  margin:auto;
+  padding:8px 10px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.construction-data{
+  padding:12px 14px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:14px;
+  font-size:1.05rem;
+  font-weight:800;
+  line-height:1.4;
+  text-align:center;
+}
+
+.procedure-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.procedure{
+  min-height:106px;
+  padding:11px 13px;
+  border:2px solid #c4d9e8;
+  border-radius:14px;
+  color:var(--i);
+  background:#fff;
+  font-size:.87rem;
+  font-weight:700;
+  line-height:1.35;
+  text-align:left;
+  cursor:pointer;
+}
+
+.procedure:hover:not(:disabled){background:#f7fbfe}
+
+.procedure.selected{
+  border-color:var(--b);
+  background:var(--bs);
+}
+
+.procedure.correct-choice{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.procedure.wrong-choice{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.87rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:50px;
+  padding:9px 13px;
+  display:block;
+  align-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.38;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:47px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:44px;
+  min-width:120px;
+  padding:0 15px;
+  border:0;
+  border-radius:13px;
+  font-size:.93rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(590px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.75rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 13px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.35rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.04rem;
+  font-weight:650;
+  line-height:1.45;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+
+  .pill{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.81rem;
+  }
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:37px;
+    font-size:.9rem;
+  }
+
+  .problem{min-height:225px}
+  .context{min-height:35px;padding:5px 8px 1px;font-size:.78rem}
+  #scene{min-height:165px}
+
+  .angle-label text{font-size:18px}
+  .angle-label.unknown text{font-size:23px}
+  .vertex text{font-size:17px}
+
+  .answer-row{min-height:44px}
+  .answer-label,.unit{font-size:.88rem}
+
+  .answer-input{
+    width:98px;
+    height:38px;
+    font-size:.98rem;
+  }
+
+  .choice-grid,.procedure-grid{gap:6px}
+
+  .choice{
+    min-height:39px;
+    padding:5px 7px;
+    font-size:.78rem;
+  }
+
+  .construction-box{padding:5px;gap:6px}
+  .construction-data{padding:7px;font-size:.8rem}
+  .procedure{min-height:78px;padding:7px;font-size:.7rem}
+
+  .attempt{font-size:.72rem}
+
+  .feedback{
+    min-height:39px;
+    padding:4px 7px;
+    font-size:.74rem;
+  }
+
+  .controls{min-height:40px}
+
+  button.action{
+    min-height:39px;
+    min-width:100px;
+    padding:0 9px;
+    font-size:.8rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Mission 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction" id="instruction"></p>
+
+    <div class="problem" id="problem">
+      <div class="context" id="context"></div>
+
+      <div class="visual-wrap" id="visualWrap">
+        <svg
+          id="scene"
+          viewBox="0 0 920 330"
+          preserveAspectRatio="xMidYMid meet"
+          aria-label="Figure de géométrie">
+        </svg>
+      </div>
+
+      <div class="construction-box" id="constructionBox" hidden></div>
+
+      <div class="note" id="note">Figure non à l’échelle</div>
+    </div>
+
+    <div class="answer-row" id="answerRow">
+      <span class="answer-label" id="answerLabel">Angle&nbsp;? =</span>
+      <input
+        class="answer-input"
+        id="answer"
+        inputmode="numeric"
+        autocomplete="off"
+        aria-label="Réponse">
+      <span class="unit" id="unit">°</span>
+    </div>
+
+    <div class="choice-area" id="choiceArea" hidden>
+      <div class="choice-grid" id="choiceGrid"></div>
+    </div>
+
+    <p class="attempt" id="attempt"></p>
+
+    <div class="feedback" id="feedback" role="status"></div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>
+        Valider
+      </button>
+
+      <button class="action secondary" id="next" type="button" hidden>
+        Mission suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Mission terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL = 6;
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+
+const instruction     = $('instruction');
+const contextBox      = $('context');
+const scene           = $('scene');
+const visualWrap      = $('visualWrap');
+const constructionBox = $('constructionBox');
+const note            = $('note');
+
+const answerRow       = $('answerRow');
+const answerLabel     = $('answerLabel');
+const answer           = $('answer');
+const unit             = $('unit');
+
+const choiceArea      = $('choiceArea');
+const choiceGrid      = $('choiceGrid');
+
+const attempt         = $('attempt');
+const feedback        = $('feedback');
+const validate        = $('validate');
+const next            = $('next');
+
+const counter         = $('counter');
+const scoreBox        = $('score');
+const bar             = $('bar');
+
+const exercise        = $('exercise');
+const final           = $('final');
+const finalScore      = $('finalScore');
+const finalHint       = $('finalHint');
+const restart         = $('restart');
+
+let missions = [];
+let index = 0;
+let score = 0;
+let locked = false;
+let attempts = 0;
+let stage = 'answer';
+let missionCredit = 1;
+
+/* =========================================================
+   OUTILS
+   ========================================================= */
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(array){
+  return array[Math.floor(Math.random()*array.length)];
+}
+
+function shuffle(array){
+  const copy = [...array];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+function formatScore(value){
+  return Number.isInteger(value)
+    ? String(value)
+    : String(value).replace('.',',');
+}
+
+function svg(name,attrs={}){
+  const el = document.createElementNS(NS,name);
+
+  for(const [key,value] of Object.entries(attrs)){
+    el.setAttribute(key,value);
+  }
+
+  return el;
+}
+
+function parseAnswer(value){
+  const cleaned = value
+    .trim()
+    .replace(/\s/g,'')
+    .replace('°','')
+    .replace(',','.');
+
+  if(cleaned==='') return NaN;
+
+  return Number(cleaned);
+}
+
+/* =========================================================
+   GÉNÉRATION DES MISSIONS
+   ========================================================= */
+
+function generalMission(){
+  for(let tries=0;tries<1500;tries++){
+    const a = ri(28,112);
+    const b = ri(28,112);
+    const c = 180-a-b;
+
+    if(c<22 || c>125) continue;
+    if(a===b || a===c || b===c) continue;
+    if([a,b,c].includes(90)) continue;
+
+    const unknown = ri(0,2);
+
+    return {
+      kind:'general',
+      angles:[a,b,c],
+      unknown,
+      context:pick([
+        'Une structure triangulaire doit respecter les deux angles indiqués.',
+        'Un fanion triangulaire possède les deux angles indiqués sur le dessin.',
+        'Une pièce décorative triangulaire est représentée ci-dessous.',
+        'Une armature triangulaire est schématisée ci-dessous.'
+      ])
+    };
+  }
+
+  return {
+    kind:'general',
+    angles:[47,68,65],
+    unknown:2,
+    context:'Une structure triangulaire est représentée ci-dessous.'
+  };
+}
+
+function rightMission(){
+  const a = ri(26,64);
+  const b = 90-a;
+  const unknown = pick([1,2]);
+
+  return {
+    kind:'right',
+    angles:[90,a,b],
+    unknown,
+    context:pick([
+      'Une équerre triangulaire est représentée ci-dessous.',
+      'Un support forme un triangle rectangle.',
+      'Une pièce d’assemblage comporte un angle droit.',
+      'Un panneau triangulaire comporte un angle droit.'
+    ])
+  };
+}
+
+function isoBaseMission(){
+  const base = ri(34,72);
+  const apex = 180-2*base;
+
+  return {
+    kind:'isoBase',
+    base,
+    apex,
+    context:pick([
+      'Deux côtés de la structure ont la même longueur.',
+      'Le triangle ci-dessous possède deux côtés codés de même longueur.',
+      'Une armature possède deux segments de même longueur.',
+      'Deux côtés du fanion sont de même longueur.'
+    ])
+  };
+}
+
+function isoApexMission(){
+  const apexPool = [
+    32,36,40,44,48,52,56,64,68,72,76,80,84,88,92,96,100
+  ];
+
+  const apex = pick(apexPool);
+  const base = (180-apex)/2;
+
+  return {
+    kind:'isoApex',
+    base,
+    apex,
+    context:pick([
+      'Deux côtés du triangle sont codés de même longueur.',
+      'Cette structure triangulaire possède deux côtés égaux.',
+      'Les deux segments issus du sommet principal ont la même longueur.',
+      'Le dessin indique deux côtés de même longueur.'
+    ])
+  };
+}
+
+function classificationMission(){
+  const type = pick([
+    'scalene',
+    'iso',
+    'right',
+    'rightIso',
+    'equilateral'
+  ]);
+
+  if(type==='rightIso'){
+    const angles = [45,45,90];
+    const hidden = ri(0,2);
+
+    return {
+      kind:'classification',
+      angles,
+      hidden,
+      answers:['isocele','rectangle']
+    };
+  }
+
+  if(type==='equilateral'){
+    return {
+      kind:'classification',
+      angles:[60,60,60],
+      hidden:ri(0,2),
+      answers:['equilateral']
+    };
+  }
+
+  if(type==='right'){
+    const a = ri(26,64);
+    if(a===45) return classificationMission();
+
+    return {
+      kind:'classification',
+      angles:[90,a,90-a],
+      hidden:ri(0,2),
+      answers:['rectangle']
+    };
+  }
+
+  if(type==='iso'){
+    const basePool=[34,36,38,40,42,44,46,48,50,52,54,56,58,62,64,66,68,70,72];
+    const base=pick(basePool);
+    const apex=180-2*base;
+
+    if(base===60 || apex===90) return classificationMission();
+
+    return {
+      kind:'classification',
+      angles:[base,base,apex],
+      hidden:ri(0,2),
+      answers:['isocele']
+    };
+  }
+
+  for(let tries=0;tries<1000;tries++){
+    const a=ri(25,115);
+    const b=ri(25,115);
+    const c=180-a-b;
+
+    if(c<20 || c>130) continue;
+    if(a===b || a===c || b===c) continue;
+    if([a,b,c].includes(90)) continue;
+
+    return {
+      kind:'classification',
+      angles:[a,b,c],
+      hidden:ri(0,2),
+      answers:['quelconque']
+    };
+  }
+
+  return {
+    kind:'classification',
+    angles:[52,61,67],
+    hidden:2,
+    answers:['quelconque']
+  };
+}
+
+function constructionMission(){
+  const letters = shuffle(['A','B','C']);
+  const A=letters[0], B=letters[1], C=letters[2];
+
+  const scenario = pick(['ASA','SAS','SSS']);
+
+  if(scenario==='ASA'){
+    const length=ri(4,8);
+    const angle1=pick([35,40,45,50,55,60]);
+    const angle2=pick([50,55,60,65,70,75]);
+
+    const correct = [
+      `Tracer [${A}${B}] de ${length} cm.`,
+      `En ${A}, tracer une demi-droite formant un angle de ${angle1}° avec [${A}${B}].`,
+      `En ${B}, tracer une demi-droite formant un angle de ${angle2}° avec [${B}${A}].`,
+      `Leur intersection est le point ${C}.`
+    ].join(' ');
+
+    const wrong1 = [
+      `Tracer [${A}${B}] de ${length} cm.`,
+      `En ${A}, tracer une demi-droite formant un angle de ${angle2}° avec [${A}${B}].`,
+      `En ${B}, tracer une demi-droite formant un angle de ${angle1}° avec [${B}${A}].`,
+      `Leur intersection est le point ${C}.`
+    ].join(' ');
+
+    const wrong2 = [
+      `Tracer [${A}${B}] de ${length} cm.`,
+      `Placer directement ${C} à ${angle1} cm de ${A}.`,
+      `Tracer ensuite [${B}${C}].`
+    ].join(' ');
+
+    const wrong3 = [
+      `Tracer [${A}${C}] de ${length} cm.`,
+      `En ${A}, construire ${angle1}°.`,
+      `En ${C}, construire ${angle2}°.`
+    ].join(' ');
+
+    return {
+      kind:'construction',
+      data:`Construire le triangle ${A}${B}${C} tel que [${A}${B}] = ${length} cm, ∠${B}${A}${C} = ${angle1}° et ∠${A}${B}${C} = ${angle2}°.`,
+      options:shuffle([
+        {text:correct,correct:true},
+        {text:wrong1,correct:false},
+        {text:wrong2,correct:false},
+        {text:wrong3,correct:false}
+      ]),
+      correction:`Il faut d’abord tracer [${A}${B}], puis construire les deux demi-droites correspondant aux angles donnés en ${A} et en ${B}. Leur intersection donne ${C}.`
+    };
+  }
+
+  if(scenario==='SAS'){
+    const l1=ri(4,8);
+    let l2=ri(4,8);
+    if(l2===l1) l2 = l1===8 ? 7 : l1+1;
+    const angle=pick([35,40,45,50,55,60,65,70]);
+
+    const correct = [
+      `Tracer [${A}${B}] de ${l1} cm.`,
+      `En ${A}, construire un angle de ${angle}° avec [${A}${B}].`,
+      `Sur la nouvelle demi-droite, placer ${C} tel que [${A}${C}] = ${l2} cm.`,
+      `Tracer [${B}${C}].`
+    ].join(' ');
+
+    const wrong1 = [
+      `Tracer [${A}${B}] de ${l1} cm.`,
+      `En ${B}, construire un angle de ${angle}°.`,
+      `Placer ${C} à ${l2} cm de ${A}.`
+    ].join(' ');
+
+    const wrong2 = [
+      `Tracer [${A}${C}] de ${l1} cm.`,
+      `Placer ${B} à ${l2} cm de ${C}.`,
+      `Construire ensuite un angle de ${angle}° en ${B}.`
+    ].join(' ');
+
+    const wrong3 = [
+      `Tracer [${A}${B}] de ${angle} cm.`,
+      `En ${A}, construire un angle de ${l1}°.`,
+      `Placer ${C} à ${l2} cm de ${A}.`
+    ].join(' ');
+
+    return {
+      kind:'construction',
+      data:`Construire le triangle ${A}${B}${C} tel que [${A}${B}] = ${l1} cm, [${A}${C}] = ${l2} cm et ∠${B}${A}${C} = ${angle}°.`,
+      options:shuffle([
+        {text:correct,correct:true},
+        {text:wrong1,correct:false},
+        {text:wrong2,correct:false},
+        {text:wrong3,correct:false}
+      ]),
+      correction:`L’angle donné est en ${A}. Il faut donc tracer [${A}${B}], construire l’angle de ${angle}° en ${A}, puis reporter ${l2} cm sur la demi-droite obtenue pour placer ${C}.`
+    };
+  }
+
+  const a=ri(4,7);
+  const b=a+ri(1,3);
+  const c=Math.max(3,b-ri(1,2));
+
+  const correct = [
+    `Tracer [${A}${B}] de ${a} cm.`,
+    `Tracer le cercle de centre ${A} et de rayon ${b} cm.`,
+    `Tracer le cercle de centre ${B} et de rayon ${c} cm.`,
+    `Une intersection des deux cercles donne ${C}.`
+  ].join(' ');
+
+  const wrong1 = [
+    `Tracer [${A}${B}] de ${a} cm.`,
+    `Tracer le cercle de centre ${A} et de rayon ${c} cm.`,
+    `Tracer le cercle de centre ${B} et de rayon ${b} cm.`,
+    `Leur intersection donne ${C}.`
+  ].join(' ');
+
+  const wrong2 = [
+    `Tracer [${A}${B}] de ${a} cm.`,
+    `Construire un angle de ${b}° en ${A}.`,
+    `Placer ${C} à ${c} cm de ${B}.`
+  ].join(' ');
+
+  const wrong3 = [
+    `Tracer [${A}${C}] de ${a} cm.`,
+    `Tracer deux cercles de rayon ${b} cm, l’un de centre ${A}, l’autre de centre ${C}.`
+  ].join(' ');
+
+  return {
+    kind:'construction',
+    data:`Construire le triangle ${A}${B}${C} tel que [${A}${B}] = ${a} cm, [${A}${C}] = ${b} cm et [${B}${C}] = ${c} cm.`,
+    options:shuffle([
+      {text:correct,correct:true},
+      {text:wrong1,correct:false},
+      {text:wrong2,correct:false},
+      {text:wrong3,correct:false}
+    ]),
+    correction:`Après avoir tracé [${A}${B}], le point ${C} doit être à ${b} cm de ${A} et à ${c} cm de ${B}. On utilise donc deux cercles.`
+  };
+}
+
+function makeMissions(){
+  return [
+    generalMission(),
+    rightMission(),
+    isoBaseMission(),
+    isoApexMission(),
+    classificationMission(),
+    constructionMission()
+  ];
+}
+
+/* =========================================================
+   FIGURES
+   ========================================================= */
+
+const generalTemplates = [
+  [
+    {x:170,y:285},
+    {x:750,y:285},
+    {x:470,y:48}
+  ],
+  [
+    {x:195,y:292},
+    {x:745,y:245},
+    {x:355,y:52}
+  ],
+  [
+    {x:165,y:235},
+    {x:735,y:295},
+    {x:615,y:55}
+  ]
+];
+
+const isoTemplates = [
+  [
+    {x:190,y:285},
+    {x:730,y:285},
+    {x:460,y:52}
+  ],
+  [
+    {x:190,y:72},
+    {x:190,y:292},
+    {x:720,y:182}
+  ],
+  [
+    {x:730,y:72},
+    {x:730,y:292},
+    {x:200,y:182}
+  ]
+];
+
+function unitVector(from,to){
+  const dx=to.x-from.x;
+  const dy=to.y-from.y;
+  const len=Math.hypot(dx,dy);
+
+  return {x:dx/len,y:dy/len};
+}
+
+function anglePath(vertex,p1,p2,radius){
+  const v1=unitVector(vertex,p1);
+  const v2=unitVector(vertex,p2);
+
+  const start={
+    x:vertex.x+v1.x*radius,
+    y:vertex.y+v1.y*radius
+  };
+
+  const end={
+    x:vertex.x+v2.x*radius,
+    y:vertex.y+v2.y*radius
+  };
+
+  const a1=Math.atan2(v1.y,v1.x);
+  const a2=Math.atan2(v2.y,v2.x);
+
+  let delta=a2-a1;
+
+  while(delta<=-Math.PI) delta+=Math.PI*2;
+  while(delta>Math.PI) delta-=Math.PI*2;
+
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 ${delta>0?1:0} ${end.x} ${end.y}`;
+}
+
+function labelPosition(vertex,p1,p2,distance){
+  const v1=unitVector(vertex,p1);
+  const v2=unitVector(vertex,p2);
+
+  let bx=v1.x+v2.x;
+  let by=v1.y+v2.y;
+
+  const len=Math.hypot(bx,by);
+  bx/=len;
+  by/=len;
+
+  return {
+    x:vertex.x+bx*distance,
+    y:vertex.y+by*distance
+  };
+}
+
+function addAngleLabel(position,text,isUnknown){
+  const g=svg('g',{
+    class:'angle-label'+(isUnknown?' unknown':'')
+  });
+
+  const width=isUnknown?52:78;
+  const height=isUnknown?48:42;
+
+  g.append(
+    svg('rect',{
+      x:position.x-width/2,
+      y:position.y-height/2,
+      width,
+      height
+    })
+  );
+
+  const t=svg('text',{
+    x:position.x,
+    y:position.y+1
+  });
+
+  t.textContent=text;
+  g.append(t);
+  scene.append(g);
+}
+
+function addAngle(points,indexToDraw,text,isUnknown){
+  const vertex=points[indexToDraw];
+  const others=[0,1,2].filter(i=>i!==indexToDraw);
+  const p1=points[others[0]];
+  const p2=points[others[1]];
+
+  scene.append(
+    svg('path',{
+      class:'angle-arc'+(isUnknown?' unknown':''),
+      d:anglePath(vertex,p1,p2,isUnknown?51:47)
+    })
+  );
+
+  addAngleLabel(
+    labelPosition(vertex,p1,p2,isUnknown?94:87),
+    text,
+    isUnknown
+  );
+}
+
+function addVertexLabels(points,letters){
+  const centroid={
+    x:(points[0].x+points[1].x+points[2].x)/3,
+    y:(points[0].y+points[1].y+points[2].y)/3
+  };
+
+  points.forEach((p,i)=>{
+    let dx=p.x-centroid.x;
+    let dy=p.y-centroid.y;
+    const len=Math.hypot(dx,dy);
+    dx/=len;
+    dy/=len;
+
+    const t=svg('text',{
+      class:'vertex',
+      x:p.x+dx*30,
+      y:p.y+dy*30+1
+    });
+
+    t.textContent=letters[i];
+    scene.append(t);
+  });
+}
+
+function addSideMark(p1,p2){
+  const mx=(p1.x+p2.x)/2;
+  const my=(p1.y+p2.y)/2;
+
+  const dx=p2.x-p1.x;
+  const dy=p2.y-p1.y;
+  const len=Math.hypot(dx,dy);
+
+  const nx=-dy/len;
+  const ny=dx/len;
+
+  const half=11;
+
+  scene.append(
+    svg('line',{
+      class:'side-mark',
+      x1:mx-nx*half,
+      y1:my-ny*half,
+      x2:mx+nx*half,
+      y2:my+ny*half
+    })
+  );
+}
+
+function addRightMark(vertex,p1,p2){
+  const u1=unitVector(vertex,p1);
+  const u2=unitVector(vertex,p2);
+  const d=33;
+
+  const a={
+    x:vertex.x+u1.x*d,
+    y:vertex.y+u1.y*d
+  };
+
+  const b={
+    x:a.x+u2.x*d,
+    y:a.y+u2.y*d
+  };
+
+  const c={
+    x:vertex.x+u2.x*d,
+    y:vertex.y+u2.y*d
+  };
+
+  scene.append(
+    svg('path',{
+      class:'right-mark',
+      d:`M ${a.x} ${a.y} L ${b.x} ${b.y} L ${c.x} ${c.y}`
+    })
+  );
+}
+
+function drawPolygon(points){
+  scene.append(
+    svg('polygon',{
+      class:'triangle',
+      points:points.map(p=>`${p.x},${p.y}`).join(' ')
+    })
+  );
+}
+
+function drawMissionFigure(m){
+  scene.innerHTML='';
+
+  const letters=shuffle(['A','B','C']);
+  m.letters=letters;
+
+  if(m.kind==='right'){
+    const points=[
+      {x:230,y:285},
+      {x:750,y:285},
+      {x:230,y:58}
+    ];
+
+    drawPolygon(points);
+    addRightMark(points[0],points[1],points[2]);
+
+    for(let i=1;i<3;i++){
+      addAngle(
+        points,
+        i,
+        i===m.unknown ? '?' : `${m.angles[i]}°`,
+        i===m.unknown
+      );
+    }
+
+    addVertexLabels(points,letters);
+    return;
+  }
+
+  if(m.kind==='isoBase' || m.kind==='isoApex'){
+    const raw=pick(isoTemplates).map(p=>({...p}));
+    const apexIndex=ri(0,2);
+
+    const points=new Array(3);
+
+    if(apexIndex===0){
+      points[0]=raw[2];
+      points[1]=raw[0];
+      points[2]=raw[1];
+    }else if(apexIndex===1){
+      points[1]=raw[2];
+      points[0]=raw[0];
+      points[2]=raw[1];
+    }else{
+      points[2]=raw[2];
+      points[0]=raw[0];
+      points[1]=raw[1];
+    }
+
+    const baseIndices=[0,1,2].filter(i=>i!==apexIndex);
+
+    m.apexIndex=apexIndex;
+    m.baseIndices=baseIndices;
+
+    drawPolygon(points);
+    addSideMark(points[apexIndex],points[baseIndices[0]]);
+    addSideMark(points[apexIndex],points[baseIndices[1]]);
+
+    if(m.kind==='isoBase'){
+      const givenBase=pick(baseIndices);
+      addAngle(points,givenBase,`${m.base}°`,false);
+      addAngle(points,apexIndex,'?',true);
+    }else{
+      const unknownBase=pick(baseIndices);
+      addAngle(points,apexIndex,`${m.apex}°`,false);
+      addAngle(points,unknownBase,'?',true);
+    }
+
+    addVertexLabels(points,letters);
+    return;
+  }
+
+  const points=pick(generalTemplates).map(p=>({...p}));
+  drawPolygon(points);
+
+  for(let i=0;i<3;i++){
+    if(m.kind==='classification' && i===m.hidden){
+      addAngle(points,i,'?',true);
+    }else if(m.kind==='classification'){
+      addAngle(points,i,`${m.angles[i]}°`,false);
+    }else{
+      addAngle(
+        points,
+        i,
+        i===m.unknown ? '?' : `${m.angles[i]}°`,
+        i===m.unknown
+      );
+    }
+  }
+
+  addVertexLabels(points,letters);
+}
+
+/* =========================================================
+   INTERFACE
+   ========================================================= */
+
+function updateHeader(){
+  counter.textContent=`Mission ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+}
+
+function resetCommon(){
+  locked=false;
+  attempts=0;
+  stage='answer';
+  missionCredit=1;
+
+  visualWrap.hidden=false;
+  scene.innerHTML='';
+  constructionBox.hidden=true;
+  constructionBox.innerHTML='';
+  note.hidden=false;
+
+  answerRow.hidden=true;
+  choiceArea.hidden=true;
+  choiceGrid.innerHTML='';
+
+  validate.hidden=false;
+  validate.disabled=true;
+
+  next.hidden=true;
+  next.textContent=index===TOTAL-1 ? 'Voir le résultat' : 'Mission suivante';
+
+  feedback.className='feedback';
+  feedback.textContent='Lis la situation et choisis la propriété utile.';
+}
+
+function render(){
+  resetCommon();
+
+  exercise.hidden=false;
+  final.classList.remove('show');
+
+  const m=missions[index];
+
+  if(m.kind==='construction'){
+    renderConstruction(m);
+  }else{
+    renderMathMission(m);
+  }
+
+  updateHeader();
+}
+
+function renderMathMission(m){
+  drawMissionFigure(m);
+
+  if(m.kind==='classification'){
+    instruction.innerHTML='Calcule d’abord l’angle marqué&nbsp;<strong>?</strong>.';
+    contextBox.textContent='Puis tu devras déterminer la nature du triangle.';
+  }else{
+    instruction.innerHTML='Calcule la mesure de l’angle marqué&nbsp;<strong>?</strong>.';
+    contextBox.textContent=m.context;
+  }
+
+  answerRow.hidden=false;
+  answerLabel.innerHTML='Angle&nbsp;? =';
+  unit.textContent='°';
+
+  answer.value='';
+  answer.disabled=false;
+  answer.className='answer-input';
+
+  attempt.textContent='Tu as 2 essais.';
+
+  setTimeout(()=>answer.focus(),50);
+}
+
+function renderConstruction(m){
+  stage='construction';
+
+  instruction.textContent='Choisis la bonne suite d’étapes pour construire le triangle.';
+  contextBox.textContent='';
+
+  visualWrap.hidden=true;
+  note.hidden=true;
+  answerRow.hidden=true;
+
+  constructionBox.hidden=false;
+
+  const data=document.createElement('div');
+  data.className='construction-data';
+  data.textContent=m.data;
+  constructionBox.append(data);
+
+  const grid=document.createElement('div');
+  grid.className='procedure-grid';
+
+  m.options.forEach((option,i)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='procedure';
+    button.dataset.index=String(i);
+    button.textContent=option.text;
+
+    button.addEventListener('click',()=>{
+      if(locked) return;
+
+      [...grid.children].forEach(b=>b.classList.remove('selected'));
+      button.classList.add('selected');
+      validate.disabled=false;
+    });
+
+    grid.append(button);
+  });
+
+  constructionBox.append(grid);
+
+  attempt.textContent='Tu as 1 essai.';
+  feedback.textContent='Lis bien l’ordre des étapes.';
+}
+
+/* =========================================================
+   RÉPONSES ET FEEDBACKS
+   ========================================================= */
+
+function expectedAngle(m){
+  if(m.kind==='general'){
+    return m.angles[m.unknown];
+  }
+
+  if(m.kind==='right'){
+    return m.angles[m.unknown];
+  }
+
+  if(m.kind==='isoBase'){
+    return m.apex;
+  }
+
+  if(m.kind==='isoApex'){
+    return m.base;
+  }
+
+  if(m.kind==='classification'){
+    return m.angles[m.hidden];
+  }
+
+  return NaN;
+}
+
+function firstHint(m){
+  if(m.kind==='general'){
+    return 'Relis les deux mesures données et repense à la somme des angles d’un triangle.';
+  }
+
+  if(m.kind==='right'){
+    return 'Observe le codage de l’angle droit avant de choisir ton calcul.';
+  }
+
+  if(m.kind==='isoBase' || m.kind==='isoApex'){
+    return 'Observe d’abord quels segments sont codés de même longueur.';
+  }
+
+  if(m.kind==='classification'){
+    return 'Commence par calculer l’angle manquant avant de chercher la nature du triangle.';
+  }
+
+  return '';
+}
+
+function correctionForAngle(m){
+  const expected=expectedAngle(m);
+
+  if(m.kind==='general'){
+    const known=m.angles.filter((_,i)=>i!==m.unknown);
+    return `La somme des angles vaut&nbsp;180°. Donc&nbsp;<strong>180° − ${known[0]}° − ${known[1]}° = ${expected}°</strong>.`;
+  }
+
+  if(m.kind==='right'){
+    const known=m.angles.find((v,i)=>i!==0 && i!==m.unknown);
+    return `Le triangle est rectangle. Les deux angles aigus ont une somme de&nbsp;90°. Donc&nbsp;<strong>90° − ${known}° = ${expected}°</strong>.`;
+  }
+
+  if(m.kind==='isoBase'){
+    return `Les deux segments codés de même longueur forment un triangle isocèle. Les deux angles à la base ont donc la même mesure.&nbsp;Ainsi&nbsp;<strong>180° − ${m.base}° − ${m.base}° = ${m.apex}°</strong>.`;
+  }
+
+  if(m.kind==='isoApex'){
+    return `Les deux angles à la base ont la même mesure.&nbsp;<strong>180° − ${m.apex}° = ${180-m.apex}°</strong>, puis&nbsp;<strong>${180-m.apex}° ÷ 2 = ${m.base}°</strong>.`;
+  }
+
+  return `La somme des angles vaut&nbsp;180°. L’angle manquant mesure&nbsp;<strong>${expected}°</strong>.`;
+}
+
+function successForAngle(m){
+  return `Bravo&nbsp;! ${correctionForAngle(m)}`;
+}
+
+function validateAngle(){
+  const m=missions[index];
+  const student=parseAnswer(answer.value);
+
+  if(!Number.isFinite(student)) return;
+
+  const expected=expectedAngle(m);
+  attempts++;
+
+  if(Math.abs(student-expected)<0.0001){
+    answer.disabled=true;
+    answer.className='answer-input correct';
+
+    if(attempts===2){
+      missionCredit=Math.min(missionCredit,0.5);
+    }
+
+    if(m.kind==='classification'){
+      stage='classification';
+      answerRow.hidden=true;
+      feedback.className='feedback success';
+      feedback.innerHTML=`<span>Calcul correct.&nbsp;${correctionForAngle(m)} Maintenant, sélectionne toutes les natures qui conviennent.</span>`;
+      attempt.textContent='Tu as 1 essai pour la nature du triangle.';
+      renderClassificationChoices(m);
+      return;
+    }
+
+    locked=true;
+    score+=missionCredit;
+
+    attempt.textContent=
+      missionCredit===1
+        ? 'Réussi au 1er essai : +1 point.'
+        : 'Réussi au 2e essai : +0,5 point.';
+
+    feedback.className='feedback success';
+    feedback.innerHTML=`<span>${successForAngle(m)}</span>`;
+
+    validate.hidden=true;
+    next.hidden=false;
+    updateHeader();
+    return;
+  }
+
+  if(attempts===1){
+    missionCredit=0.5;
+    answer.className='answer-input wrong';
+
+    attempt.textContent='Il te reste 1 essai.';
+
+    feedback.className='feedback error';
+    feedback.textContent=firstHint(m);
+
+    setTimeout(()=>{
+      answer.className='answer-input';
+      answer.focus();
+      answer.select();
+    },240);
+
+    return;
+  }
+
+  missionCredit=0;
+  answer.value=String(expected);
+  answer.disabled=true;
+  answer.className='answer-input correction';
+
+  feedback.className='feedback correction';
+  feedback.innerHTML=`<span>${correctionForAngle(m)}</span>`;
+
+  if(m.kind==='classification'){
+    stage='classification';
+    answerRow.hidden=true;
+    attempt.textContent='Correction du calcul affichée. Tu as 1 essai pour la nature du triangle.';
+    renderClassificationChoices(m);
+    return;
+  }
+
+  locked=true;
+  attempt.textContent='Correction affichée.';
+  validate.hidden=true;
+  next.hidden=false;
+}
+
+/* ---------- Classification ---------- */
+
+function classificationLabel(value){
+  return {
+    quelconque:'Triangle quelconque',
+    isocele:'Triangle isocèle',
+    equilateral:'Triangle équilatéral',
+    rectangle:'Triangle rectangle'
+  }[value];
+}
+
+function renderClassificationChoices(m){
+  choiceArea.hidden=false;
+  choiceGrid.innerHTML='';
+
+  ['quelconque','isocele','equilateral','rectangle'].forEach(value=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='choice';
+    button.dataset.value=value;
+    button.textContent=classificationLabel(value);
+
+    button.addEventListener('click',()=>{
+      if(locked) return;
+      button.classList.toggle('selected');
+      validate.disabled=selectedClassification().length===0;
+    });
+
+    choiceGrid.append(button);
+  });
+
+  validate.hidden=false;
+  validate.disabled=true;
+}
+
+function selectedClassification(){
+  return [...choiceGrid.querySelectorAll('.choice.selected')]
+    .map(b=>b.dataset.value);
+}
+
+function sameSet(a,b){
+  if(a.length!==b.length) return false;
+  const aa=[...a].sort();
+  const bb=[...b].sort();
+  return aa.every((v,i)=>v===bb[i]);
+}
+
+function classificationExplanation(m){
+  const sorted=[...m.angles].sort((a,b)=>a-b);
+
+  if(m.answers.includes('equilateral')){
+    return 'Les trois angles mesurent 60°&nbsp;: le triangle est <strong>équilatéral</strong>.';
+  }
+
+  if(m.answers.includes('isocele') && m.answers.includes('rectangle')){
+    return 'Le triangle possède un angle de 90° et deux angles de 45°&nbsp;: il est <strong>rectangle et isocèle</strong>.';
+  }
+
+  if(m.answers.includes('rectangle')){
+    return 'Un angle mesure 90°&nbsp;: le triangle est <strong>rectangle</strong>.';
+  }
+
+  if(m.answers.includes('isocele')){
+    return `Deux angles ont la même mesure&nbsp;(${sorted[0]}° et ${sorted[1]}°)&nbsp;: le triangle est <strong>isocèle</strong>.`;
+  }
+
+  return 'Les trois angles ont des mesures différentes et aucun ne mesure 90°&nbsp;: le triangle est <strong>quelconque</strong>.';
+}
+
+function validateClassification(){
+  const m=missions[index];
+  const selected=selectedClassification();
+
+  if(selected.length===0) return;
+
+  locked=true;
+
+  [...choiceGrid.querySelectorAll('.choice')].forEach(button=>{
+    const value=button.dataset.value;
+    const selectedNow=button.classList.contains('selected');
+    const correct=m.answers.includes(value);
+
+    button.disabled=true;
+
+    if(correct && selectedNow){
+      button.className='choice correct-choice';
+    }else if(!correct && selectedNow){
+      button.className='choice wrong-choice';
+    }else if(correct && !selectedNow){
+      button.className='choice missed-choice';
+    }else{
+      button.className='choice';
+    }
+  });
+
+  validate.hidden=true;
+  next.hidden=false;
+
+  if(sameSet(selected,m.answers)){
+    score+=missionCredit;
+
+    attempt.textContent=
+      missionCredit===1
+        ? 'Mission réussie : +1 point.'
+        : missionCredit===0.5
+          ? 'Mission réussie : +0,5 point.'
+          : 'Nature correcte, mais le calcul avait été corrigé.';
+
+    feedback.className='feedback success';
+    feedback.innerHTML=`<span>Bravo&nbsp;! ${classificationExplanation(m)}</span>`;
+  }else{
+    const names=m.answers
+      .map(classificationLabel)
+      .join(m.answers.length>1 ? '&nbsp;et&nbsp;' : '');
+
+    attempt.textContent='Correction affichée.';
+
+    feedback.className='feedback correction';
+    feedback.innerHTML=`<span>La bonne réponse était&nbsp;: <strong>${names}</strong>.<br>${classificationExplanation(m)}</span>`;
+  }
+
+  updateHeader();
+}
+
+/* ---------- Construction ---------- */
+
+function validateConstruction(){
+  const m=missions[index];
+  const buttons=[...constructionBox.querySelectorAll('.procedure')];
+  const selected=buttons.find(b=>b.classList.contains('selected'));
+
+  if(!selected) return;
+
+  locked=true;
+
+  const selectedIndex=Number(selected.dataset.index);
+  const isCorrect=m.options[selectedIndex].correct;
+
+  buttons.forEach((button,i)=>{
+    button.disabled=true;
+
+    if(m.options[i].correct){
+      button.className='procedure correct-choice';
+    }else if(i===selectedIndex){
+      button.className='procedure wrong-choice';
+    }
+  });
+
+  validate.hidden=true;
+  next.hidden=false;
+
+  if(isCorrect){
+    score+=1;
+    attempt.textContent='Réussi : +1 point.';
+    feedback.className='feedback success';
+    feedback.innerHTML=`<span>Bravo&nbsp;! ${m.correction}</span>`;
+  }else{
+    attempt.textContent='Correction affichée.';
+    feedback.className='feedback correction';
+    feedback.innerHTML=`<span>${m.correction}</span>`;
+  }
+
+  updateHeader();
+}
+
+/* =========================================================
+   VALIDATION GÉNÉRALE
+   ========================================================= */
+
+function validateCurrent(){
+  if(locked) return;
+
+  if(stage==='construction'){
+    validateConstruction();
+    return;
+  }
+
+  if(stage==='classification'){
+    validateClassification();
+    return;
+  }
+
+  validateAngle();
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function nextMission(){
+  if(index<TOTAL-1){
+    index++;
+    render();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.hidden=true;
+  final.classList.add('show');
+
+  bar.style.width='100%';
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  finalScore.textContent=`${formatScore(score)} / ${TOTAL}`;
+
+  if(score===6){
+    finalHint.textContent=
+      'Bravo ! Tu sais mobiliser les propriétés des triangles dans des situations variées.';
+  }else if(score>=4.5){
+    finalHint.textContent=
+      'Très bon travail ! Rejoue pour essayer de réussir toutes les missions du premier coup.';
+  }else if(score>=3){
+    finalHint.textContent=
+      'Tu progresses bien. Rejoue pour mieux repérer la propriété utile avant de calculer.';
+  }else{
+    finalHint.textContent=
+      'Continue à t’entraîner : observe les codages, repère les triangles particuliers et choisis ensuite ton calcul.';
+  }
+}
+
+function restartGame(){
+  missions=makeMissions();
+  index=0;
+  score=0;
+  locked=false;
+  render();
+}
+
+/* =========================================================
+   ÉVÉNEMENTS
+   ========================================================= */
+
+answer.addEventListener('input',()=>{
+  validate.disabled=answer.value.trim()==='';
+});
+
+answer.addEventListener('keydown',event=>{
+  if(
+    event.key==='Enter' &&
+    !validate.disabled &&
+    !validate.hidden
+  ){
+    validateCurrent();
+  }
+});
+
+validate.addEventListener('click',validateCurrent);
+next.addEventListener('click',nextMission);
+restart.addEventListener('click',restartGame);
+
+/* ---------- Démarrage ---------- */
+
+restartGame();
+
+})();
+</script>
+
+</body>
+</html>
