@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Carré ou rectangle : à toi de jouer !</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:46px;
+  margin:0;
+  padding:0 7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:clamp(1.04rem,1.95vw,1.3rem);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+.figure{
+  flex:1;
+  min-height:295px;
+  overflow:hidden;
+  position:relative;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:295px;
+  display:block;
+}
+
+.shape{
+  fill:rgba(23,105,170,.08);
+  stroke:var(--line);
+  stroke-width:5;
+  vector-effect:non-scaling-stroke;
+}
+
+.measure-line{
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.measure-tick{
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.label rect{
+  fill:#fff;
+  stroke:#b9d4e8;
+  stroke-width:2.2;
+  rx:9;
+  ry:9;
+}
+
+.label text{
+  fill:var(--bd);
+  font:800 21px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.label.info rect{
+  fill:var(--bs);
+  stroke:#8ab8da;
+}
+
+.label.question rect{
+  fill:var(--os);
+  stroke:var(--oline);
+}
+
+.label.question text{
+  fill:var(--o);
+}
+
+.figure-name{
+  fill:var(--bd);
+  font:850 25px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+  color:#8493a0;
+  font-size:.76rem;
+  font-weight:650;
+}
+
+/* ---------- Réponse ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:130px;
+  height:44px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.14rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:44px;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:118px;
+  padding:0 15px;
+
+  border:0;
+  border-radius:13px;
+
+  font-size:.93rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(500px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.3rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.02rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.82rem}
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:36px;
+    font-size:.91rem;
+  }
+
+  .figure,#scene{min-height:240px}
+  .label text{font-size:17px}
+  .figure-name{font-size:20px}
+
+  .answer-row{min-height:46px}
+  .answer-label,.unit{font-size:.9rem}
+  .answer-input{height:39px;width:105px;font-size:1rem}
+
+  .attempt{font-size:.74rem}
+
+  .feedback{
+    min-height:38px;
+    padding:4px 7px;
+    font-size:.77rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:102px;
+    padding:0 10px;
+    font-size:.83rem;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 920 380"
+           preserveAspectRatio="xMidYMid meet"
+           aria-label="Carré ou rectangle"></svg>
+      <div class="note">Figure non à l'échelle</div>
+    </div>
+
+    <div class="answer-row">
+      <span class="answer-label" id="answerLabel">Réponse =</span>
+      <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off">
+      <span class="unit" id="answerUnit">cm</span>
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe les informations données avant de calculer.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>Valider</button>
+      <button class="action secondary" id="next" type="button" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2 id="finalTitle">Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const $=id=>document.getElementById(id);
+
+const scene=$('scene');
+const instruction=$('instruction');
+const answer=$('answer');
+const answerLabel=$('answerLabel');
+const answerUnit=$('answerUnit');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const validate=$('validate');
+const next=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalTitle=$('finalTitle');
+const finalScore=$('finalScore');
+const finalHint=$('finalHint');
+const restart=$('restart');
+
+const NS='http://www.w3.org/2000/svg';
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+
+function svg(name,attrs={}){
+  const el=document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function cleanNumber(text){
+  return Number(String(text).trim().replace(',','.'));
+}
+
+function formatScore(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+
+function chooseUnit(){
+  return pick(['cm','dm','m']);
+}
+
+function makeSquareDirect(){
+  const c=ri(3,14);
+  return {
+    type:'square-direct',
+    shape:'square',
+    unit:chooseUnit(),
+    c,
+    answer:4*c,
+    ask:'perimeter'
+  };
+}
+
+function makeRectangleDirect(){
+  let L=ri(6,16), l=ri(2,10);
+  if(l>=L) [L,l]=[Math.max(L,l)+2,Math.min(L,l)];
+  return {
+    type:'rectangle-direct',
+    shape:'rectangle',
+    unit:chooseUnit(),
+    L,l,
+    answer:2*(L+l),
+    ask:'perimeter'
+  };
+}
+
+function makeSquareInverse(){
+  const c=ri(3,14);
+  return {
+    type:'square-inverse',
+    shape:'square',
+    unit:chooseUnit(),
+    c,
+    P:4*c,
+    answer:c,
+    ask:'side'
+  };
+}
+
+function makeRectangleInverse(){
+  let L=ri(7,16), l=ri(2,9);
+  if(l>=L) [L,l]=[Math.max(L,l)+2,Math.min(L,l)];
+  const hide=pick(['L','l']);
+  return {
+    type:'rectangle-inverse',
+    shape:'rectangle',
+    unit:chooseUnit(),
+    L,l,
+    P:2*(L+l),
+    hide,
+    answer:hide==='L'?L:l,
+    ask:'dimension'
+  };
+}
+
+function makeMixedSquare(){
+  const inverse=Math.random()<.5;
+  return inverse?makeSquareInverse():makeSquareDirect();
+}
+
+function makeMixedRectangle(){
+  const inverse=Math.random()<.5;
+  return inverse?makeRectangleInverse():makeRectangleDirect();
+}
+
+function buildQuestions(){
+  // Ordre de difficulté fixe, valeurs et situations mélangées à l'intérieur.
+  const q1=Math.random()<.5?makeSquareDirect():makeRectangleDirect();
+  const q2=q1.shape==='square'?makeRectangleDirect():makeSquareDirect();
+
+  const q3=Math.random()<.5?makeSquareInverse():makeRectangleInverse();
+  const q4=q3.shape==='square'?makeRectangleInverse():makeSquareInverse();
+
+  let q5=makeMixedSquare();
+  let q6=makeMixedRectangle();
+
+  // Évite que Q5 et Q6 soient toutes les deux du même type d'opération.
+  if(q5.ask===q6.ask){
+    q6=q6.shape==='rectangle'
+      ? (q5.ask==='perimeter'?makeRectangleInverse():makeRectangleDirect())
+      : q6;
+  }
+
+  return [q1,q2,q3,q4,q5,q6];
+}
+
+function addLabel(x,y,text,className='label'){
+  const g=svg('g',{class:className});
+  const width=Math.max(62,String(text).length*11.5+24);
+
+  const rect=svg('rect',{
+    x:x-width/2,
+    y:y-18,
+    width,
+    height:36
+  });
+
+  const label=svg('text',{x,y:y+1});
+  label.textContent=text;
+
+  g.append(rect,label);
+  scene.appendChild(g);
+}
+
+function measureHorizontal(x1,x2,y,labelY,text,cls='label info'){
+  scene.appendChild(svg('line',{
+    x1,y1:y,x2,y2:y,class:'measure-line'
+  }));
+  scene.appendChild(svg('line',{
+    x1,y1:y-8,x2:x1,y2:y+8,class:'measure-tick'
+  }));
+  scene.appendChild(svg('line',{
+    x1:x2,y1:y-8,x2:x2,y2:y+8,class:'measure-tick'
+  }));
+  addLabel((x1+x2)/2,labelY,text,cls);
+}
+
+function measureVertical(x,y1,y2,labelX,text,cls='label info'){
+  scene.appendChild(svg('line',{
+    x1:x,y1,x2:x,y2,class:'measure-line'
+  }));
+  scene.appendChild(svg('line',{
+    x1:x-8,y1,x2:x+8,y2:y1,class:'measure-tick'
+  }));
+  scene.appendChild(svg('line',{
+    x1:x-8,y1:y2,x2:x+8,y2:y2,class:'measure-tick'
+  }));
+  addLabel(labelX,(y1+y2)/2,text,cls);
+}
+
+function drawSquare(q){
+  const x=310,y=80,s=260;
+
+  scene.appendChild(svg('rect',{
+    x,y,width:s,height:s,class:'shape'
+  }));
+
+  const title=svg('text',{
+    x:440,y:45,class:'figure-name'
+  });
+  title.textContent='Carré';
+  scene.appendChild(title);
+
+  if(q.ask==='perimeter'){
+    measureHorizontal(x,x+s,355,372,`${q.c} ${q.unit}`);
+  }else{
+    measureHorizontal(x,x+s,355,372,'?','label question');
+    addLabel(440,188,`P = ${q.P} ${q.unit}`,'label info');
+  }
+}
+
+function drawRectangle(q){
+  const x=220,y=95,w=480,h=220;
+
+  scene.appendChild(svg('rect',{
+    x,y,width:w,height:h,class:'shape'
+  }));
+
+  const title=svg('text',{
+    x:460,y:48,class:'figure-name'
+  });
+  title.textContent='Rectangle';
+  scene.appendChild(title);
+
+  if(q.ask==='perimeter'){
+    measureHorizontal(x,x+w,335,357,`${q.L} ${q.unit}`);
+    measureVertical(735,y,y+h,765,`${q.l} ${q.unit}`);
+  }else{
+    addLabel(460,205,`P = ${q.P} ${q.unit}`,'label info');
+
+    if(q.hide==='L'){
+      measureHorizontal(x,x+w,335,357,'?','label question');
+      measureVertical(735,y,y+h,765,`${q.l} ${q.unit}`);
+    }else{
+      measureHorizontal(x,x+w,335,357,`${q.L} ${q.unit}`);
+      measureVertical(735,y,y+h,765,'?','label question');
+    }
+  }
+}
+
+function drawQuestion(){
+  scene.replaceChildren();
+  const q=questions[index];
+
+  if(q.shape==='square') drawSquare(q);
+  else drawRectangle(q);
+}
+
+function setFeedback(text,type=''){
+  feedback.className='feedback'+(type?' '+type:'');
+  feedback.textContent=text;
+}
+
+function render(){
+  const q=questions[index];
+
+  attempts=0;
+  locked=false;
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  answer.value='';
+  answer.disabled=false;
+  answer.className='answer-input';
+  answerUnit.textContent=q.unit;
+
+  validate.hidden=false;
+  validate.disabled=true;
+  next.hidden=true;
+  next.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+
+  if(q.ask==='perimeter'){
+    instruction.innerHTML=
+      `Calcule le&nbsp;<strong>périmètre</strong>&nbsp;de cette figure.`;
+    answerLabel.textContent='Périmètre =';
+    setFeedback('Utilise les dimensions indiquées sur la figure.');
+  }else if(q.shape==='square'){
+    instruction.innerHTML=
+      `Le périmètre du carré est donné. Retrouve la&nbsp;<strong>longueur d’un côté</strong>.`;
+    answerLabel.textContent='Côté =';
+    setFeedback('Cherche quelle longueur est répétée quatre fois sur le contour.');
+  }else{
+    instruction.innerHTML=
+      `Le périmètre du rectangle est donné. Retrouve la&nbsp;<strong>dimension manquante</strong>.`;
+    answerLabel.textContent=q.hide==='L'?'Longueur =':'Largeur =';
+    setFeedback('Utilise le périmètre et la dimension déjà connue.');
+  }
+
+  attempt.textContent='Tu as 2 essais.';
+
+  drawQuestion();
+  setTimeout(()=>answer.focus(),0);
+}
+
+function firstErrorFeedback(q){
+  if(q.ask==='perimeter'){
+    return 'Pas encore. Relis les dimensions données et vérifie que ton calcul correspond bien au tour complet de la figure.';
+  }
+
+  if(q.shape==='square'){
+    return 'Pas encore. Le périmètre correspond aux quatre côtés de même longueur.';
+  }
+
+  return 'Pas encore. Le périmètre correspond à deux longueurs et deux largeurs. Utilise la dimension déjà connue.';
+}
+
+function correctionText(q){
+  if(q.ask==='perimeter'){
+    if(q.shape==='square'){
+      return `Correction : P = 4 × ${q.c} = ${q.answer} ${q.unit}.`;
+    }
+    return `Correction : P = 2 × (${q.L} + ${q.l}) = ${q.answer} ${q.unit}.`;
+  }
+
+  if(q.shape==='square'){
+    return `Correction : ${q.P} ÷ 4 = ${q.answer} ${q.unit}.`;
+  }
+
+  const known=q.hide==='L'?q.l:q.L;
+  const name=q.hide==='L'?'longueur':'largeur';
+  return `Correction : la ${name} manquante mesure ${q.answer} ${q.unit}.`;
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  const q=questions[index];
+  const value=cleanNumber(answer.value);
+
+  if(!Number.isFinite(value)) return;
+
+  attempts++;
+
+  if(Math.abs(value-q.answer)<1e-9){
+    locked=true;
+    score+=attempts===1?1:.5;
+
+    answer.disabled=true;
+    answer.classList.add('correct');
+
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    setFeedback(
+      attempts===1
+        ? 'Bravo ! Bonne réponse au premier essai.'
+        : 'Bonne réponse.',
+      'success'
+    );
+
+    attempt.textContent=attempts===1
+      ? 'Réussi au premier essai.'
+      : 'Réussi au deuxième essai.';
+
+    validate.hidden=true;
+    next.hidden=false;
+    return;
+  }
+
+  answer.classList.add('wrong');
+
+  if(attempts===1){
+    setFeedback(firstErrorFeedback(q),'error');
+    attempt.textContent='Il te reste 1 essai.';
+    answer.focus();
+    answer.select();
+    return;
+  }
+
+  locked=true;
+  answer.disabled=true;
+  validate.hidden=true;
+  next.hidden=false;
+
+  setFeedback(correctionText(q),'correction');
+  attempt.textContent='Correction affichée.';
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    render();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalTitle.textContent='Activité terminée';
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalHint.textContent=
+      'Excellent ! Tu maîtrises le périmètre du carré et du rectangle.';
+  }else if(score>=5){
+    finalHint.textContent=
+      'Très bien ! Les périmètres du carré et du rectangle sont bien maîtrisés. Rejoue pour confirmer avec de nouvelles valeurs.';
+  }else if(score>=3.5){
+    finalHint.textContent=
+      'Bien ! Tu as compris l’essentiel. Rejoue pour gagner encore en aisance.';
+  }else{
+    finalHint.textContent=
+      'Continue ! Rejoue avec une nouvelle série pour t’entraîner et progresser.';
+  }
+}
+
+function restartGame(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  locked=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  render();
+}
+
+answer.addEventListener('input',()=>{
+  answer.value=answer.value.replace(/[^0-9.,]/g,'');
+  answer.classList.remove('wrong','correct');
+  validate.disabled=!answer.value.trim();
+});
+
+answer.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validate.disabled&&!locked){
+    validateAnswer();
+  }
+});
+
+validate.addEventListener('click',validateAnswer);
+next.addEventListener('click',nextQuestion);
+restart.addEventListener('click',restartGame);
+
+questions=buildQuestions();
+render();
+
+})();
+</script>
+</body>
+</html>

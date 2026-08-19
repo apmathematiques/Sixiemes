@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Mission contour</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:33.333%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:48px;
+  margin:0;
+  padding:0 7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:clamp(1.08rem,2vw,1.36rem);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+.figure{
+  flex:1;
+  min-height:330px;
+  overflow:hidden;
+  position:relative;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:330px;
+  display:block;
+  touch-action:manipulation;
+}
+
+.shape{
+  fill:rgba(23,105,170,.08);
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.inner-line{
+  fill:none;
+  stroke:#8798a8;
+  stroke-width:4;
+  stroke-dasharray:10 8;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.measure{
+  cursor:pointer;
+  user-select:none;
+  touch-action:manipulation;
+}
+
+.measure rect{
+  fill:#fff;
+  stroke:#b9d4e8;
+  stroke-width:2.5;
+  rx:10;
+  ry:10;
+  transition:fill .12s ease,stroke .12s ease,transform .08s ease;
+}
+
+.measure text{
+  fill:var(--bd);
+  font:800 23px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+  pointer-events:none;
+}
+
+.measure:hover rect{
+  stroke:#74a9cf;
+}
+
+.measure.selected rect{
+  fill:var(--bs);
+  stroke:var(--b);
+}
+
+.measure.correct rect{
+  fill:var(--gs);
+  stroke:#79c798;
+}
+
+.measure.correct text{
+  fill:#165e36;
+}
+
+.measure.wrong rect{
+  fill:var(--rs);
+  stroke:#df8585;
+}
+
+.measure.wrong text{
+  fill:#8f2727;
+}
+
+.measure.missed rect{
+  fill:var(--os);
+  stroke:var(--oline);
+}
+
+.measure.missed text{
+  fill:var(--o);
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+  color:#8493a0;
+  font-size:.78rem;
+  font-weight:650;
+}
+
+/* ---------- Réponse calcul ---------- */
+
+.calc-row{
+  flex:0 0 auto;
+  min-height:56px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+.calc-row.show{display:flex}
+
+.calc-row label{
+  color:var(--bd);
+  font-size:1.05rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:135px;
+  height:46px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.18rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.05rem;
+  font-weight:800;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.9rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:46px;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:48px;
+  min-width:118px;
+  padding:0 15px;
+
+  border:0;
+  border-radius:13px;
+
+  font-size:.94rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(480px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.3rem;
+  font-weight:850;
+}
+
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.02rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:38px;
+    font-size:.94rem;
+  }
+
+  .figure,
+  #scene{
+    min-height:270px;
+  }
+
+  .measure text{font-size:20px}
+
+  .attempt{font-size:.76rem}
+
+  .feedback{
+    min-height:40px;
+    padding:4px 7px;
+    font-size:.79rem;
+  }
+
+  .controls{min-height:44px}
+
+  button.action{
+    min-height:44px;
+    min-width:104px;
+    padding:0 10px;
+    font-size:.85rem;
+  }
+
+  .calc-row{min-height:48px}
+  .answer-input{height:40px;width:110px;font-size:1rem}
+}
+
+@media(pointer:coarse){
+  button.action{min-height:52px}
+  .measure rect{stroke-width:3}
+}
+</style>
+</head>
+
+<body>
+<main class="app" id="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 3</div>
+    <div class="pill" id="score">Score : 0 / 3</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 900 360"
+           preserveAspectRatio="xMidYMid meet"
+           aria-label="Figure géométrique avec des longueurs"></svg>
+      <div class="note">Figure non à l'échelle</div>
+    </div>
+
+    <div class="calc-row" id="calcRow">
+      <label for="answer">Périmètre =</label>
+      <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off">
+      <span class="unit" id="answerUnit">cm</span>
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe le contour avant de répondre.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button">Valider</button>
+      <button class="action secondary" id="next" type="button" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2 id="finalTitle">Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">
+        Rejouer
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=3;
+const MAX_ATTEMPTS=2;
+const $=id=>document.getElementById(id);
+
+const scene=$('scene');
+const instruction=$('instruction');
+const calcRow=$('calcRow');
+const answer=$('answer');
+const answerUnit=$('answerUnit');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const validate=$('validate');
+const next=$('next');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalTitle=$('finalTitle');
+const finalScore=$('finalScore');
+const finalHint=$('finalHint');
+const restart=$('restart');
+
+let questions=[];
+let index=0;
+let score=0;
+let attempts=0;
+let locked=false;
+let selected=new Set();
+
+const NS='http://www.w3.org/2000/svg';
+
+function svg(name,attrs={}){
+  const el=document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function randInt(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function formatScore(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+
+function cleanNumber(text){
+  return Number(String(text).trim().replace(',','.'));
+}
+
+/*
+Chaque gabarit contient :
+- points : contour de la figure,
+- labels : positions des étiquettes de chaque côté du contour,
+- inner : segments intérieurs parasites avec position d'étiquette.
+Les valeurs numériques sont régénérées à chaque partie.
+*/
+const TEMPLATES=[
+  {
+    name:'pentagone',
+    points:[[170,275],[230,90],[455,58],[700,145],[625,300]],
+    labels:[[150,180],[335,55],[590,90],[690,235],[390,305]],
+    inner:[{a:[230,90],b:[625,300],label:[430,185]}]
+  },
+  {
+    name:'hexagone',
+    points:[[170,170],[275,70],[510,65],[705,170],[600,300],[300,305]],
+    labels:[[205,105],[390,58],[620,105],[680,245],[450,315],[205,250]],
+    inner:[{a:[275,70],b:[600,300],label:[450,185]}]
+  },
+  {
+    name:'escalier',
+    points:[[150,300],[150,95],[365,95],[365,165],[515,165],[515,235],[725,235],[725,300]],
+    labels:[[120,200],[255,75],[385,130],[440,145],[535,200],[620,215],[755,265],[440,325]],
+    inner:[{a:[150,300],b:[515,165],label:[330,245]}]
+  },
+  {
+    name:'encoche',
+    points:[[150,300],[150,75],[730,75],[730,300],[570,300],[570,185],[335,185],[335,300]],
+    labels:[[118,190],[440,55],[760,190],[650,325],[600,240],[450,165],[305,240],[240,325]],
+    inner:[{a:[335,185],b:[570,300],label:[470,260]}]
+  },
+  {
+    name:'maison',
+    points:[[195,300],[195,145],[445,55],[695,145],[695,300]],
+    labels:[[165,225],[300,95],[585,95],[725,225],[445,325]],
+    inner:[
+      {a:[195,145],b:[695,145],label:[445,125]},
+      {a:[445,55],b:[445,300],label:[475,210]}
+    ]
+  },
+  {
+    name:'concave',
+    points:[[145,295],[145,75],[700,75],[700,295],[545,295],[545,175],[360,175],[360,295]],
+    labels:[[115,190],[420,55],[730,190],[620,320],[570,235],[455,155],[330,235],[250,320]],
+    inner:[{a:[145,75],b:[545,175],label:[340,105]}]
+  },
+  {
+    name:'irrégulière',
+    points:[[135,245],[220,75],[430,55],[635,105],[745,235],[595,310],[320,300]],
+    labels:[[145,150],[325,55],[535,70],[705,155],[690,285],[455,315],[210,285]],
+    inner:[{a:[220,75],b:[595,310],label:[430,190]}]
+  },
+  {
+    name:'U',
+    points:[[145,80],[145,305],[300,305],[300,165],[545,165],[545,305],[705,305],[705,80]],
+    labels:[[115,190],[220,325],[330,240],[420,145],[575,240],[625,325],[735,190],[425,60]],
+    inner:[{a:[145,80],b:[545,165],label:[350,105]}]
+  },
+  {
+    name:'trapèze',
+    points:[[185,295],[265,80],[620,80],[715,295]],
+    labels:[[190,180],[440,60],[695,180],[450,320]],
+    inner:[
+      {a:[265,80],b:[715,295],label:[500,190]},
+      {a:[185,295],b:[620,80],label:[385,205]}
+    ]
+  },
+  {
+    name:'flèche',
+    points:[[135,185],[335,65],[335,135],[610,135],[610,65],[770,185],[610,305],[610,235],[335,235],[335,305]],
+    labels:[[220,105],[310,100],[475,115],[635,100],[690,105],[690,265],[635,270],[475,255],[310,270],[220,265]],
+    inner:[{a:[335,135],b:[610,235],label:[470,190]}]
+  }
+];
+
+function buildCase(template,mode){
+  const unit=pick(['cm','m','dm']);
+  const edgeValues=template.labels.map(()=>randInt(2,12));
+  const innerValues=template.inner.map(()=>randInt(3,16));
+
+  return {
+    template,
+    mode,
+    unit,
+    edgeValues,
+    innerValues,
+    perimeter:edgeValues.reduce((a,b)=>a+b,0)
+  };
+}
+
+function generateQuestions(){
+  const chosen=shuffle(TEMPLATES).slice(0,TOTAL);
+  return [
+    buildCase(chosen[0],'select'),
+    buildCase(chosen[1],'select'),
+    buildCase(chosen[2],'calculate')
+  ];
+}
+
+function pathData(points){
+  return points.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ')+' Z';
+}
+
+function addMeasure(x,y,text,key,isEdge){
+  const g=svg('g',{
+    class:'measure',
+    'data-key':key,
+    'data-edge':isEdge?'1':'0',
+    tabindex:'0',
+    role:'button',
+    'aria-label':`${text}, ${isEdge?'longueur placée sur le contour':'longueur intérieure'}`
+  });
+
+  const width=Math.max(74,String(text).length*14+28);
+
+  const rect=svg('rect',{
+    x:x-width/2,
+    y:y-19,
+    width,
+    height:38
+  });
+
+  const label=svg('text',{x,y:y+1});
+  label.textContent=text;
+
+  g.append(rect,label);
+
+  if(questions[index].mode==='select'){
+    const toggle=()=>{
+      if(locked) return;
+      if(selected.has(key)){
+        selected.delete(key);
+        g.classList.remove('selected');
+      }else{
+        selected.add(key);
+        g.classList.add('selected');
+      }
+      validate.disabled=selected.size===0;
+    };
+
+    g.addEventListener('click',toggle);
+    g.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        toggle();
+      }
+    });
+  }
+
+  scene.appendChild(g);
+}
+
+function drawQuestion(){
+  const q=questions[index];
+  const t=q.template;
+
+  scene.replaceChildren();
+
+  const outer=svg('path',{
+    d:pathData(t.points),
+    class:'shape'
+  });
+  scene.appendChild(outer);
+
+  t.inner.forEach(part=>{
+    scene.appendChild(svg('line',{
+      x1:part.a[0],y1:part.a[1],
+      x2:part.b[0],y2:part.b[1],
+      class:'inner-line'
+    }));
+  });
+
+  t.labels.forEach((pos,i)=>{
+    addMeasure(
+      pos[0],pos[1],
+      `${q.edgeValues[i]} ${q.unit}`,
+      `e${i}`,
+      true
+    );
+  });
+
+  t.inner.forEach((part,i)=>{
+    addMeasure(
+      part.label[0],part.label[1],
+      `${q.innerValues[i]} ${q.unit}`,
+      `i${i}`,
+      false
+    );
+  });
+}
+
+function setFeedback(text,type=''){
+  feedback.className='feedback'+(type?' '+type:'');
+  feedback.textContent=text;
+}
+
+function render(){
+  const q=questions[index];
+
+  attempts=0;
+  locked=false;
+  selected=new Set();
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  validate.hidden=false;
+  validate.disabled=q.mode==='select';
+  next.hidden=true;
+
+  answer.value='';
+  answer.disabled=false;
+  answer.className='answer-input';
+
+  if(q.mode==='select'){
+    instruction.innerHTML=
+      `Clique uniquement sur les&nbsp;<strong>longueurs qui appartiennent au contour</strong>&nbsp;de la figure.`;
+    calcRow.classList.remove('show');
+    setFeedback('Observe la figure avant de répondre.');
+  }else{
+    instruction.innerHTML=
+      `Calcule le&nbsp;<strong>périmètre</strong>&nbsp;de la figure. Attention : toutes les longueurs affichées ne sont pas forcément utiles.`;
+    calcRow.classList.add('show');
+    answerUnit.textContent=q.unit;
+    setFeedback('Repère d’abord les longueurs du contour, puis additionne-les.');
+    validate.disabled=true;
+    setTimeout(()=>answer.focus(),0);
+  }
+
+  attempt.textContent='Tu as 2 essais.';
+  drawQuestion();
+}
+
+function resolveSelection(){
+  const groups=[...scene.querySelectorAll('.measure')];
+
+  groups.forEach(g=>{
+    const isEdge=g.dataset.edge==='1';
+    const key=g.dataset.key;
+    const isSelected=selected.has(key);
+
+    g.classList.remove('selected');
+
+    if(isEdge && isSelected) g.classList.add('correct');
+    else if(!isEdge && isSelected) g.classList.add('wrong');
+    else if(isEdge && !isSelected) g.classList.add('missed');
+
+    g.style.pointerEvents='none';
+  });
+}
+
+function validateSelection(){
+  const q=questions[index];
+  const correctKeys=q.edgeValues.map((_,i)=>`e${i}`);
+
+  const hasWrong=[...selected].some(k=>k.startsWith('i'));
+  const missing=correctKeys.some(k=>!selected.has(k));
+  const correct=!hasWrong&&!missing&&selected.size===correctKeys.length;
+
+  attempts++;
+
+  if(correct){
+    locked=true;
+    score+=attempts===1?1:.5;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    resolveSelection();
+    setFeedback(
+      attempts===1
+        ? 'Bravo ! Tu as suivi uniquement le contour de la figure.'
+        : 'Oui ! Toutes les longueurs sélectionnées appartiennent bien au contour.',
+      'success'
+    );
+
+    attempt.textContent=attempts===1?'Réussi au premier essai.':'Réussi au deuxième essai.';
+    validate.hidden=true;
+    next.hidden=false;
+    return;
+  }
+
+  if(attempts===1){
+    if(hasWrong && missing){
+      setFeedback(
+        'Pas encore. Tu as sélectionné au moins une longueur intérieure et oublié une partie du contour. Refais le tour complet de la figure.',
+        'error'
+      );
+    }else if(hasWrong){
+      setFeedback(
+        'Pas encore. Une des longueurs choisies n’est pas située sur le contour. Suis uniquement le bord de la figure.',
+        'error'
+      );
+    }else{
+      setFeedback(
+        'Pas encore. Il manque au moins une partie du contour. Fais le tour complet de la figure.',
+        'error'
+      );
+    }
+
+    attempt.textContent='Il te reste 1 essai.';
+    return;
+  }
+
+  locked=true;
+  resolveSelection();
+  setFeedback(
+    'Correction : en vert, les longueurs du contour ; en rouge, les longueurs intérieures sélectionnées ; en orange, les longueurs du contour oubliées.',
+    'correction'
+  );
+
+  attempt.textContent='Correction affichée.';
+  validate.hidden=true;
+  next.hidden=false;
+}
+
+function validateCalculation(){
+  const q=questions[index];
+  const value=cleanNumber(answer.value);
+
+  if(!Number.isFinite(value)) return;
+
+  attempts++;
+
+  if(Math.abs(value-q.perimeter)<1e-9){
+    locked=true;
+    score+=attempts===1?1:.5;
+    scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+    answer.disabled=true;
+    answer.classList.add('correct');
+
+    setFeedback(
+      `Bravo ! Le périmètre est ${q.perimeter} ${q.unit}.`,
+      'success'
+    );
+
+    attempt.textContent=attempts===1?'Réussi au premier essai.':'Réussi au deuxième essai.';
+    validate.hidden=true;
+    next.hidden=false;
+    next.textContent='Voir mon résultat';
+    return;
+  }
+
+  if(attempts===1){
+    answer.classList.add('wrong');
+    setFeedback(
+      'Pas encore. Vérifie que tu n’as utilisé que les longueurs placées sur le contour de la figure.',
+      'error'
+    );
+    attempt.textContent='Il te reste 1 essai.';
+    answer.focus();
+    answer.select();
+    return;
+  }
+
+  locked=true;
+  answer.disabled=true;
+  answer.classList.add('wrong');
+
+  // Correction visuelle : marque les mesures du contour.
+  [...scene.querySelectorAll('.measure')].forEach(g=>{
+    if(g.dataset.edge==='1') g.classList.add('correct');
+    else g.classList.add('wrong');
+  });
+
+  setFeedback(
+    `Le périmètre était ${q.perimeter} ${q.unit}. Il fallait additionner uniquement les mesures du contour.`,
+    'correction'
+  );
+
+  attempt.textContent='Correction affichée.';
+  validate.hidden=true;
+  next.hidden=false;
+  next.textContent='Voir mon résultat';
+}
+
+function validateAnswer(){
+  if(locked) return;
+  const q=questions[index];
+  if(q.mode==='select') validateSelection();
+  else validateCalculation();
+}
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    next.textContent='Question suivante';
+    render();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalTitle.textContent = score===TOTAL ? 'Bravo !' : 'Activité terminée';
+  finalScore.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
+  finalHint.textContent = score===TOTAL
+    ? 'Tout est réussi !'
+    : 'Encore un peu d’entraînement : rejoue pour viser 3/3.';
+}
+
+function restartGame(){
+  questions=generateQuestions();
+  index=0;
+  score=0;
+  attempts=0;
+  locked=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  render();
+}
+
+validate.addEventListener('click',validateAnswer);
+next.addEventListener('click',nextQuestion);
+restart.addEventListener('click',restartGame);
+
+answer.addEventListener('input',()=>{
+  answer.value=answer.value.replace(/[^0-9.,]/g,'');
+  answer.classList.remove('wrong','correct');
+  validate.disabled=!answer.value.trim();
+});
+
+answer.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validate.disabled&&!locked){
+    validateAnswer();
+  }
+});
+
+questions=generateQuestions();
+render();
+
+})();
+</script>
+</body>
+</html>

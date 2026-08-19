@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Rayon ou diamètre ?</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:44px;
+  margin:0;
+  padding:0 7px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:clamp(1.03rem,1.9vw,1.27rem);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+.figure{
+  flex:1;
+  min-height:290px;
+  overflow:hidden;
+  position:relative;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:290px;
+  display:block;
+}
+
+.circle{
+  fill:rgba(23,105,170,.05);
+  stroke:var(--line);
+  stroke-width:5;
+  vector-effect:non-scaling-stroke;
+}
+
+.radius-line,
+.diameter-line{
+  stroke:var(--b);
+  stroke-width:5;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.center-dot{
+  fill:var(--bd);
+}
+
+.center-label{
+  fill:var(--bd);
+  font:800 20px Arial,Helvetica,sans-serif;
+}
+
+.measure-label rect,
+.info-label rect{
+  fill:#fff;
+  stroke:#b9d4e8;
+  stroke-width:2.2;
+  rx:9;
+  ry:9;
+}
+
+.measure-label text,
+.info-label text{
+  fill:var(--bd);
+  font:800 21px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.info-label rect{
+  fill:var(--bs);
+  stroke:#8ab8da;
+}
+
+.context-title{
+  fill:var(--bd);
+  font:850 28px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.context-text{
+  fill:var(--i);
+  font:700 24px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.context-sub{
+  fill:var(--m);
+  font:650 20px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.object-shape{
+  fill:rgba(23,105,170,.08);
+  stroke:var(--line);
+  stroke-width:4;
+  vector-effect:non-scaling-stroke;
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+  color:#8493a0;
+  font-size:.76rem;
+  font-weight:650;
+}
+
+/* ---------- Choix rayon / diamètre ---------- */
+
+.choice-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.choice-row.show{display:flex}
+
+.choice{
+  min-width:150px;
+  min-height:46px;
+  padding:0 18px;
+  border:2px solid #b9d4e8;
+  border-radius:13px;
+  background:#fff;
+  color:var(--bd);
+  font-weight:850;
+  cursor:pointer;
+  transition:background .12s ease,border .12s ease,transform .08s ease;
+}
+
+.choice:hover{border-color:#74a9cf}
+.choice:active{transform:scale(.98)}
+.choice.selected{
+  background:var(--bs);
+  border-color:var(--b);
+}
+.choice.correct{
+  background:var(--gs);
+  border-color:#79c798;
+  color:#165e36;
+}
+.choice.wrong{
+  background:var(--rs);
+  border-color:#df8585;
+  color:#8f2727;
+}
+
+/* ---------- Réponse calcul ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+.answer-row.show{display:flex}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:140px;
+  height:44px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.14rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:44px;
+  padding:6px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:118px;
+  padding:0 15px;
+
+  border:0;
+  border-radius:13px;
+
+  font-size:.93rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(520px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.3rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.02rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.82rem}
+
+  .main{
+    padding:0 6px 6px;
+    gap:3px;
+  }
+
+  .instruction{
+    min-height:36px;
+    font-size:.91rem;
+  }
+
+  .figure,#scene{min-height:235px}
+
+  .measure-label text,.info-label text{font-size:17px}
+  .context-title{font-size:22px}
+  .context-text{font-size:19px}
+  .context-sub{font-size:16px}
+
+  .choice-row,.answer-row{min-height:46px}
+  .choice{min-width:120px;min-height:40px;font-size:.88rem}
+  .answer-label,.unit{font-size:.9rem}
+  .answer-input{height:39px;width:112px;font-size:1rem}
+
+  .attempt{font-size:.74rem}
+
+  .feedback{
+    min-height:38px;
+    padding:4px 7px;
+    font-size:.77rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:102px;
+    padding:0 10px;
+    font-size:.83rem;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 920 380"
+           preserveAspectRatio="xMidYMid meet"
+           aria-label="Situation avec un cercle"></svg>
+      <div class="note" id="scaleNote">Figure non à l'échelle</div>
+    </div>
+
+    <div class="choice-row" id="choiceRow">
+      <button class="choice" id="radiusBtn" type="button" data-value="radius">Rayon</button>
+      <button class="choice" id="diameterBtn" type="button" data-value="diameter">Diamètre</button>
+    </div>
+
+    <div class="answer-row" id="answerRow">
+      <span class="answer-label">Périmètre ≈</span>
+      <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off">
+      <span class="unit" id="answerUnit">cm</span>
+    </div>
+
+    <p class="attempt" id="attempt">Étape 1 / 2 — Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Observe attentivement la donnée.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>Valider</button>
+      <button class="action secondary" id="continueBtn" type="button" hidden>Continuer</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const $=id=>document.getElementById(id);
+
+const scene=$('scene');
+const instruction=$('instruction');
+const choiceRow=$('choiceRow');
+const radiusBtn=$('radiusBtn');
+const diameterBtn=$('diameterBtn');
+const answerRow=$('answerRow');
+const answer=$('answer');
+const answerUnit=$('answerUnit');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const validate=$('validate');
+const continueBtn=$('continueBtn');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalHint=$('finalHint');
+const restart=$('restart');
+const scaleNote=$('scaleNote');
+
+const NS='http://www.w3.org/2000/svg';
+
+let questions=[];
+let index=0;
+let score=0;
+let stage='identify';
+let attempts=0;
+let questionValue=1;
+let selectedType=null;
+let locked=false;
+
+function svg(name,attrs={}){
+  const el=document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function formatScore(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+
+function cleanNumber(text){
+  return Number(String(text).trim().replace(',','.'));
+}
+
+function round2(n){
+  return Math.round((n+Number.EPSILON)*100)/100;
+}
+
+function fr2(n){
+  return round2(n).toFixed(2).replace('.',',');
+}
+
+function addLabel(x,y,text,className='measure-label'){
+  const g=svg('g',{class:className});
+  const width=Math.max(70,String(text).length*11.5+24);
+
+  const rect=svg('rect',{
+    x:x-width/2,
+    y:y-18,
+    width,
+    height:36
+  });
+
+  const label=svg('text',{x,y:y+1});
+  label.textContent=text;
+
+  g.append(rect,label);
+  scene.appendChild(g);
+}
+
+function addCenter(x,y){
+  scene.appendChild(svg('circle',{cx:x,cy:y,r:6,class:'center-dot'}));
+  const t=svg('text',{x:x+12,y:y-10,class:'center-label'});
+  t.textContent='O';
+  scene.appendChild(t);
+}
+
+function addCircle(cx,cy,r){
+  scene.appendChild(svg('circle',{cx,cy,r,class:'circle'}));
+}
+
+function addTitle(text){
+  const t=svg('text',{x:460,y:45,class:'context-title'});
+  t.textContent=text;
+  scene.appendChild(t);
+}
+
+function addContextLine(text,y,cls='context-text',x=460){
+  const t=svg('text',{x,y,class:cls});
+  t.textContent=text;
+  scene.appendChild(t);
+}
+
+function addWrappedText(text,x,y,maxChars=34,cls='context-text',lineHeight=32){
+  const words=String(text).split(/\s+/);
+  const lines=[];
+  let line='';
+
+  for(const word of words){
+    const candidate=line ? line+' '+word : word;
+    if(candidate.length>maxChars && line){
+      lines.push(line);
+      line=word;
+    }else{
+      line=candidate;
+    }
+  }
+  if(line) lines.push(line);
+
+  const t=svg('text',{x,y,class:cls});
+  lines.forEach((txt,i)=>{
+    const span=svg('tspan',{
+      x,
+      dy:i===0?0:lineHeight
+    });
+    span.textContent=txt;
+    t.appendChild(span);
+  });
+  scene.appendChild(t);
+}
+
+function makeGeoRadius(){
+  const r=ri(2,9);
+  return {
+    kind:'geo-radius',
+    type:'radius',
+    value:r,
+    unit:pick(['cm','dm','m']),
+    title:'Segment du centre au cercle'
+  };
+}
+
+function makeGeoDiameter(){
+  const d=ri(4,18);
+  return {
+    kind:'geo-diameter',
+    type:'diameter',
+    value:d,
+    unit:pick(['cm','dm','m']),
+    title:'Segment passant par le centre'
+  };
+}
+
+function makeSentenceRadius(){
+  const r=ri(2,10);
+  const unit=pick(['cm','dm','m']);
+  return {
+    kind:'sentence-radius',
+    type:'radius',
+    value:r,
+    unit,
+    title:'Une information à lire',
+    sentence:`La distance du centre O au cercle est ${r} ${unit}.`
+  };
+}
+
+function makeSentenceDiameter(){
+  const d=ri(5,20);
+  const unit=pick(['cm','dm','m']);
+  return {
+    kind:'sentence-diameter',
+    type:'diameter',
+    value:d,
+    unit,
+    title:'Une information à lire',
+    sentence:`La distance entre deux points opposés du cercle, en passant par O, est ${d} ${unit}.`
+  };
+}
+
+function makeWheel(){
+  const type=Math.random()<.5?'radius':'diameter';
+  const v=type==='radius'?ri(12,35):ri(24,70);
+  return {
+    kind:'wheel',
+    type,
+    value:v,
+    unit:'cm',
+    title:'Une roue de vélo',
+    sentence:type==='radius'
+      ? `Du centre de la roue jusqu’au pneu : ${v} cm.`
+      : `D’un bord du pneu à l’autre en passant par le centre : ${v} cm.`
+  };
+}
+
+function makeTable(){
+  const type=Math.random()<.5?'radius':'diameter';
+  const v=type==='radius'?ri(35,75):ri(70,150);
+  return {
+    kind:'table',
+    type,
+    value:v,
+    unit:'cm',
+    title:'Une table ronde',
+    sentence:type==='radius'
+      ? `Du centre de la table jusqu’au bord : ${v} cm.`
+      : `La table mesure ${v} cm d’un bord à l’autre en passant par son centre.`
+  };
+}
+
+function makeClock(){
+  const type=Math.random()<.5?'radius':'diameter';
+  const v=type==='radius'?ri(8,20):ri(16,40);
+  return {
+    kind:'clock',
+    type,
+    value:v,
+    unit:'cm',
+    title:'Un cadran rond',
+    sentence:type==='radius'
+      ? `La distance du centre au bord du cadran est ${v} cm.`
+      : `Le cadran mesure ${v} cm d’un bord à l’autre en passant par le centre.`
+  };
+}
+
+function addPerimeterData(q){
+  const r=q.type==='radius'?q.value:q.value/2;
+  const d=q.type==='diameter'?q.value:q.value*2;
+  q.radius=r;
+  q.diameter=d;
+  q.perimeter=round2(Math.PI*d);
+  return q;
+}
+
+function buildQuestions(){
+  const q1=Math.random()<.5?makeGeoRadius():makeGeoDiameter();
+  const q2=q1.type==='radius'?makeGeoDiameter():makeGeoRadius();
+
+  const q3=Math.random()<.5?makeSentenceRadius():makeSentenceDiameter();
+  const q4=q3.type==='radius'?makeSentenceDiameter():makeSentenceRadius();
+
+  const contexts=shuffle([makeWheel,makeTable,makeClock]);
+  const q5=contexts[0]();
+  let q6=contexts[1]();
+
+  // On évite que les deux dernières situations demandent exactement le même type.
+  if(q6.type===q5.type){
+    q6=contexts[2]();
+    if(q6.type===q5.type){
+      // force l'autre type en régénérant l'une des situations
+      q6=q5.type==='radius'
+        ? {kind:'table',type:'diameter',value:ri(70,150),unit:'cm',title:'Une table ronde',
+           sentence:''}
+        : {kind:'table',type:'radius',value:ri(35,75),unit:'cm',title:'Une table ronde',
+           sentence:''};
+      q6.sentence=q6.type==='radius'
+        ? `Du centre de la table jusqu’au bord : ${q6.value} cm.`
+        : `La table mesure ${q6.value} cm d’un bord à l’autre en passant par son centre.`;
+    }
+  }
+
+  return [q1,q2,q3,q4,q5,q6].map(addPerimeterData);
+}
+
+function drawGeo(q){
+  addTitle(q.title);
+
+  const cx=460,cy=205,r=120;
+  addCircle(cx,cy,r);
+  addCenter(cx,cy);
+
+  if(q.type==='radius'){
+    scene.appendChild(svg('line',{
+      x1:cx,y1:cy,x2:cx+r,y2:cy,class:'radius-line'
+    }));
+    addLabel(530,180,`${q.value} ${q.unit}`);
+  }else{
+    scene.appendChild(svg('line',{
+      x1:cx-r,y1:cy,x2:cx+r,y2:cy,class:'diameter-line'
+    }));
+    addLabel(cx,180,`${q.value} ${q.unit}`);
+  }
+}
+
+function drawSentence(q){
+  addTitle(q.title);
+
+  const cx=235,cy=215,r=100;
+  addCircle(cx,cy,r);
+  addCenter(cx,cy);
+
+  addWrappedText(q.sentence,625,155,34,'context-text',34);
+}
+
+function drawWheel(q){
+  addTitle(q.title);
+
+  const cx=235,cy=215,r=105;
+  addCircle(cx,cy,r);
+  addCenter(cx,cy);
+
+  for(let a=0;a<8;a++){
+    const ang=a*Math.PI/4;
+    scene.appendChild(svg('line',{
+      x1:cx,y1:cy,
+      x2:cx+Math.cos(ang)*r,
+      y2:cy+Math.sin(ang)*r,
+      class:'guide-line'
+    }));
+  }
+
+  addWrappedText(q.sentence,625,145,34,'context-text',34);
+  addWrappedText('On cherche la longueur du tour de la roue.',625,250,36,'context-sub',28);
+}
+
+function drawTable(q){
+  addTitle(q.title);
+
+  scene.appendChild(svg('ellipse',{
+    cx:235,cy:210,rx:115,ry:80,class:'object-shape'
+  }));
+  scene.appendChild(svg('line',{
+    x1:235,y1:210,x2:235,y2:310,class:'guide-line'
+  }));
+  scene.appendChild(svg('line',{
+    x1:190,y1:310,x2:280,y2:310,class:'guide-line'
+  }));
+
+  addCenter(235,210);
+
+  addWrappedText(q.sentence,625,145,34,'context-text',34);
+  addWrappedText('On cherche la longueur du bord de la table.',625,250,36,'context-sub',28);
+}
+
+function drawClock(q){
+  addTitle(q.title);
+
+  const cx=235,cy=215,r=105;
+  addCircle(cx,cy,r);
+  addCenter(cx,cy);
+
+  for(let a=0;a<12;a++){
+    const ang=(a/12)*2*Math.PI-Math.PI/2;
+    scene.appendChild(svg('circle',{
+      cx:cx+Math.cos(ang)*82,
+      cy:cy+Math.sin(ang)*82,
+      r:3,
+      class:'center-dot'
+    }));
+  }
+
+  scene.appendChild(svg('line',{
+    x1:cx,y1:cy,x2:cx,y2:160,class:'radius-line'
+  }));
+  scene.appendChild(svg('line',{
+    x1:cx,y1:cy,x2:285,y2:235,class:'radius-line'
+  }));
+
+  addWrappedText(q.sentence,625,145,34,'context-text',34);
+  addWrappedText('On cherche la longueur du bord du cadran.',625,250,36,'context-sub',28);
+}
+
+function drawQuestion(){
+  scene.replaceChildren();
+  const q=questions[index];
+
+  scaleNote.hidden=false;
+
+  if(q.kind==='geo-radius'||q.kind==='geo-diameter') drawGeo(q);
+  else if(q.kind==='sentence-radius'||q.kind==='sentence-diameter') drawSentence(q);
+  else if(q.kind==='wheel') drawWheel(q);
+  else if(q.kind==='table') drawTable(q);
+  else if(q.kind==='clock') drawClock(q);
+}
+
+function setFeedback(text,type=''){
+  feedback.className='feedback'+(type?' '+type:'');
+  feedback.textContent=text;
+}
+
+function resetChoices(){
+  selectedType=null;
+  for(const btn of [radiusBtn,diameterBtn]){
+    btn.className='choice';
+    btn.disabled=false;
+  }
+}
+
+function renderStage(){
+  const q=questions[index];
+
+  attempts=0;
+  locked=false;
+
+  validate.hidden=false;
+  continueBtn.hidden=true;
+
+  if(stage==='identify'){
+    instruction.innerHTML=
+      `La longueur donnée correspond-elle au&nbsp;<strong>rayon</strong>&nbsp;ou au&nbsp;<strong>diamètre</strong>&nbsp;?`;
+
+    choiceRow.classList.add('show');
+    answerRow.classList.remove('show');
+
+    resetChoices();
+    validate.disabled=true;
+
+    attempt.textContent='Étape 1 / 2 — Tu as 2 essais.';
+    setFeedback('');
+  }else{
+    instruction.innerHTML=
+      `Calcule maintenant le&nbsp;<strong>périmètre du cercle</strong>&nbsp;et arrondis le résultat au centième.`;
+
+    choiceRow.classList.remove('show');
+    answerRow.classList.add('show');
+
+    answer.value='';
+    answer.disabled=false;
+    answer.className='answer-input';
+    answerUnit.textContent=q.unit;
+
+    validate.disabled=true;
+
+    attempt.textContent='Étape 2 / 2 — Tu as 2 essais.';
+    setFeedback('Utilise la touche π de la calculatrice.');
+
+    setTimeout(()=>answer.focus(),0);
+  }
+}
+
+function renderQuestion(){
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  stage='identify';
+  questionValue=1;
+  locked=false;
+
+  drawQuestion();
+  renderStage();
+}
+
+function selectChoice(type){
+  if(locked||stage!=='identify') return;
+
+  selectedType=type;
+
+  for(const btn of [radiusBtn,diameterBtn]){
+    btn.classList.toggle('selected',btn.dataset.value===type);
+  }
+
+  validate.disabled=false;
+}
+
+function identifyCorrection(q){
+  for(const btn of [radiusBtn,diameterBtn]){
+    btn.disabled=true;
+    const type=btn.dataset.value;
+
+    if(type===q.type) btn.classList.add('correct');
+    else if(type===selectedType) btn.classList.add('wrong');
+  }
+}
+
+function validateIdentify(){
+  const q=questions[index];
+  if(!selectedType) return;
+
+  attempts++;
+
+  if(selectedType===q.type){
+    locked=true;
+
+    for(const btn of [radiusBtn,diameterBtn]){
+      btn.disabled=true;
+      if(btn.dataset.value===q.type) btn.classList.add('correct');
+    }
+
+    setFeedback(
+      q.type==='radius'
+        ? 'Correct : la longueur donnée est un rayon.'
+        : 'Correct : la longueur donnée est un diamètre.',
+      'success'
+    );
+
+    attempt.textContent=attempts===1
+      ? 'Étape 1 réussie au premier essai.'
+      : 'Étape 1 réussie au deuxième essai.';
+
+    validate.hidden=true;
+    continueBtn.hidden=false;
+    continueBtn.textContent='Continuer';
+    return;
+  }
+
+  if(attempts===1){
+    questionValue=Math.min(questionValue,.5);
+
+    for(const btn of [radiusBtn,diameterBtn]){
+      if(btn.dataset.value===selectedType) btn.classList.add('wrong');
+    }
+
+    setFeedback(
+      'Pas encore. Observe les extrémités du segment et regarde s’il passe par le centre.',
+      'error'
+    );
+
+    attempt.textContent='Étape 1 / 2 — Il te reste 1 essai.';
+    return;
+  }
+
+  questionValue=0;
+  locked=true;
+  identifyCorrection(q);
+
+  setFeedback(
+    q.type==='radius'
+      ? 'Correction : la longueur donnée correspond au rayon.'
+      : 'Correction : la longueur donnée correspond au diamètre.',
+    'correction'
+  );
+
+  attempt.textContent='Correction affichée.';
+  validate.hidden=true;
+  continueBtn.hidden=false;
+  continueBtn.textContent='Continuer';
+}
+
+function isCalculationCorrect(value,expected){
+  // La consigne demande un arrondi au centième.
+  // On accepte la valeur au centième, avec une petite tolérance de saisie.
+  return Math.abs(value-expected)<0.0051;
+}
+
+function calculationCorrection(q){
+  if(q.type==='radius'){
+    return `Correction : P = 2 × π × ${q.value} ≈ ${fr2(q.perimeter)} ${q.unit}.`;
+  }
+  return `Correction : P = π × ${q.value} ≈ ${fr2(q.perimeter)} ${q.unit}.`;
+}
+
+function validateCalculation(){
+  const q=questions[index];
+  const value=cleanNumber(answer.value);
+
+  if(!Number.isFinite(value)) return;
+
+  attempts++;
+
+  if(isCalculationCorrect(value,q.perimeter)){
+    locked=true;
+
+    answer.disabled=true;
+    answer.classList.add('correct');
+
+    setFeedback(
+      `Correct : P ≈ ${fr2(q.perimeter)} ${q.unit}.`,
+      'success'
+    );
+
+    attempt.textContent=attempts===1
+      ? 'Étape 2 réussie au premier essai.'
+      : 'Étape 2 réussie au deuxième essai.';
+
+    validate.hidden=true;
+    continueBtn.hidden=false;
+    continueBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+    return;
+  }
+
+  answer.classList.add('wrong');
+
+  if(attempts===1){
+    questionValue=Math.min(questionValue,.5);
+
+    setFeedback(
+      'Pas encore. Vérifie d’abord si la mesure donnée est un rayon ou un diamètre, puis reprends ton calcul avec la touche π.',
+      'error'
+    );
+
+    attempt.textContent='Étape 2 / 2 — Il te reste 1 essai.';
+    answer.focus();
+    answer.select();
+    return;
+  }
+
+  questionValue=0;
+  locked=true;
+
+  answer.disabled=true;
+  validate.hidden=true;
+  continueBtn.hidden=false;
+  continueBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+
+  setFeedback(calculationCorrection(q),'correction');
+  attempt.textContent='Correction affichée.';
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  if(stage==='identify') validateIdentify();
+  else validateCalculation();
+}
+
+function continueFlow(){
+  if(stage==='identify'){
+    stage='calculate';
+    renderStage();
+    return;
+  }
+
+  score+=questionValue;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalHint.textContent=
+      'Excellent ! Tu identifies bien rayon et diamètre et tu calcules correctement le périmètre d’un cercle.';
+  }else if(score>=5){
+    finalHint.textContent=
+      'Très bien ! Rayon, diamètre et périmètre sont bien maîtrisés. Rejoue pour confirmer avec de nouvelles situations.';
+  }else if(score>=3.5){
+    finalHint.textContent=
+      'Bien ! Tu as compris l’essentiel. Rejoue pour gagner encore en aisance.';
+  }else{
+    finalHint.textContent=
+      'Continue ! Rejoue avec une nouvelle série pour mieux distinguer rayon et diamètre et t’entraîner au calcul du périmètre.';
+  }
+}
+
+function restartGame(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  stage='identify';
+  attempts=0;
+  questionValue=1;
+  selectedType=null;
+  locked=false;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  renderQuestion();
+}
+
+radiusBtn.addEventListener('click',()=>selectChoice('radius'));
+diameterBtn.addEventListener('click',()=>selectChoice('diameter'));
+
+answer.addEventListener('input',()=>{
+  answer.value=answer.value.replace(/[^0-9.,]/g,'');
+  answer.classList.remove('wrong','correct');
+  validate.disabled=!answer.value.trim();
+});
+
+answer.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validate.disabled&&!locked){
+    validateAnswer();
+  }
+});
+
+validate.addEventListener('click',validateAnswer);
+continueBtn.addEventListener('click',continueFlow);
+restart.addEventListener('click',restartGame);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>

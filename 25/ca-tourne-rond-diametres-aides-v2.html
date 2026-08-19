@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Ça tourne rond !</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --line:#24364a;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:16.667%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.instruction{
+  min-height:44px;
+  margin:0;
+  padding:0 7px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.03rem,1.9vw,1.27rem);
+  font-weight:700;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+.figure{
+  flex:1;
+  min-height:285px;
+  overflow:hidden;
+  position:relative;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+#scene{
+  width:100%;
+  height:100%;
+  min-height:285px;
+  display:block;
+}
+
+.shape{
+  fill:rgba(23,105,170,.07);
+  stroke:var(--line);
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.dimension{
+  fill:none;
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.diameter-mark{
+  fill:none;
+  stroke:var(--b);
+  stroke-width:3;
+  stroke-dasharray:9 7;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+
+.diameter-end{
+  stroke:var(--b);
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.diameter-center{
+  fill:var(--bd);
+}
+
+.tick{
+  stroke:#6b94b4;
+  stroke-width:2.5;
+  vector-effect:non-scaling-stroke;
+}
+
+.label rect{
+  fill:#fff;
+  stroke:#b9d4e8;
+  stroke-width:2.2;
+  rx:9;
+  ry:9;
+}
+
+.label text{
+  fill:var(--bd);
+  font:800 20px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+  dominant-baseline:middle;
+}
+
+.label.info rect{
+  fill:var(--bs);
+  stroke:#8ab8da;
+}
+
+.label.missing rect{
+  fill:var(--os);
+  stroke:var(--oline);
+}
+
+.label.missing text{
+  fill:var(--o);
+}
+
+.label.found rect{
+  fill:var(--gs);
+  stroke:#79c798;
+}
+
+.label.found text{
+  fill:#165e36;
+}
+
+.figure-title{
+  fill:var(--bd);
+  font:850 25px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.small-note{
+  fill:var(--m);
+  font:650 18px Arial,Helvetica,sans-serif;
+  text-anchor:middle;
+}
+
+.note{
+  position:absolute;
+  right:12px;
+  bottom:8px;
+  color:#8493a0;
+  font-size:.76rem;
+  font-weight:650;
+}
+
+/* ---------- Réponse ---------- */
+
+.answer-row{
+  flex:0 0 auto;
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+.answer-input{
+  width:145px;
+  height:44px;
+  padding:0 10px;
+  border:3px solid #b9d4e8;
+  border-radius:13px;
+  outline:0;
+  color:var(--i);
+  background:#fff;
+  text-align:center;
+  font-size:1.14rem;
+  font-weight:850;
+}
+
+.answer-input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.answer-input.correct{
+  border-color:#79c798;
+  background:var(--gs);
+  color:#165e36;
+}
+
+.answer-input.wrong{
+  border-color:#df8585;
+  background:var(--rs);
+  color:#8f2727;
+}
+
+.unit{
+  color:var(--bd);
+  font-size:1.03rem;
+  font-weight:800;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:44px;
+  padding:6px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.3;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.error{
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:118px;
+  padding:0 15px;
+  border:0;
+  border-radius:13px;
+  font-size:.93rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(520px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 12px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.3rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.02rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.82rem}
+  .main{padding:0 6px 6px;gap:3px}
+  .instruction{min-height:36px;font-size:.91rem}
+  .figure,#scene{min-height:230px}
+  .label text{font-size:16px}
+  .figure-title{font-size:20px}
+  .small-note{font-size:15px}
+  .answer-row{min-height:46px}
+  .answer-label,.unit{font-size:.9rem}
+  .answer-input{height:39px;width:112px;font-size:1rem}
+  .attempt{font-size:.74rem}
+  .feedback{min-height:38px;padding:4px 7px;font-size:.77rem}
+  .controls{min-height:42px}
+  button.action{
+    min-height:42px;
+    min-width:102px;
+    padding:0 10px;
+    font-size:.83rem;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 6</div>
+    <div class="pill" id="score">Score : 0 / 6</div>
+  </header>
+
+  <section class="main" id="exercise">
+    <p class="instruction" id="instruction"></p>
+
+    <div class="figure">
+      <svg id="scene" viewBox="0 0 920 380"
+           preserveAspectRatio="xMidYMid meet"
+           aria-label="Figure composée avec des demi-cercles"></svg>
+      <div class="note">Figure non à l'échelle</div>
+    </div>
+
+    <div class="answer-row">
+      <span class="answer-label" id="answerLabel">Périmètre ≈</span>
+      <input class="answer-input" id="answer" inputmode="decimal" autocomplete="off">
+      <span class="unit" id="answerUnit">cm</span>
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 2 essais.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Repère les segments et les demi-cercles qui constituent le contour.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>Valider</button>
+      <button class="action secondary" id="continueBtn" type="button" hidden>Question suivante</button>
+    </div>
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL=6;
+const $=id=>document.getElementById(id);
+
+const scene=$('scene');
+const instruction=$('instruction');
+const answer=$('answer');
+const answerLabel=$('answerLabel');
+const answerUnit=$('answerUnit');
+const attempt=$('attempt');
+const feedback=$('feedback');
+const validate=$('validate');
+const continueBtn=$('continueBtn');
+const counter=$('counter');
+const scoreBox=$('score');
+const bar=$('bar');
+const exercise=$('exercise');
+const final=$('final');
+const finalScore=$('finalScore');
+const finalHint=$('finalHint');
+const restart=$('restart');
+
+const NS='http://www.w3.org/2000/svg';
+
+let questions=[];
+let index=0;
+let score=0;
+let stage='perimeter';
+let attempts=0;
+let questionValue=1;
+let locked=false;
+let foundValue=null;
+
+function svg(name,attrs={}){
+  const el=document.createElementNS(NS,name);
+  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+  return el;
+}
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function formatScore(n){
+  return Number.isInteger(n) ? String(n) : String(n).replace('.',',');
+}
+
+function cleanNumber(text){
+  return Number(String(text).trim().replace(',','.'));
+}
+
+function round2(n){
+  return Math.round((n+Number.EPSILON)*100)/100;
+}
+
+function fr2(n){
+  return round2(n).toFixed(2).replace('.',',');
+}
+
+function unit(){
+  return pick(['cm','dm','m']);
+}
+
+function addTitle(text){
+  const t=svg('text',{x:460,y:42,class:'figure-title'});
+  t.textContent=text;
+  scene.appendChild(t);
+}
+
+function addSmallNote(text,x=460,y=345){
+  const t=svg('text',{x,y,class:'small-note'});
+  t.textContent=text;
+  scene.appendChild(t);
+}
+
+function addLabel(x,y,text,className='label info'){
+  const g=svg('g',{class:className});
+  const width=Math.max(64,String(text).length*11.2+24);
+
+  const rect=svg('rect',{
+    x:x-width/2,
+    y:y-17,
+    width,
+    height:34
+  });
+
+  const label=svg('text',{x,y:y+1});
+  label.textContent=text;
+
+  g.append(rect,label);
+  scene.appendChild(g);
+}
+
+function dimH(x1,x2,y,text,labelY=y-20,cls='label info'){
+  scene.appendChild(svg('line',{x1,y1:y,x2,y2:y,class:'dimension'}));
+  scene.appendChild(svg('line',{x1,y1:y-7,x2:x1,y2:y+7,class:'tick'}));
+  scene.appendChild(svg('line',{x1:x2,y1:y-7,x2:x2,y2:y+7,class:'tick'}));
+  addLabel((x1+x2)/2,labelY,text,cls);
+}
+
+function dimV(x,y1,y2,text,labelX=x+34,cls='label info'){
+  scene.appendChild(svg('line',{x1:x,y1,x2:x,y2,class:'dimension'}));
+  scene.appendChild(svg('line',{x1:x-7,y1,x2:x+7,y2:y1,class:'tick'}));
+  scene.appendChild(svg('line',{x1:x-7,y1:y2,x2:x+7,y2:y2,class:'tick'}));
+  addLabel(labelX,(y1+y2)/2,text,cls);
+}
+
+function markDiameter(x1,y1,x2,y2,labelX,labelY){
+  scene.appendChild(svg('line',{
+    x1,y1,x2,y2,class:'diameter-mark'
+  }));
+
+  const dx=x2-x1;
+  const dy=y2-y1;
+  const len=Math.hypot(dx,dy) || 1;
+  const px=-(dy/len);
+  const py=(dx/len);
+  const e=7;
+
+  scene.appendChild(svg('line',{
+    x1:x1-px*e, y1:y1-py*e,
+    x2:x1+px*e, y2:y1+py*e,
+    class:'diameter-end'
+  }));
+
+  scene.appendChild(svg('line',{
+    x1:x2-px*e, y1:y2-py*e,
+    x2:x2+px*e, y2:y2+py*e,
+    class:'diameter-end'
+  }));
+
+  scene.appendChild(svg('circle',{
+    cx:(x1+x2)/2,
+    cy:(y1+y2)/2,
+    r:4.5,
+    class:'diameter-center'
+  }));
+}
+
+function path(d){
+  scene.appendChild(svg('path',{d,class:'shape'}));
+}
+
+function makeDoor(){
+  const d=ri(6,16);
+  const h=ri(5,14);
+  const u=unit();
+  return {
+    kind:'door',
+    title:'Porte arrondie',
+    unit:u,
+    d,h,
+    perimeter:round2(d+2*h+Math.PI*d/2),
+    correction:`P = ${d} + 2 × ${h} + (π × ${d}) ÷ 2`
+  };
+}
+
+function makeStadium(){
+  const d=ri(5,14);
+  const L=ri(6,18);
+  const u=unit();
+  return {
+    kind:'stadium',
+    title:'Piste en forme de stade',
+    unit:u,
+    d,L,
+    perimeter:round2(2*L+Math.PI*d),
+    correction:`P = 2 × ${L} + π × ${d}`
+  };
+}
+
+function makeNotch(){
+  const W=ri(14,24);
+  const H=ri(6,14);
+  const d=ri(4,Math.min(10,W-6));
+  const u=unit();
+  return {
+    kind:'notch',
+    title:'Encoche en demi-cercle',
+    unit:u,
+    W,H,d,
+    perimeter:round2(W+2*H+(W-d)+Math.PI*d/2),
+    correction:`P = ${W} + 2 × ${H} + (${W} − ${d}) + (π × ${d}) ÷ 2`
+  };
+}
+
+function makeDoubleHump(){
+  const d1=ri(4,10);
+  let d2=ri(4,10);
+  if(d2===d1) d2=d2===10?9:d2+1;
+  const h=ri(4,11);
+  const W=d1+d2;
+  const u=unit();
+  return {
+    kind:'double-hump',
+    title:'Deux demi-cercles différents',
+    unit:u,
+    d1,d2,h,W,
+    perimeter:round2(W+2*h+Math.PI*d1/2+Math.PI*d2/2),
+    correction:`P = ${W} + 2 × ${h} + (π × ${d1}) ÷ 2 + (π × ${d2}) ÷ 2`
+  };
+}
+
+function makeMissingDoor(){
+  const d=pick([6,8,10,12,14,16]);
+  const h=ri(5,13);
+  const total=h+d/2;
+  const u=unit();
+  return {
+    kind:'missing-door',
+    title:'Une longueur à retrouver',
+    unit:u,
+    d,h,total,
+    missingAnswer:h,
+    perimeter:round2(d+2*h+Math.PI*d/2),
+    correction:`P = ${d} + 2 × ${h} + (π × ${d}) ÷ 2`
+  };
+}
+
+function makeDoubleBulge(){
+  const W=ri(14,22);
+  const H=ri(7,14);
+  const d=ri(4,Math.min(10,W-6));
+  const u=unit();
+  return {
+    kind:'double-bulge',
+    title:'Deux demi-cercles sur le contour',
+    unit:u,
+    W,H,d,
+    perimeter:round2(
+      W + H + (W-d) + Math.PI*d/2 + Math.PI*H/2
+    ),
+    correction:`P = ${W} + ${H} + (${W} − ${d}) + (π × ${d}) ÷ 2 + (π × ${H}) ÷ 2`
+  };
+}
+
+function buildQuestions(){
+  return [
+    makeDoor(),
+    makeStadium(),
+    makeNotch(),
+    makeDoubleHump(),
+    makeMissingDoor(),
+    makeDoubleBulge()
+  ];
+}
+
+function drawDoor(q){
+  addTitle(q.title);
+
+  const x1=320,x2=600,yTop=175,yBottom=315;
+  const r=(x2-x1)/2;
+
+  const d=`M ${x1} ${yBottom}
+           L ${x1} ${yTop}
+           A ${r} ${r} 0 0 1 ${x2} ${yTop}
+           L ${x2} ${yBottom}
+           Z`;
+  path(d);
+
+  markDiameter(x1,yTop,x2,yTop,460,yTop-10);
+
+  dimH(x1,x2,340,`${q.d} ${q.unit}`,362);
+  dimV(285,yTop,yBottom,`${q.h} ${q.unit}`,245);
+}
+
+function drawStadium(q){
+  addTitle(q.title);
+
+  const x1=260,x2=660,cy=205;
+  const visualR=95;
+  const y1=cy-visualR,y2=cy+visualR;
+
+  const d=`M ${x1} ${y1}
+           L ${x2} ${y1}
+           A ${visualR} ${visualR} 0 0 1 ${x2} ${y2}
+           L ${x1} ${y2}
+           A ${visualR} ${visualR} 0 0 1 ${x1} ${y1}
+           Z`;
+  path(d);
+
+  markDiameter(x1,y1,x1,y2,x1+46,cy+6);
+  markDiameter(x2,y1,x2,y2,x2-46,cy+6);
+
+  dimH(x1,x2,330,`${q.L} ${q.unit}`,352);
+  dimV(760,y1,y2,`${q.d} ${q.unit}`,800);
+  addSmallNote('Les deux demi-cercles ont le même diamètre.',460,78);
+}
+
+function drawNotch(q){
+  addTitle(q.title);
+
+  const x1=220,x2=700,y1=100,y2=305;
+  const notchLeft=390,notchRight=530;
+  const notchR=70;
+
+  const d=`M ${x1} ${y1}
+           L ${notchLeft} ${y1}
+           A ${notchR} ${notchR} 0 0 0 ${notchRight} ${y1}
+           L ${x2} ${y1}
+           L ${x2} ${y2}
+           L ${x1} ${y2}
+           Z`;
+  path(d);
+
+  markDiameter(notchLeft,y1,notchRight,y1,(notchLeft+notchRight)/2,y1+22);
+
+  dimH(x1,x2,330,`${q.W} ${q.unit}`,352);
+  dimV(175,y1,y2,`${q.H} ${q.unit}`,135);
+  dimH(notchLeft,notchRight,75,`${q.d} ${q.unit}`,58);
+}
+
+function drawDoubleHump(q){
+  addTitle(q.title);
+
+  const x1=275;
+  const mid=455;
+  const x2=665;
+  const yTop=135;
+  const yBottom=305;
+  const r1=90;
+  const r2=105;
+
+  const d=`M ${x1} ${yBottom}
+           L ${x1} ${yTop}
+           A ${r1} ${r1} 0 0 1 ${mid} ${yTop}
+           A ${r2} ${r2} 0 0 1 ${x2} ${yTop}
+           L ${x2} ${yBottom}
+           Z`;
+  path(d);
+
+  markDiameter(x1,yTop,mid,yTop,(x1+mid)/2,yTop+22);
+  markDiameter(mid,yTop,x2,yTop,(mid+x2)/2,yTop+22);
+
+  dimH(x1,mid,108,`${q.d1} ${q.unit}`,88);
+  dimH(mid,x2,108,`${q.d2} ${q.unit}`,88);
+  dimV(235,yTop,yBottom,`${q.h} ${q.unit}`,195);
+  dimH(x1,x2,330,`${q.W} ${q.unit}`,352);
+}
+
+function drawMissingDoor(q){
+  addTitle(q.title);
+
+  const x1=290,x2=630,yTop=165,yBottom=315;
+  const r=(x2-x1)/2;
+  const apexY=yTop-r;
+
+  const d=`M ${x1} ${yBottom}
+           L ${x1} ${yTop}
+           A ${r} ${r} 0 0 1 ${x2} ${yTop}
+           L ${x2} ${yBottom}
+           Z`;
+  path(d);
+
+  markDiameter(x1,yTop,x2,yTop,460,yTop-10);
+
+  dimH(x1,x2,340,`${q.d} ${q.unit}`,362);
+
+  if(foundValue===null){
+    dimV(230,yTop,yBottom,'?',195,'label missing');
+  }else{
+    dimV(230,yTop,yBottom,`${foundValue} ${q.unit}`,185,'label found');
+  }
+
+  dimV(745,apexY,yBottom,`${q.total} ${q.unit}`,790);
+  addSmallNote('La hauteur totale va du bas jusqu’au sommet du demi-cercle.',460,72);
+}
+
+function drawDoubleBulge(q){
+  addTitle(q.title);
+
+  const x1=250,x2=690,y1=120,y2=305;
+  const topL=405,topR=535;
+  const topRvis=65;
+  const leftR=(y2-y1)/2;
+
+  const d=`M ${x1} ${y2}
+           A ${leftR} ${leftR} 0 0 1 ${x1} ${y1}
+           L ${topL} ${y1}
+           A ${topRvis} ${topRvis} 0 0 1 ${topR} ${y1}
+           L ${x2} ${y1}
+           L ${x2} ${y2}
+           Z`;
+  path(d);
+
+  markDiameter(x1,y1,x1,y2,x1+48,(y1+y2)/2+5);
+  markDiameter(topL,y1,topR,y1,(topL+topR)/2,y1+22);
+
+  dimH(x1,x2,330,`${q.W} ${q.unit}`,352);
+  dimV(735,y1,y2,`${q.H} ${q.unit}`,775);
+  dimH(topL,topR,92,`${q.d} ${q.unit}`,72);
+  addSmallNote('Le côté gauche est aussi un demi-cercle.',460,75);
+}
+
+function drawQuestion(){
+  scene.replaceChildren();
+  const q=questions[index];
+
+  if(q.kind==='door') drawDoor(q);
+  else if(q.kind==='stadium') drawStadium(q);
+  else if(q.kind==='notch') drawNotch(q);
+  else if(q.kind==='double-hump') drawDoubleHump(q);
+  else if(q.kind==='missing-door') drawMissingDoor(q);
+  else drawDoubleBulge(q);
+}
+
+function setFeedback(text,type=''){
+  feedback.className='feedback'+(type?' '+type:'');
+  feedback.textContent=text;
+}
+
+function resetInput(){
+  answer.value='';
+  answer.disabled=false;
+  answer.className='answer-input';
+  validate.hidden=false;
+  validate.disabled=true;
+  continueBtn.hidden=true;
+  locked=false;
+  attempts=0;
+  setTimeout(()=>answer.focus(),0);
+}
+
+function renderStage(){
+  const q=questions[index];
+  resetInput();
+  answerUnit.textContent=q.unit;
+
+  if(stage==='missing'){
+    instruction.innerHTML=
+      `Retrouve d’abord la&nbsp;<strong>hauteur droite</strong>&nbsp;de la partie rectangulaire.`;
+    answerLabel.textContent='Hauteur =';
+    attempt.textContent='Étape 1 / 2 — Tu as 2 essais.';
+    setFeedback('Utilise la hauteur totale et le rayon du demi-cercle.');
+  }else{
+    instruction.innerHTML=
+      `Calcule le&nbsp;<strong>périmètre de la figure</strong>&nbsp;et arrondis le résultat au centième.`;
+    answerLabel.textContent='Périmètre ≈';
+    attempt.textContent=q.kind==='missing-door'
+      ? 'Étape 2 / 2 — Tu as 2 essais.'
+      : 'Tu as 2 essais.';
+    setFeedback('Repère uniquement les segments et les demi-cercles qui appartiennent au contour.');
+  }
+}
+
+function renderQuestion(){
+  const q=questions[index];
+
+  questionValue=1;
+  foundValue=null;
+  stage=q.kind==='missing-door'?'missing':'perimeter';
+
+  counter.textContent=`Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+  bar.style.width=`${((index+1)/TOTAL)*100}%`;
+
+  drawQuestion();
+  renderStage();
+}
+
+function expectedValue(){
+  const q=questions[index];
+  return stage==='missing'?q.missingAnswer:q.perimeter;
+}
+
+function isCorrect(value,expected){
+  if(stage==='missing') return Math.abs(value-expected)<1e-9;
+  return Math.abs(value-expected)<0.0051;
+}
+
+function firstHint(q){
+  if(stage==='missing'){
+    return 'Pas encore. Le sommet du demi-cercle est situé à une distance égale au rayon au-dessus de son diamètre.';
+  }
+
+  if(q.kind==='door'){
+    return 'Pas encore. Le diamètre du demi-cercle n’est pas une longueur du contour : il est à l’intérieur de la figure.';
+  }
+
+  if(q.kind==='stadium'){
+    return 'Pas encore. Les deux demi-cercles forment ensemble un cercle complet.';
+  }
+
+  if(q.kind==='notch'){
+    return 'Pas encore. Le bord de l’encoche fait partie du contour ; son diamètre, lui, n’en fait pas partie.';
+  }
+
+  if(q.kind==='double-hump'){
+    return 'Pas encore. Les deux demi-cercles n’ont pas le même diamètre : calcule séparément leurs deux arcs.';
+  }
+
+  return 'Pas encore. Fais le tour de la figure et distingue les segments droits des deux demi-cercles.';
+}
+
+function correctionText(q){
+  if(stage==='missing'){
+    return `Correction : ${q.total} − ${q.d/2} = ${q.h} ${q.unit}.`;
+  }
+  return `Correction : ${q.correction} ≈ ${fr2(q.perimeter)} ${q.unit}.`;
+}
+
+function validateAnswer(){
+  if(locked) return;
+
+  const q=questions[index];
+  const value=cleanNumber(answer.value);
+  if(!Number.isFinite(value)) return;
+
+  attempts++;
+  const expected=expectedValue();
+
+  if(isCorrect(value,expected)){
+    locked=true;
+    answer.disabled=true;
+    answer.classList.add('correct');
+    validate.hidden=true;
+    continueBtn.hidden=false;
+
+    if(stage==='missing'){
+      foundValue=q.h;
+      drawQuestion();
+      setFeedback(`Correct : la hauteur droite mesure ${q.h} ${q.unit}.`,'success');
+      attempt.textContent=attempts===1
+        ? 'Étape 1 réussie au premier essai.'
+        : 'Étape 1 réussie au deuxième essai.';
+      continueBtn.textContent='Continuer';
+    }else{
+      setFeedback(`Correct : P ≈ ${fr2(q.perimeter)} ${q.unit}.`,'success');
+      attempt.textContent=attempts===1
+        ? (q.kind==='missing-door'?'Étape 2 réussie au premier essai.':'Réussi au premier essai.')
+        : (q.kind==='missing-door'?'Étape 2 réussie au deuxième essai.':'Réussi au deuxième essai.');
+      continueBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+    }
+    return;
+  }
+
+  answer.classList.add('wrong');
+
+  if(attempts===1){
+    questionValue=Math.min(questionValue,.5);
+    setFeedback(firstHint(q),'error');
+    attempt.textContent=stage==='missing'
+      ? 'Étape 1 / 2 — Il te reste 1 essai.'
+      : (q.kind==='missing-door'
+          ? 'Étape 2 / 2 — Il te reste 1 essai.'
+          : 'Il te reste 1 essai.');
+    answer.focus();
+    answer.select();
+    return;
+  }
+
+  questionValue=0;
+  locked=true;
+  answer.disabled=true;
+  validate.hidden=true;
+  continueBtn.hidden=false;
+
+  if(stage==='missing'){
+    foundValue=q.h;
+    drawQuestion();
+    continueBtn.textContent='Continuer';
+  }else{
+    continueBtn.textContent=index===TOTAL-1?'Voir mon résultat':'Question suivante';
+  }
+
+  setFeedback(correctionText(q),'correction');
+  attempt.textContent='Correction affichée.';
+}
+
+function continueFlow(){
+  const q=questions[index];
+
+  if(stage==='missing'){
+    stage='perimeter';
+    drawQuestion();
+    renderStage();
+    return;
+  }
+
+  score+=questionValue;
+  scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(index<TOTAL-1){
+    index++;
+    renderQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  exercise.style.display='none';
+  final.classList.add('show');
+
+  finalScore.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
+
+  if(score===TOTAL){
+    finalHint.textContent=
+      'Excellent ! Tu sais suivre le contour et calculer des périmètres avec des demi-cercles.';
+  }else if(score>=5){
+    finalHint.textContent=
+      'Très bien ! Les figures composées avec des demi-cercles sont bien maîtrisées. Rejoue pour confirmer avec de nouvelles valeurs.';
+  }else if(score>=3.5){
+    finalHint.textContent=
+      'Bien ! Tu as compris l’essentiel. Rejoue pour gagner encore en aisance sur les contours composés.';
+  }else{
+    finalHint.textContent=
+      'Continue ! Rejoue avec une nouvelle série pour t’entraîner à repérer les segments et les demi-cercles du contour.';
+  }
+}
+
+function restartGame(){
+  questions=buildQuestions();
+  index=0;
+  score=0;
+  stage='perimeter';
+  attempts=0;
+  questionValue=1;
+  locked=false;
+  foundValue=null;
+
+  final.classList.remove('show');
+  exercise.style.display='';
+
+  renderQuestion();
+}
+
+answer.addEventListener('input',()=>{
+  answer.value=answer.value.replace(/[^0-9.,]/g,'');
+  answer.classList.remove('wrong','correct');
+  validate.disabled=!answer.value.trim();
+});
+
+answer.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!validate.disabled&&!locked){
+    validateAnswer();
+  }
+});
+
+validate.addEventListener('click',validateAnswer);
+continueBtn.addEventListener('click',continueFlow);
+restart.addEventListener('click',restartGame);
+
+questions=buildQuestions();
+renderQuestion();
+
+})();
+</script>
+</body>
+</html>
