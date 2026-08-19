@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Distance et construction</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:10px 18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.statement{
+  width:min(940px,100%);
+  min-height:70px;
+  padding:10px 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:16px;
+
+  font-size:clamp(1.25rem,2.3vw,1.65rem);
+  font-weight:800;
+  line-height:1.35;
+}
+
+.step{
+  width:min(940px,100%);
+  padding:8px 12px;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:15px;
+}
+
+.step-title{
+  margin:0 0 7px;
+  color:var(--bd);
+  font-size:clamp(1.05rem,1.8vw,1.25rem);
+  font-weight:850;
+  line-height:1.2;
+}
+
+.choice-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.choice{
+  min-height:42px;
+  min-width:118px;
+  padding:0 15px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  color:var(--bd);
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:11px;
+
+  font-size:clamp(1rem,1.7vw,1.15rem);
+  font-weight:850;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:#9fc8e5;
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.98)}
+.choice:disabled{cursor:default;opacity:.72}
+
+.choice.selected{
+  color:#fff;
+  background:var(--b);
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.12);
+  opacity:1;
+}
+
+.measure-row{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+
+  color:var(--i);
+  font-size:clamp(1.05rem,1.8vw,1.25rem);
+  font-weight:850;
+}
+
+.measure-row input{
+  width:108px;
+  height:42px;
+
+  border:2px solid #b9d4e8;
+  border-radius:11px;
+  text-align:center;
+  color:var(--bd);
+  background:#fff;
+
+  font-size:clamp(1.2rem,2.4vw,1.55rem);
+  font-weight:850;
+  outline:none;
+}
+
+.measure-row input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:54px;
+  padding:8px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(.96rem,1.55vw,1.1rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.action{
+  min-height:44px;
+  min-width:145px;
+  padding:0 16px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:12px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:disabled{opacity:.55;cursor:default}
+.action:focus-visible,.choice:focus-visible,input:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+
+  .statement{
+    min-height:50px;
+    padding:6px 9px;
+    font-size:1rem;
+  }
+
+  .step{
+    padding:5px 7px;
+  }
+
+  .step-title{
+    margin-bottom:4px;
+    font-size:.88rem;
+  }
+
+  .choice-row{gap:5px}
+
+  .choice{
+    min-height:34px;
+    min-width:90px;
+    padding:0 9px;
+    font-size:.82rem;
+  }
+
+  .measure-row{
+    min-height:34px;
+    gap:6px;
+    font-size:.88rem;
+  }
+
+  .measure-row input{
+    width:78px;
+    height:34px;
+    font-size:1rem;
+  }
+
+  #feedback{
+    min-height:39px;
+    padding:5px 8px;
+    font-size:.76rem;
+  }
+
+  .actions{min-height:38px}
+
+  .action{
+    min-height:38px;
+    min-width:112px;
+    padding:0 10px;
+    font-size:.84rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="progress-bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <div class="statement" id="statement"></div>
+
+      <div class="step">
+        <div class="step-title">1. Quel objet faut-il construire ?</div>
+        <div class="choice-row">
+          <button class="choice" data-shape="circle" type="button">Cercle</button>
+          <button class="choice" data-shape="disk" type="button">Disque</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-title">2. Quel est son centre ?</div>
+        <div class="choice-row" id="centerChoices"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-title" id="measureTitle"></div>
+        <div class="measure-row">
+          <span id="measureLabel"></span>
+          <input id="measureInput" inputmode="decimal" maxlength="4" aria-label="Mesure">
+          <span>cm</span>
+        </div>
+      </div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="validateBtn" type="button">Valider</button>
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,attempts=0,resolved=false,questions=[];
+var selectedShape=null,selectedCenter=null;
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=rand(0,i),t=a[i];a[i]=a[j];a[j]=t
+  }
+  return a
+}
+function fmt(n){
+  return Number.isInteger(n)?String(n):n.toFixed(1).replace(".",",")
+}
+function parseMeasure(s){
+  var v=Number(String(s).replace(",","."));
+  return Number.isFinite(v)?v:null
+}
+
+function makeQuestion(shape){
+  var center=choice(["A","B","C","M","O"]);
+  var distance=rand(1,8);
+  var ask=choice(["radius","diameter"]);
+
+  var statement;
+
+  if(shape==="circle"){
+    statement="Je veux construire l’ensemble des points situés à "+fmt(distance)+" cm du point "+center+".";
+  }else{
+    statement="Je veux construire l’ensemble des points situés à une distance inférieure ou égale à "+fmt(distance)+" cm du point "+center+".";
+  }
+
+  var centers=shuffle(["A","B","C","M","O"]).slice(0,4);
+
+  if(centers.indexOf(center)<0)centers[rand(0,3)]=center;
+  shuffle(centers);
+
+  return{
+    shape:shape,
+    center:center,
+    distance:distance,
+    ask:ask,
+    expectedMeasure:ask==="radius"?distance:distance*2,
+    statement:statement,
+    centers:centers
+  };
+}
+
+function buildQuestions(){
+  var shapes=[
+    "circle","circle","circle","circle",
+    "disk","disk","disk","disk","disk","disk"
+  ];
+
+  shuffle(shapes);
+
+  var out=[],seen={};
+
+  shapes.forEach(function(shape){
+    var q,key;
+
+    do{
+      q=makeQuestion(shape);
+      key=[q.shape,q.center,q.distance,q.ask].join("-");
+    }while(seen[key]);
+
+    seen[key]=true;
+    out.push(q);
+  });
+
+  return out;
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+String(score).replace(".",",")+" / 10";
+  el("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function renderShapeChoices(){
+  document.querySelectorAll("[data-shape]").forEach(function(btn){
+    btn.className="choice"+(btn.getAttribute("data-shape")===selectedShape?" selected":"");
+    btn.disabled=resolved;
+  });
+}
+
+function renderCenterChoices(){
+  var q=questions[current];
+  var box=el("centerChoices");
+  box.innerHTML="";
+
+  q.centers.forEach(function(c){
+    var b=document.createElement("button");
+    b.className="choice"+(selectedCenter===c?" selected":"");
+    b.textContent=c;
+    b.type="button";
+    b.disabled=resolved;
+
+    b.onclick=function(){
+      selectedCenter=c;
+      renderCenterChoices();
+    };
+
+    box.appendChild(b);
+  });
+}
+
+function showQuestion(){
+  attempts=0;
+  resolved=false;
+  selectedShape=null;
+  selectedCenter=null;
+  updateHud();
+
+  var q=questions[current];
+
+  el("statement").textContent=q.statement;
+  el("measureTitle").textContent="3. Complète la mesure demandée.";
+  el("measureLabel").textContent=q.ask==="radius"?"Rayon =":"Diamètre =";
+
+  el("measureInput").value="";
+  el("measureInput").disabled=false;
+
+  renderShapeChoices();
+  renderCenterChoices();
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("validateBtn").disabled=false;
+  el("validateBtn").style.display="inline-flex";
+  el("nextBtn").style.display="none";
+}
+
+function correctionText(q){
+  return "Il faut construire un "+(q.shape==="circle"?"cercle":"disque")+
+    " de centre "+q.center+
+    ", de rayon "+fmt(q.distance)+" cm"+
+    " et de diamètre "+fmt(q.distance*2)+" cm.";
+}
+
+function validate(){
+  if(resolved)return;
+
+  var q=questions[current];
+  var measure=parseMeasure(el("measureInput").value);
+  var fb=el("feedback");
+
+  if(!selectedShape || !selectedCenter || measure===null){
+    fb.className="error";
+    fb.textContent="Complète les trois étapes avant de valider.";
+    fb.style.display="flex";
+    return;
+  }
+
+  var okShape=selectedShape===q.shape;
+  var okCenter=selectedCenter===q.center;
+  var okMeasure=Math.abs(measure-q.expectedMeasure)<0.0001;
+  var ok=okShape&&okCenter&&okMeasure;
+
+  if(ok){
+    resolved=true;
+
+    if(attempts===0){
+      score+=1;
+      fb.className="success";
+      fb.textContent="Bravo ! "+correctionText(q);
+    }else{
+      score+=0.5;
+      fb.className="success";
+      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point. "+correctionText(q);
+    }
+
+    finish();
+    return;
+  }
+
+  attempts++;
+
+  if(attempts===1){
+    var hints=[];
+
+    if(!okShape){
+      hints.push(q.shape==="circle"
+        ?"« À une distance donnée » décrit un cercle."
+        :"« À une distance inférieure ou égale » décrit un disque.");
+    }
+
+    if(!okCenter){
+      hints.push("Le centre est le point cité dans l’énoncé.");
+    }
+
+    if(!okMeasure){
+      hints.push(q.ask==="radius"
+        ?"La distance donnée est le rayon."
+        :"Le diamètre est égal à deux fois le rayon.");
+    }
+
+    fb.className="hint";
+    fb.innerHTML="<strong>Indice :</strong><div>"+hints.join(" ")+"</div>";
+    fb.style.display="flex";
+  }else{
+    resolved=true;
+    fb.className="error";
+    fb.innerHTML="<strong>Correction :</strong><div>"+correctionText(q)+"</div>";
+    finish();
+  }
+}
+
+function finish(){
+  updateHud();
+  renderShapeChoices();
+  renderCenterChoices();
+
+  el("measureInput").disabled=true;
+
+  el("validateBtn").disabled=true;
+  el("validateBtn").style.display="none";
+
+  el("nextBtn").style.display="inline-flex";
+  el("feedback").style.display="flex";
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+
+  el("finalScore").textContent=String(score).replace(".",",")+"/10";
+
+  var advice=score<=4.5
+    ?"Revois les définitions du cercle et du disque, ainsi que le lien entre rayon et diamètre."
+    :score<=7.5
+      ?"C’est en bonne voie ! Lis attentivement la formulation et le point choisi comme centre."
+      :score<=9.5
+        ?"Très bon travail !"
+        :"Excellent ! Tu sais traduire une consigne en objet géométrique.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="flex";
+
+  showQuestion();
+}
+
+document.querySelectorAll("[data-shape]").forEach(function(btn){
+  btn.onclick=function(){
+    if(resolved)return;
+
+    selectedShape=btn.getAttribute("data-shape");
+    renderShapeChoices();
+  };
+});
+
+el("validateBtn").onclick=validate;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+el("measureInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter")validate();
+});
+
+restart();
+})();
+</script>
+</body>
+</html>

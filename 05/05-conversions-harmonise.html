@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Conversions</title>
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--i);
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+}
+
+button,select{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  padding:14px 18px 16px;
+  display:grid;
+  grid-template-rows:auto auto 1fr auto;
+  gap:10px;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+.selector{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.family-btn{
+  min-height:44px;
+  padding:0 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:2px solid #cfe1ef;
+  border-radius:13px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.02rem,1.8vw,1.2rem);
+  font-weight:850;
+
+  cursor:pointer;
+  transition:transform .1s ease,border-color .1s ease,background .1s ease;
+}
+
+.family-btn:hover{
+  transform:translateY(-1px);
+  border-color:var(--b);
+}
+
+.family-btn.active{
+  border-color:var(--b);
+  background:var(--bs);
+  color:var(--bd);
+  box-shadow:inset 0 0 0 2px rgba(23,105,170,.08);
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1.3fr auto .8fr;
+  gap:14px;
+  align-items:end;
+}
+
+.measure-input{
+  display:grid;
+  grid-template-columns:1fr 120px;
+  gap:9px;
+}
+
+.control-group{
+  display:grid;
+  gap:6px;
+}
+
+.control-group label{
+  color:var(--bd);
+  font-size:clamp(.95rem,1.5vw,1.08rem);
+  font-weight:850;
+}
+
+.value-display,.unit-select{
+  min-height:52px;
+  padding:0 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:2px solid #cfe1ef;
+  border-radius:13px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.08rem,1.9vw,1.28rem);
+  font-weight:850;
+}
+
+.value-display{
+  border-color:var(--b);
+  font-size:clamp(1.7rem,3.2vw,2.35rem);
+  text-align:center;
+}
+
+.value-display.placeholder{
+  color:#8ea0af;
+  font-size:clamp(.95rem,1.55vw,1.08rem);
+  font-weight:700;
+}
+
+.unit-select{
+  text-align:center;
+  cursor:pointer;
+  outline:none;
+}
+
+.unit-select:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.arrow{
+  padding-bottom:9px;
+  color:var(--b);
+  font-size:2rem;
+  font-weight:900;
+}
+
+.workspace{
+  min-height:0;
+  display:grid;
+  grid-template-columns:1.42fr .58fr;
+  gap:14px;
+}
+
+.left{
+  min-height:0;
+  display:grid;
+  grid-template-rows:1fr auto;
+  gap:9px;
+}
+
+.table-wrap{
+  min-height:0;
+  padding:10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:17px;
+}
+
+.table{
+  width:100%;
+  position:relative;
+
+  display:grid;
+  grid-template-columns:repeat(9,1fr);
+
+  border-left:2px solid #748493;
+  border-top:2px solid #748493;
+}
+
+.head,.cell{
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border-right:2px solid #748493;
+  border-bottom:2px solid #748493;
+}
+
+.head{
+  min-height:40px;
+  background:#f0f4f7;
+  color:var(--i);
+  font-size:clamp(.78rem,1.25vw,.98rem);
+  font-weight:850;
+}
+
+.head.blank{
+  background:#f8fafb;
+  color:transparent;
+}
+
+.head.source{
+  background:var(--bs);
+  color:var(--bd);
+}
+
+.head.target{
+  background:var(--gs);
+  color:#165e36;
+  outline:3px solid var(--g);
+  outline-offset:-3px;
+}
+
+.cell{
+  min-height:66px;
+  background:#fff;
+  color:var(--i);
+
+  font-size:clamp(1.45rem,2.8vw,2.25rem);
+  font-weight:900;
+}
+
+.cell.zero-added{
+  color:#8a98a3;
+}
+
+.comma{
+  position:absolute;
+  top:59%;
+  transform:translate(-50%,-50%);
+  color:var(--bd);
+  font-size:2.3rem;
+  font-weight:900;
+  pointer-events:none;
+}
+
+.result{
+  min-height:58px;
+  padding:9px 13px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border-radius:14px;
+  background:var(--gs);
+  border:1px solid var(--gline);
+  color:#165e36;
+
+  font-size:clamp(1.15rem,2.1vw,1.5rem);
+  font-weight:850;
+  line-height:1.3;
+}
+
+.result.empty{
+  background:#f7f9fb;
+  border-color:var(--softline);
+  color:#7b8995;
+  font-size:1rem;
+}
+
+.note{
+  color:var(--m);
+  text-align:center;
+  font-size:clamp(.82rem,1.3vw,.96rem);
+  font-weight:600;
+  line-height:1.3;
+}
+
+.left .note{
+  margin-top:5px;
+}
+
+.keypad{
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(5,1fr);
+  gap:8px;
+}
+
+.key{
+  min-height:42px;
+
+  border:2px solid #cfe1ef;
+  border-radius:12px;
+  background:#fff;
+  color:var(--bd);
+
+  font-size:clamp(1.2rem,2.3vw,1.6rem);
+  font-weight:900;
+
+  cursor:pointer;
+  transition:transform .1s ease,border-color .1s ease,background .1s ease;
+}
+
+.key:hover{
+  transform:translateY(-1px);
+  border-color:var(--b);
+  background:var(--bs);
+}
+
+.key:active{transform:translateY(0)}
+
+.key.wide{
+  grid-column:1/span 3;
+}
+
+.key.utility{
+  background:var(--bs);
+  font-size:clamp(.9rem,1.5vw,1.02rem);
+  font-weight:800;
+}
+
+.key:focus-visible,.family-btn:focus-visible{
+  outline:4px solid rgba(23,105,170,.22);
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    padding:8px 10px 10px;
+    gap:6px;
+    border-radius:15px;
+  }
+
+  .selector{gap:6px}
+
+  .family-btn{
+    min-height:36px;
+    border-radius:10px;
+    font-size:.9rem;
+  }
+
+  .controls{
+    grid-template-columns:1.3fr auto .82fr;
+    gap:8px;
+  }
+
+  .measure-input{
+    grid-template-columns:1fr 84px;
+    gap:5px;
+  }
+
+  .control-group{gap:3px}
+
+  .control-group label{
+    font-size:.77rem;
+  }
+
+  .value-display,.unit-select{
+    min-height:40px;
+    padding:0 7px;
+    border-radius:10px;
+    font-size:.9rem;
+  }
+
+  .value-display{
+    font-size:1.35rem;
+  }
+
+  .value-display.placeholder{
+    font-size:.78rem;
+  }
+
+  .arrow{
+    padding-bottom:6px;
+    font-size:1.5rem;
+  }
+
+  .workspace{
+    grid-template-columns:1.45fr .55fr;
+    gap:8px;
+  }
+
+  .left{gap:5px}
+
+  .table-wrap{
+    padding:5px;
+    border-radius:12px;
+  }
+
+  .head{
+    min-height:30px;
+    font-size:.67rem;
+  }
+
+  .cell{
+    min-height:47px;
+    font-size:1.25rem;
+  }
+
+  .comma{
+    font-size:1.7rem;
+  }
+
+  .result{
+    min-height:42px;
+    padding:5px 7px;
+    font-size:.9rem;
+    border-radius:10px;
+  }
+
+  .result.empty{
+    font-size:.78rem;
+  }
+
+  .note{
+    font-size:.65rem;
+    line-height:1.2;
+  }
+
+  .keypad{gap:5px}
+
+  .key{
+    min-height:32px;
+    border-radius:9px;
+    font-size:1rem;
+  }
+
+  .key.utility{
+    font-size:.7rem;
+  }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="selector">
+    <button class="family-btn active" data-family="length">Longueurs</button>
+    <button class="family-btn" data-family="mass">Masses</button>
+    <button class="family-btn" data-family="capacity">Contenances</button>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Mesure à convertir</label>
+      <div class="measure-input">
+        <div id="valueDisplay" class="value-display placeholder">Saisis une mesure</div>
+        <select id="sourceSelect" class="unit-select" aria-label="Unité de départ"></select>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="control-group">
+      <label>Convertir en</label>
+      <select id="targetSelect" class="unit-select"></select>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <section class="left">
+      <div class="table-wrap">
+        <div id="table" class="table"></div>
+      </div>
+
+      <div>
+        <div id="result" class="result empty">Le résultat apparaîtra ici.</div>
+        <div class="note">Les colonnes sans unité, placées avant et après le tableau, permettent d’accueillir un chiffre supplémentaire.</div>
+      </div>
+    </section>
+
+    <section id="keypad" class="keypad">
+      <button class="key" data-value="7">7</button>
+      <button class="key" data-value="8">8</button>
+      <button class="key" data-value="9">9</button>
+      <button class="key" data-value="4">4</button>
+      <button class="key" data-value="5">5</button>
+      <button class="key" data-value="6">6</button>
+      <button class="key" data-value="1">1</button>
+      <button class="key" data-value="2">2</button>
+      <button class="key" data-value="3">3</button>
+      <button class="key" data-value="0">0</button>
+      <button class="key" data-value=",">,</button>
+      <button class="key utility" data-action="backspace">⌫</button>
+      <button class="key utility wide" data-action="clear">Effacer</button>
+    </section>
+  </div>
+
+  <div class="note">Clavier physique autorisé : chiffres, virgule ou point, Retour arrière, Suppr et Échap.</div>
+</main>
+
+<script>
+(() => {
+  const families = {
+    length:["km","hm","dam","m","dm","cm","mm"],
+    mass:["kg","hg","dag","g","dg","cg","mg"],
+    capacity:["kL","hL","daL","L","dL","cL","mL"]
+  };
+
+  let family="length";
+  let value="";
+
+  const familyBtns=[...document.querySelectorAll(".family-btn")];
+  const sourceSelect=document.getElementById("sourceSelect");
+  const targetSelect=document.getElementById("targetSelect");
+  const valueDisplay=document.getElementById("valueDisplay");
+  const table=document.getElementById("table");
+  const result=document.getElementById("result");
+  const keypad=document.getElementById("keypad");
+
+  function populateUnits(){
+    const units=families[family];
+    sourceSelect.innerHTML="";
+    targetSelect.innerHTML="";
+    units.forEach((u,i)=>{
+      const a=document.createElement("option");
+      a.value=i; a.textContent=u; sourceSelect.appendChild(a);
+      const b=document.createElement("option");
+      b.value=i; b.textContent=u; targetSelect.appendChild(b);
+    });
+    sourceSelect.value="3";
+    targetSelect.value="4";
+  }
+
+  function updateValue(){
+    if(value){
+      valueDisplay.textContent=value;
+      valueDisplay.classList.remove("placeholder");
+    }else{
+      valueDisplay.textContent="Saisis une mesure";
+      valueDisplay.classList.add("placeholder");
+    }
+  }
+
+  function parseValue(){
+    if(!value || value==="," || value.endsWith(",")) return null;
+    const n=Number(value.replace(",","."));
+    return Number.isFinite(n)?n:null;
+  }
+
+  function formatNumber(n){
+    const rounded=Math.round((n+Number.EPSILON)*1e9)/1e9;
+    return rounded.toLocaleString("fr-FR",{maximumFractionDigits:9});
+  }
+
+  function buildTable(){
+    const units=families[family];
+    const source=Number(sourceSelect.value);
+    const target=Number(targetSelect.value);
+
+    table.innerHTML="";
+
+    const headers=["",...units,""];
+    headers.forEach((h,i)=>{
+      const div=document.createElement("div");
+      div.className="head"+((i===0 || i===8)?" blank":"");
+      if(i===source+1) div.classList.add("source");
+      if(i===target+1) div.classList.add("target");
+      div.textContent=h;
+      table.appendChild(div);
+    });
+
+    const cells=Array(9).fill("");
+    const added=Array(9).fill(false);
+
+    if(value){
+      const [leftRaw,rightRaw=""]=value.split(",");
+      const left=(leftRaw||"0").replace(/^0+(?=\d)/,"");
+      const right=rightRaw;
+      const sourceCol=source+1;
+
+      const leftDigits=left.split("");
+      leftDigits.forEach((d,k)=>{
+        const col=sourceCol-(leftDigits.length-1-k);
+        if(col>=0 && col<9) cells[col]=d;
+      });
+
+      right.split("").forEach((d,k)=>{
+        const col=sourceCol+1+k;
+        if(col>=0 && col<9) cells[col]=d;
+      });
+
+      const first=cells.findIndex(x=>x!=="");
+      let last=-1;
+      for(let i=8;i>=0;i--){if(cells[i]!==""){last=i;break}}
+
+      const targetCol=target+1;
+      if(first!==-1){
+        if(targetCol<first){
+          for(let i=targetCol;i<first;i++){cells[i]="0";added[i]=true}
+        }
+        if(targetCol>last){
+          for(let i=last+1;i<=targetCol;i++){cells[i]="0";added[i]=true}
+        }
+      }
+
+      const comma=document.createElement("div");
+      comma.className="comma";
+      comma.textContent=",";
+      comma.style.left=`${((sourceCol+1)/9)*100}%`;
+      table.appendChild(comma);
+    }
+
+    cells.forEach((d,i)=>{
+      const div=document.createElement("div");
+      div.className="cell"+(added[i]?" zero-added":"");
+      div.textContent=d;
+      table.appendChild(div);
+    });
+  }
+
+  function updateResult(){
+    const n=parseValue();
+    if(n===null){
+      result.className="result empty";
+      result.textContent="Le résultat apparaîtra ici.";
+      return;
+    }
+
+    const source=Number(sourceSelect.value);
+    const target=Number(targetSelect.value);
+    const shift=target-source;
+    const converted=n*Math.pow(10,shift);
+
+    const units=families[family];
+    result.className="result";
+    result.innerHTML=`${value}&nbsp;${units[source]}&nbsp;=&nbsp;<strong>${formatNumber(converted)}&nbsp;${units[target]}</strong>`;
+  }
+
+  function render(){
+    updateValue();
+    buildTable();
+    updateResult();
+  }
+
+  function append(v){
+    if(value.length>=12) return;
+    if(v===","){
+      if(value.includes(",")) return;
+      if(value==="") value="0";
+      value+=",";
+    }else{
+      value+=v;
+    }
+    render();
+  }
+
+  function backspace(){value=value.slice(0,-1);render()}
+  function clearAll(){value="";render()}
+
+  familyBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      family=btn.dataset.family;
+      familyBtns.forEach(b=>b.classList.toggle("active",b===btn));
+      populateUnits();
+      render();
+    });
+  });
+
+  sourceSelect.addEventListener("change",render);
+  targetSelect.addEventListener("change",render);
+
+  keypad.addEventListener("click",e=>{
+    const btn=e.target.closest("button");
+    if(!btn) return;
+    if(btn.dataset.value!==undefined) append(btn.dataset.value);
+    if(btn.dataset.action==="backspace") backspace();
+    if(btn.dataset.action==="clear") clearAll();
+  });
+
+  document.addEventListener("keydown",e=>{
+    if(e.key>="0"&&e.key<="9"){e.preventDefault();append(e.key)}
+    else if(e.key===","||e.key==="."){e.preventDefault();append(",")}
+    else if(e.key==="Backspace"){e.preventDefault();backspace()}
+    else if(e.key==="Delete"||e.key==="Escape"){e.preventDefault();clearAll()}
+  });
+
+  populateUnits();
+  render();
+})();
+</script>
+</body>
+</html>

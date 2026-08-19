@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Vocabulaire du cercle et du disque</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+
+  --disk:#edf8fa;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:10px 18px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  width:min(940px,100%);
+  min-height:48px;
+  margin:0;
+  padding:4px 8px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:var(--i);
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:900;
+  line-height:1.2;
+}
+
+.figure{
+  width:min(940px,100%);
+  min-height:315px;
+  max-height:345px;
+  padding:5px 8px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  overflow:hidden;
+}
+
+.figure svg{
+  width:100%;
+  max-width:760px;
+  height:auto;
+  max-height:330px;
+  display:block;
+  touch-action:manipulation;
+}
+
+.note{
+  color:var(--m);
+  font-size:clamp(.95rem,1.5vw,1.08rem);
+  font-weight:650;
+}
+
+.obj{cursor:pointer}
+.hit{
+  fill:none;
+  stroke:transparent;
+  stroke-width:20;
+}
+.diskhit{fill:transparent}
+
+.obj:hover .vis{
+  filter:drop-shadow(0 0 5px rgba(23,105,170,.65));
+}
+
+.sel .vis{
+  filter:drop-shadow(0 0 7px rgba(23,105,170,.8));
+  stroke-width:7!important;
+}
+
+.good .vis{
+  filter:drop-shadow(0 0 8px rgba(32,134,75,.7));
+  stroke:var(--g)!important;
+  stroke-width:7!important;
+}
+
+#fb{
+  width:min(900px,100%);
+  min-height:54px;
+  padding:8px 14px;
+
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+}
+
+#fb.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#fb.hint{
+  display:flex!important;
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+#fb.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.obj:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#fs{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#ad{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restart{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+
+  .question{
+    min-height:36px;
+    padding:2px 5px;
+    font-size:1.12rem;
+  }
+
+  .figure{
+    min-height:220px;
+    max-height:250px;
+    padding:3px 5px;
+  }
+
+  .figure svg{max-height:240px}
+
+  .note{font-size:.76rem}
+
+  #fb{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.8rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="progress-bar" id="bar"></div>
+      </div>
+      <div class="pill" id="prog">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="question" id="q"></p>
+      <div class="figure" id="fig"></div>
+      <div class="note">Clique directement sur l’objet demandé.</div>
+      <div id="fb"></div>
+      <button class="action" id="next" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="fs"></div>
+      <div id="ad"></div>
+      <button class="action" id="restart" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+"use strict";
+
+let cur=0,score=0,tries=0,done=false,qs=[],F=null;
+
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const choice=a=>a[rnd(0,a.length-1)];
+const sh=a=>{
+  for(let i=a.length-1;i;i--){
+    let j=rnd(0,i);
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+};
+
+const T=[
+  ['centre','Clique sur le centre.','Le centre est le point à égale distance de tous les points du cercle.'],
+  ['rayon','Clique sur un rayon.','Un rayon relie le centre à un point du cercle.'],
+  ['diametre','Clique sur un diamètre.','Un diamètre est une corde qui passe par le centre.'],
+  ['corde','Clique sur une corde.','Une corde relie deux points du cercle. Un diamètre est aussi une corde.'],
+  ['arc','Clique sur un arc de cercle.','Un arc est une portion du cercle comprise entre deux points.'],
+  ['cercle','Clique sur le cercle.','Le cercle est uniquement le contour.'],
+  ['disque','Clique sur le disque.','Le disque est toute la surface intérieure, avec son contour.']
+];
+
+function polar(cx,cy,r,d){
+  let a=d*Math.PI/180;
+  return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};
+}
+
+function arc(cx,cy,r,a0,a1){
+  let p=polar(cx,cy,r,a0),
+      q=polar(cx,cy,r,a1),
+      d=((a1-a0)%360+360)%360;
+
+  return`M ${p.x} ${p.y} A ${r} ${r} 0 ${d>180?1:0} 1 ${q.x} ${q.y}`;
+}
+
+function makeF(){
+  let cx=300,
+      cy=165,
+      r=112,
+      rot=rnd(0,35),
+      ang=[0,60,120,180,240,300].map(x=>x+rot),
+      pts=ang.map(a=>polar(cx,cy,r,a)),
+      pal=sh(['#E74C3C','#3498DB','#2ECC71','#F39C12','#9B59B6','#16A085','#E91E63','#795548']);
+
+  return{
+    cx,cy,r,rot,ang,pts,
+    rad:sh([0,1,2,3,4,5]).slice(0,2),
+    dia:choice([[0,3],[1,4],[2,5]]),
+    ch:sh([[0,2],[0,4],[1,3],[1,5],[2,4],[3,5]]).slice(0,2),
+    ar:sh([[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]]).slice(0,2),
+    ext:polar(cx,cy,r+55,rot+145),
+    cols:{
+      rayon:pal[0],
+      diametre:pal[1],
+      corde:pal[2],
+      arc:pal[3]
+    }
+  };
+}
+
+function correct(k,t){
+  return t==='corde'?(k==='corde'||k==='diametre'):k===t;
+}
+
+function G(kind,id,body,sel,corr){
+  let c='obj'+(sel===id?' sel':'')+(corr&&correct(kind,corr)?' good':'');
+  return`<g class="${c}" tabindex="0" data-k="${kind}" data-id="${id}">${body}</g>`;
+}
+
+function draw(sel,corr){
+  let f=F,p=[],labs='ABCDEF',target=qs[cur][0];
+
+  p.push(G('disque','disque',
+  `<circle class="diskhit" cx="${f.cx}" cy="${f.cy}" r="${f.r}"/>
+   <circle class="vis" cx="${f.cx}" cy="${f.cy}" r="${f.r}" fill="var(--disk)"/>`,
+  sel,corr));
+
+  if(target==='cercle'){
+    p.push(G('cercle','cercleComplet',
+    `<circle class="hit" cx="${f.cx}" cy="${f.cy}" r="${f.r}"/>
+     <circle class="vis" cx="${f.cx}" cy="${f.cy}" r="${f.r}" fill="none" stroke="#17212b" stroke-width="5"/>`,
+    sel,corr));
+  }else{
+    [[12,42],[78,102],[138,162],[198,222],[258,282],[318,342]].forEach((a,i)=>
+      p.push(G('cercle','cer'+i,
+      `<path class="hit" d="${arc(f.cx,f.cy,f.r,a[0],a[1])}"/>
+       <path class="vis" d="${arc(f.cx,f.cy,f.r,a[0],a[1])}" fill="none" stroke="#17212b" stroke-width="5"/>`,
+      sel,corr))
+    );
+  }
+
+  f.ar.forEach((a,i)=>{
+    let a0=f.ang[a[0]],a1=f.ang[a[1]];
+
+    if(a[0]===5&&a[1]===0)a1+=360;
+
+    if(target==='cercle'){
+      p.push(`<path d="${arc(f.cx,f.cy,f.r,a0,a1)}" fill="none" stroke="${f.cols.arc}" stroke-width="7" stroke-linecap="round" pointer-events="none"/>`);
+    }else{
+      p.push(G('arc','arc'+i,
+      `<path class="hit" d="${arc(f.cx,f.cy,f.r,a0,a1)}"/>
+       <path class="vis" d="${arc(f.cx,f.cy,f.r,a0,a1)}" fill="none" stroke="${f.cols.arc}" stroke-width="7" stroke-linecap="round"/>`,
+      sel,corr));
+    }
+  });
+
+  f.ch.forEach((a,i)=>{
+    let x=f.pts[a[0]],y=f.pts[a[1]];
+
+    p.push(G('corde','ch'+i,
+    `<line class="hit" x1="${x.x}" y1="${x.y}" x2="${y.x}" y2="${y.y}"/>
+     <line class="vis" x1="${x.x}" y1="${x.y}" x2="${y.x}" y2="${y.y}" stroke="${f.cols.corde}" stroke-width="5"/>`,
+    sel,corr));
+  });
+
+  {
+    let x=f.pts[f.dia[0]],y=f.pts[f.dia[1]];
+
+    p.push(G('diametre','dia',
+    `<line class="hit" x1="${x.x}" y1="${x.y}" x2="${y.x}" y2="${y.y}"/>
+     <line class="vis" x1="${x.x}" y1="${x.y}" x2="${y.x}" y2="${y.y}" stroke="${f.cols.diametre}" stroke-width="6"/>`,
+    sel,corr));
+  }
+
+  f.rad.forEach((i,j)=>{
+    let x=f.pts[i];
+
+    p.push(G('rayon','r'+j,
+    `<line class="hit" x1="${f.cx}" y1="${f.cy}" x2="${x.x}" y2="${x.y}"/>
+     <line class="vis" x1="${f.cx}" y1="${f.cy}" x2="${x.x}" y2="${x.y}" stroke="${f.cols.rayon}" stroke-width="6"/>`,
+    sel,corr));
+  });
+
+  p.push(G('centre','o',
+  `<circle class="diskhit" cx="${f.cx}" cy="${f.cy}" r="18"/>
+   <g class="vis">
+     <line x1="${f.cx-7}" y1="${f.cy-7}" x2="${f.cx+7}" y2="${f.cy+7}" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>
+     <line x1="${f.cx-7}" y1="${f.cy+7}" x2="${f.cx+7}" y2="${f.cy-7}" stroke="#17212b" stroke-width="4" stroke-linecap="round"/>
+   </g>
+   <text x="${f.cx+14}" y="${f.cy-12}" font-size="24" font-weight="800" fill="#0d4778">O</text>`,
+  sel,corr));
+
+  f.pts.forEach((x,i)=>
+    p.push(G('point','p'+i,
+    `<circle class="diskhit" cx="${x.x}" cy="${x.y}" r="14"/>
+     <g class="vis">
+       <line x1="${x.x-6}" y1="${x.y-6}" x2="${x.x+6}" y2="${x.y+6}" stroke="#17212b" stroke-width="3.5" stroke-linecap="round"/>
+       <line x1="${x.x-6}" y1="${x.y+6}" x2="${x.x+6}" y2="${x.y-6}" stroke="#17212b" stroke-width="3.5" stroke-linecap="round"/>
+     </g>
+     <text x="${x.x+(x.x<f.cx?-18:12)}" y="${x.y+(x.y<f.cy?-10:24)}" font-size="22" font-weight="750" fill="#0d4778">${labs[i]}</text>`,
+    sel,corr))
+  );
+
+  p.push(G('dehors','g',
+  `<circle class="diskhit" cx="${f.ext.x}" cy="${f.ext.y}" r="15"/>
+   <g class="vis">
+     <line x1="${f.ext.x-6}" y1="${f.ext.y-6}" x2="${f.ext.x+6}" y2="${f.ext.y+6}" stroke="#17212b" stroke-width="3.5" stroke-linecap="round"/>
+     <line x1="${f.ext.x-6}" y1="${f.ext.y+6}" x2="${f.ext.x+6}" y2="${f.ext.y-6}" stroke="#17212b" stroke-width="3.5" stroke-linecap="round"/>
+   </g>
+   <text x="${f.ext.x+12}" y="${f.ext.y-10}" font-size="22" font-weight="750" fill="#0d4778">G</text>`,
+  sel,corr));
+
+  p.push(`<circle cx="${f.cx}" cy="${f.cy}" r="${f.r}" fill="none" stroke="#17212b" stroke-width="5" pointer-events="none"/>`);
+
+  return`<svg viewBox="0 0 620 340">${p.join('')}</svg>`;
+}
+
+function bind(){
+  document.querySelectorAll('.obj').forEach(n=>{
+    let go=()=>{
+      if(!done)click(n.dataset.k,n.dataset.id);
+    };
+
+    n.onclick=go;
+
+    n.onkeydown=e=>{
+      if(e.key==='Enter'||e.key===' '){
+        e.preventDefault();
+        go();
+      }
+    };
+  });
+}
+
+function hud(){
+  $('prog').textContent=`Question ${cur+1} / 10`;
+  $('score').textContent=`Score : ${String(score).replace('.',',')} / 10`;
+  $('bar').style.width=(((cur+1)/10)*100)+'%';
+}
+
+function show(){
+  tries=0;
+  done=false;
+  F=makeF();
+  hud();
+
+  $('q').textContent=qs[cur][1];
+  $('fig').innerHTML=draw();
+  bind();
+
+  $('fb').className='';
+  $('fb').style.display='none';
+  $('fb').textContent='';
+
+  $('next').style.display='none';
+}
+
+function click(k,id){
+  let t=qs[cur],
+      ok=correct(k,t[0]);
+
+  $('fig').innerHTML=draw(id);
+  bind();
+
+  if(ok){
+    done=true;
+    score+=tries?0.5:1;
+
+    $('fb').className='success';
+    $('fb').textContent=tries
+      ?'Bonne réponse ! Tu gagnes 0,5 point au deuxième essai.'
+      :'Bravo !';
+
+    finish();
+  }else if(++tries===1){
+    $('fb').className='hint';
+    $('fb').textContent=t[2];
+  }else{
+    done=true;
+    $('fb').className='error';
+    $('fb').innerHTML='<strong>Correction :</strong><div>'+t[2]+'</div>';
+
+    $('fig').innerHTML=draw(null,t[0]);
+    finish();
+  }
+}
+
+function finish(){
+  hud();
+  $('fb').style.display='flex';
+  $('next').style.display='inline-flex';
+}
+
+$('next').onclick=()=>{
+  if(cur<9){
+    cur++;
+    show();
+  }else{
+    $('game').style.display='none';
+    $('final').style.display='grid';
+
+    $('fs').textContent=String(score).replace('.',',')+'/10';
+
+    $('ad').textContent=
+      score<=4.5
+      ?'Revois le vocabulaire du cercle et du disque, puis recommence.'
+      :score<=7.5
+        ?'C’est en bonne voie ! Attention aux différences entre rayon, corde et diamètre.'
+        :score<=9.5
+          ?'Très bon travail !'
+          :'Excellent ! Tu maîtrises le vocabulaire du cercle et du disque.';
+  }
+};
+
+$('restart').onclick=()=>{
+  cur=0;
+  score=0;
+  qs=Array.from({length:10},()=>choice(T));
+
+  $('final').style.display='none';
+  $('game').style.display='flex';
+
+  show();
+};
+
+$('restart').click();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Lire le pas</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button,input{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.progress-bar{
+  width:10%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:10px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  width:min(940px,100%);
+  min-height:50px;
+  margin:0;
+  padding:5px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--i);
+  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-weight:850;
+  line-height:1.25;
+}
+
+.figure-wrap{
+  width:min(940px,100%);
+  min-height:205px;
+  max-height:240px;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure-wrap svg{
+  width:100%;
+  max-width:880px;
+  height:auto;
+  max-height:220px;
+  display:block;
+}
+
+.answer-label{
+  color:var(--bd);
+  font-size:clamp(1.1rem,2vw,1.35rem);
+  font-weight:850;
+}
+
+.fraction-input{
+  display:grid;
+  grid-template-rows:auto 5px auto;
+  gap:6px;
+  align-items:center;
+  justify-items:center;
+}
+
+.fraction-input input{
+  width:122px;
+  height:50px;
+  border:2px solid #b9d4e8;
+  border-radius:12px;
+  text-align:center;
+  font-size:clamp(1.45rem,3vw,2rem);
+  font-weight:850;
+  color:var(--bd);
+  outline:none;
+  background:#fff;
+}
+
+.fraction-input input:focus{
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(23,105,170,.13);
+}
+
+.fraction-bar{
+  width:142px;
+  height:5px;
+  background:var(--i);
+  border-radius:4px;
+}
+
+.help{
+  color:var(--m);
+  font-size:clamp(.92rem,1.5vw,1.04rem);
+  font-weight:650;
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:54px;
+  padding:8px 14px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.actions{
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:disabled{opacity:.55;cursor:default}
+.action:focus-visible,input:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#nextBtn{display:none}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:5px 7px;
+    gap:4px;
+  }
+
+  .question{
+    min-height:36px;
+    padding:3px 6px;
+    font-size:1.12rem;
+  }
+
+  .figure-wrap{
+    min-height:150px;
+    max-height:175px;
+    padding:4px 7px;
+  }
+
+  .figure-wrap svg{max-height:165px}
+
+  .answer-label{font-size:.98rem}
+
+  .fraction-input{
+    gap:4px;
+    grid-template-rows:auto 4px auto;
+  }
+
+  .fraction-input input{
+    width:94px;
+    height:39px;
+    font-size:1.25rem;
+  }
+
+  .fraction-bar{width:110px;height:4px}
+  .help{font-size:.76rem}
+
+  #feedback{
+    min-height:40px;
+    padding:5px 8px;
+    font-size:.79rem;
+  }
+
+  .actions{min-height:40px}
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="progress-bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 10</div>
+      <div class="pill" id="score">Score : 0 / 10</div>
+    </header>
+
+    <section class="card">
+      <p class="question">Quel est le pas de cette demi-droite graduée&nbsp;?</p>
+
+      <div class="figure-wrap" id="figureWrap"></div>
+
+      <div class="answer-label">Le pas vaut :</div>
+
+      <div class="fraction-input" aria-label="Saisir le pas">
+        <input id="numInput" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Numérateur">
+        <div class="fraction-bar"></div>
+        <input id="denInput" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Dénominateur">
+      </div>
+
+      <div class="help">Pour un entier, laisse la case du bas vide.</div>
+
+      <div id="feedback" role="status"></div>
+
+      <div class="actions">
+        <button class="action" id="validateBtn" type="button">Valider</button>
+        <button class="action" id="nextBtn" type="button">Question suivante</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,answered=false,questions=[];
+
+function el(id){return document.getElementById(id)}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(a){return a[rand(0,a.length-1)]}
+function gcd(a,b){while(b){var t=b;b=a%b;a=t}return Math.abs(a)}
+function sameFraction(a,b,c,d){return b!==0 && d!==0 && a*d===c*b}
+
+function makeQuestion(){
+  var possibilities=[];
+
+  for(var integerStep=1;integerStep<=4;integerStep++){
+    for(var integerIntervals=2;integerIntervals<=8;integerIntervals++){
+      var integerDifference=integerStep*integerIntervals;
+
+      if(integerDifference<=10){
+        possibilities.push({
+          stepNum:integerStep,
+          stepDen:1,
+          intervals:integerIntervals,
+          difference:integerDifference
+        });
+      }
+    }
+  }
+
+  for(var den=2;den<=8;den++){
+    for(var intervals=2;intervals<=8;intervals++){
+      if(intervals%den!==0)continue;
+
+      var difference=intervals/den;
+
+      if(Number.isInteger(difference) && difference>=1 && difference<=8){
+        possibilities.push({
+          stepNum:1,
+          stepDen:den,
+          intervals:intervals,
+          difference:difference
+        });
+      }
+    }
+  }
+
+  var p=choice(possibilities);
+  var start=rand(0,Math.max(0,10-p.difference));
+  var end=start+p.difference;
+
+  return {
+    start:start,
+    end:end,
+    intervals:p.intervals,
+    stepNum:p.stepNum,
+    stepDen:p.stepDen
+  };
+}
+
+function buildQuestions(){
+  var out=[];
+  var signatures={};
+
+  while(out.length<10){
+    var q=makeQuestion();
+    var key=[q.start,q.end,q.intervals].join("-");
+
+    if(!signatures[key]){
+      signatures[key]=true;
+      out.push(q);
+    }
+  }
+
+  return out;
+}
+
+function drawAxis(q){
+  var x0=55,x1=650,y=140;
+  var arrowEnd=685;
+  var step=(x1-x0)/q.intervals;
+  var ticks=[];
+
+  ticks.push(`<line x1="${x0-24}" y1="${y}" x2="${arrowEnd}" y2="${y}" stroke="#17212b" stroke-width="5" stroke-linecap="round"/>`);
+  ticks.push(`<path d="M ${arrowEnd-16} ${y-11} L ${arrowEnd} ${y} L ${arrowEnd-16} ${y+11}" fill="none" stroke="#17212b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`);
+
+  for(var i=0;i<=q.intervals;i++){
+    var x=x0+i*step;
+    ticks.push(`<line x1="${x}" y1="${y-18}" x2="${x}" y2="${y+18}" stroke="#17212b" stroke-width="4"/>`);
+  }
+
+  ticks.push(`<text x="${x0}" y="${y+58}" text-anchor="middle" font-size="30" font-weight="750" fill="#17212b">${q.start}</text>`);
+  ticks.push(`<text x="${x1}" y="${y+58}" text-anchor="middle" font-size="30" font-weight="750" fill="#17212b">${q.end}</text>`);
+
+  return `<svg viewBox="0 0 720 220" role="img" aria-label="Demi-droite graduée de ${q.start} à ${q.end}">${ticks.join("")}</svg>`;
+}
+
+function formatFraction(n,d){
+  if(d===1)return String(n);
+  return n+"/"+d;
+}
+
+function updateHud(){
+  el("progress").textContent="Question "+(current+1)+" / 10";
+  el("score").textContent="Score : "+score+" / 10";
+  el("bar").style.width=(((current+1)/10)*100)+"%";
+}
+
+function showQuestion(){
+  answered=false;
+  updateHud();
+
+  var q=questions[current];
+  el("figureWrap").innerHTML=drawAxis(q);
+
+  el("numInput").value="";
+  el("denInput").value="";
+  el("numInput").disabled=false;
+  el("denInput").disabled=false;
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("validateBtn").disabled=false;
+  el("validateBtn").style.display="inline-flex";
+  el("nextBtn").style.display="none";
+
+  setTimeout(function(){el("numInput").focus()},0);
+}
+
+function validate(){
+  if(answered)return;
+
+  var numText=el("numInput").value.trim();
+  var denText=el("denInput").value.trim();
+
+  if(numText===""){
+    var f0=el("feedback");
+    f0.className="error";
+    f0.textContent="Saisis une réponse.";
+    f0.style.display="flex";
+    return;
+  }
+
+  var a=Number(numText);
+  var b=denText===""?1:Number(denText);
+
+  if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0){
+    var f1=el("feedback");
+    f1.className="error";
+    f1.textContent="Saisis un entier ou une fraction valide.";
+    f1.style.display="flex";
+    return;
+  }
+
+  answered=true;
+
+  var q=questions[current];
+  var ok=sameFraction(a,b,q.stepNum,q.stepDen);
+
+  if(ok)score++;
+
+  var fb=el("feedback");
+  fb.className=ok?"success":"error";
+
+  fb.innerHTML=ok
+    ?"Bravo ! Tu as correctement déterminé le pas."
+    :"<strong>Correction :</strong><div>Entre <strong>"+q.start+"</strong> et <strong>"+q.end+"</strong>, il y a <strong>"+q.intervals+"</strong> intervalles. Le pas vaut donc <strong>"+formatFraction(q.stepNum,q.stepDen)+"</strong>.</div>";
+
+  fb.style.display="flex";
+
+  el("numInput").disabled=true;
+  el("denInput").disabled=true;
+  el("validateBtn").disabled=true;
+  el("validateBtn").style.display="none";
+  el("nextBtn").style.display="inline-flex";
+
+  updateHud();
+}
+
+function next(){
+  if(current<9){
+    current++;
+    showQuestion();
+  }else{
+    showFinal();
+  }
+}
+
+function showFinal(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+  el("finalScore").textContent=score+"/10";
+
+  var advice=score<=4
+    ?"Compte bien le nombre d'intervalles entre les deux nombres indiqués."
+    :score<=7
+      ?"C'est en bonne voie ! Pense à partager l'écart entre les deux nombres par le nombre d'intervalles."
+      :score<=9
+        ?"Très bon travail !"
+        :"Excellent ! Tu sais déterminer le pas d'une demi-droite graduée.";
+
+  el("advice").textContent=advice;
+}
+
+function restart(){
+  current=0;
+  score=0;
+  questions=buildQuestions();
+
+  el("final").style.display="none";
+  el("game").style.display="flex";
+
+  showQuestion();
+}
+
+el("validateBtn").onclick=validate;
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+el("numInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    el("denInput").focus();
+  }
+});
+
+el("denInput").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    validate();
+  }
+});
+
+restart();
+})();
+</script>
+</body>
+</html>

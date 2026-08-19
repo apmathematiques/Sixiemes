@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Fraction ou non ?</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+
+  --partSoft:#fff1a9;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+#app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+#game{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:128px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+.card{
+  flex:1;
+  min-height:0;
+  margin:0 12px 10px;
+  padding:12px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  text-align:center;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.question{
+  width:min(940px,100%);
+  min-height:54px;
+  margin:0;
+  padding:6px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--i);
+  font-size:clamp(1.45rem,2.8vw,2rem);
+  font-weight:850;
+  line-height:1.25;
+}
+
+.figure-wrap{
+  width:min(900px,100%);
+  min-height:280px;
+  max-height:320px;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.figure-wrap svg{
+  width:100%;
+  max-width:650px;
+  height:auto;
+  max-height:300px;
+  display:block;
+}
+
+.choice-row{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  width:100%;
+}
+
+.choice{
+  min-height:50px;
+  min-width:145px;
+  padding:0 24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:var(--bd);
+  background:var(--bs);
+  border:2px solid transparent;
+  border-radius:13px;
+  font-size:clamp(1.22rem,2.2vw,1.55rem);
+  font-weight:850;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,border-color 120ms ease,background 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  border-color:#9fc8e5;
+  transform:translateY(-1px);
+}
+
+.choice:active:not(:disabled){transform:scale(.98)}
+.choice:disabled{cursor:default;opacity:.7}
+
+.choice.chosen{
+  opacity:1;
+  outline:4px solid rgba(23,105,170,.16);
+}
+
+#feedback{
+  width:min(900px,100%);
+  min-height:58px;
+  padding:8px 14px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border-radius:14px;
+  font-size:clamp(.98rem,1.6vw,1.14rem);
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+}
+
+#feedback.success{
+  display:flex!important;
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+#feedback.error{
+  display:flex!important;
+  color:#8f2727;
+  background:var(--rs);
+  border:1px solid var(--rline);
+}
+
+.action{
+  min-height:46px;
+  min-width:150px;
+  padding:0 16px;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border:0;
+  border-radius:13px;
+  color:#fff;
+  background:var(--b);
+  font-size:1rem;
+  font-weight:800;
+  line-height:1.1;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+.action:hover:not(:disabled){filter:brightness(1.03)}
+.action:active:not(:disabled){transform:scale(.98)}
+.action:focus-visible,.choice:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+#final{
+  flex:1;
+  min-height:0;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final-card{
+  width:min(540px,92%);
+  padding:26px 24px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+#final h1{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.45rem,3vw,1.8rem);
+}
+
+#finalScore{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:11px 20px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:clamp(1.4rem,3vw,1.8rem);
+  font-weight:900;
+}
+
+#advice{
+  margin:0 0 22px;
+  color:var(--m);
+  font-size:1.05rem;
+  font-weight:650;
+  line-height:1.4;
+}
+
+#restartBtn{display:inline-flex}
+
+.highlight{
+  animation:pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse{
+  from{filter:drop-shadow(0 0 0 rgba(216,70,53,0))}
+  to{filter:drop-shadow(0 0 8px rgba(216,70,53,.55))}
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  #app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .hud{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+  .pill{min-width:0;padding:5px 8px;font-size:.84rem}
+
+  .card{
+    margin:0 6px 6px;
+    padding:6px 8px;
+    gap:5px;
+  }
+
+  .question{
+    min-height:38px;
+    padding:3px 6px;
+    font-size:1.12rem;
+  }
+
+  .figure-wrap{
+    min-height:205px;
+    max-height:235px;
+    padding:5px;
+  }
+
+  .figure-wrap svg{max-height:220px}
+
+  .choice-row{min-height:43px;gap:8px}
+
+  .choice{
+    min-height:40px;
+    min-width:110px;
+    padding:0 14px;
+    font-size:1rem;
+  }
+
+  #feedback{
+    min-height:42px;
+    padding:5px 8px;
+    font-size:.8rem;
+  }
+
+  .action{
+    min-height:40px;
+    min-width:118px;
+    padding:0 11px;
+    font-size:.86rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main id="app" aria-live="polite">
+  <section id="game">
+    <header class="hud">
+      <div class="track" aria-label="Progression">
+        <div class="bar" id="bar"></div>
+      </div>
+      <div class="pill" id="progress">Question 1 / 8</div>
+      <div class="pill" id="score">Score : 0 / 8</div>
+    </header>
+
+    <section class="card">
+      <p class="question">Cette figure peut-elle représenter une fraction&nbsp;?</p>
+      <div class="figure-wrap" id="figureWrap" aria-live="polite"></div>
+
+      <div class="choice-row">
+        <button class="choice" id="yesBtn" type="button">Oui</button>
+        <button class="choice" id="noBtn" type="button">Non</button>
+      </div>
+
+      <div id="feedback" role="status"></div>
+      <button class="action" id="nextBtn" type="button">Question suivante</button>
+    </section>
+  </section>
+
+  <section id="final">
+    <div class="final-card">
+      <h1>Bilan</h1>
+      <div id="finalScore"></div>
+      <div id="advice"></div>
+      <button class="action" id="restartBtn" type="button">Recommencer</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+var current=0,score=0,answered=false,order=[];
+
+function el(id){return document.getElementById(id)}
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1)),t=a[i];
+    a[i]=a[j];
+    a[j]=t;
+  }
+  return a;
+}
+
+var figs=[
+{
+  a:true,
+  c:"Les 4 parts sont toutes de même taille. Cette figure peut donc représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Rectangle partagé en quatre parts égales">
+      <rect x="70" y="55" width="420" height="170" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="70" y="55" width="210" height="170" fill="var(--partSoft)"/>
+      <line x1="175" y1="55" x2="175" y2="225" stroke="#222" stroke-width="4"/>
+      <line x1="280" y1="55" x2="280" y2="225" stroke="#222" stroke-width="4"/>
+      <line x1="385" y1="55" x2="385" y2="225" stroke="#222" stroke-width="4"/>
+      <rect x="70" y="55" width="420" height="170" fill="none" stroke="#222" stroke-width="5"/>
+    </svg>`;
+  }
+},
+{
+  a:false,
+  c:"Les parts n'ont pas toutes la même taille : la bande du milieu est plus large. Cette figure ne peut donc pas représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Rectangle partagé en parts inégales">
+      <rect x="65" y="55" width="430" height="170" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="65" y="55" width="95" height="170" fill="var(--partSoft)"/>
+      <rect x="255" y="55" width="145" height="170" fill="${r?'#FFE0DC':'white'}" class="${r?'highlight':''}"/>
+      <line x1="160" y1="55" x2="160" y2="225" stroke="#222" stroke-width="4"/>
+      <line x1="255" y1="55" x2="255" y2="225" stroke="#222" stroke-width="4"/>
+      <line x1="400" y1="55" x2="400" y2="225" stroke="#222" stroke-width="4"/>
+      <rect x="65" y="55" width="430" height="170" fill="none" stroke="#222" stroke-width="5"/>
+      ${r?'<path d="M255 42 L400 42" stroke="#D84635" stroke-width="6" stroke-linecap="round"/><text x="327" y="32" text-anchor="middle" font-size="22" font-weight="700" fill="#A63225">plus large</text>':''}
+    </svg>`;
+  }
+},
+{
+  a:true,
+  c:"Les 6 secteurs ont le même angle au centre. Ils ont donc la même aire. Cette figure peut représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Disque partagé en six secteurs égaux">
+      <g transform="translate(280 140)">
+        <path d="M0 0 L0 -105 A105 105 0 0 1 90.93 -52.5 Z" fill="var(--partSoft)"/>
+        <path d="M0 0 L90.93 -52.5 A105 105 0 0 1 90.93 52.5 Z" fill="var(--partSoft)"/>
+        <circle r="105" fill="none" stroke="#222" stroke-width="5"/>
+        <line x1="0" y1="0" x2="0" y2="-105" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="90.93" y2="-52.5" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="90.93" y2="52.5" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="0" y2="105" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-90.93" y2="52.5" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-90.93" y2="-52.5" stroke="#222" stroke-width="4"/>
+      </g>
+    </svg>`;
+  }
+},
+{
+  a:false,
+  c:"Un secteur est beaucoup plus grand que les autres. Les secteurs n'ont donc pas tous le même angle au centre ni la même aire. Cette figure ne peut pas représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Disque partagé en secteurs très inégaux">
+      <g transform="translate(280 140)">
+        <path d="M0 0 L0 -105 A105 105 0 0 1 30.1 100.6 Z" fill="${r?'#FFE0DC':'#FFD9D5'}" class="${r?'highlight':''}"/>
+        <path d="M0 0 L0 -105 A105 105 0 0 0 -74.2 -74.2 Z" fill="var(--partSoft)"/>
+        <circle cx="0" cy="0" r="105" fill="none" stroke="#222" stroke-width="5"/>
+        <line x1="0" y1="0" x2="0" y2="-105" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="30.1" y2="100.6" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-31.0" y2="100.3" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-91.0" y2="52.5" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-103.4" y2="-18.2" stroke="#222" stroke-width="4"/>
+        <line x1="0" y1="0" x2="-74.2" y2="-74.2" stroke="#222" stroke-width="4"/>
+        ${r?'<path d="M20 -116 A132 132 0 0 1 45 120" fill="none" stroke="#D84635" stroke-width="7" stroke-linecap="round"/><text x="136" y="8" font-size="22" font-weight="700" fill="#A63225">beaucoup plus grand</text>':''}
+      </g>
+    </svg>`;
+  }
+},
+{
+  a:true,
+  c:"La bande est partagée en 5 parts de même longueur. Cette figure peut donc représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Bande partagée en cinq parts égales">
+      <rect x="55" y="95" width="450" height="90" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="55" y="95" width="270" height="90" fill="var(--partSoft)"/>
+      <line x1="145" y1="95" x2="145" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="235" y1="95" x2="235" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="325" y1="95" x2="325" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="415" y1="95" x2="415" y2="185" stroke="#222" stroke-width="4"/>
+      <rect x="55" y="95" width="450" height="90" fill="none" stroke="#222" stroke-width="5"/>
+    </svg>`;
+  }
+},
+{
+  a:false,
+  c:"Les parts n'ont pas toutes la même longueur : l'une d'elles est plus courte. Cette figure ne peut donc pas représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Bande partagée en longueurs inégales">
+      <rect x="55" y="95" width="450" height="90" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="55" y="95" width="180" height="90" fill="var(--partSoft)"/>
+      <rect x="325" y="95" width="55" height="90" fill="${r?'#FFE0DC':'white'}" class="${r?'highlight':''}"/>
+      <line x1="145" y1="95" x2="145" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="235" y1="95" x2="235" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="325" y1="95" x2="325" y2="185" stroke="#222" stroke-width="4"/>
+      <line x1="380" y1="95" x2="380" y2="185" stroke="#222" stroke-width="4"/>
+      <rect x="55" y="95" width="450" height="90" fill="none" stroke="#222" stroke-width="5"/>
+      ${r?'<path d="M325 78 L380 78" stroke="#D84635" stroke-width="6" stroke-linecap="round"/><text x="352.5" y="66" text-anchor="middle" font-size="22" font-weight="700" fill="#A63225">plus courte</text>':''}
+    </svg>`;
+  }
+},
+{
+  a:true,
+  c:"Le carré est partagé en 9 petits carrés de même taille. Cette figure peut donc représenter une fraction.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Carré partagé en neuf carrés égaux">
+      <rect x="175" y="30" width="210" height="210" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="175" y="30" width="140" height="140" fill="var(--partSoft)"/>
+      <line x1="245" y1="30" x2="245" y2="240" stroke="#222" stroke-width="4"/>
+      <line x1="315" y1="30" x2="315" y2="240" stroke="#222" stroke-width="4"/>
+      <line x1="175" y1="100" x2="385" y2="100" stroke="#222" stroke-width="4"/>
+      <line x1="175" y1="170" x2="385" y2="170" stroke="#222" stroke-width="4"/>
+      <rect x="175" y="30" width="210" height="210" fill="none" stroke="#222" stroke-width="5"/>
+    </svg>`;
+  }
+},
+{
+  a:false,
+  c:"Les parts du partage n'ont pas toutes la même taille : certaines bandes sont plus larges que d'autres. Cette figure ne peut donc pas représenter une fraction à partir de ce partage.",
+  s:function(r){
+    return `<svg viewBox="0 0 560 280" role="img" aria-label="Rectangle partagé en bandes de largeurs différentes">
+      <rect x="60" y="65" width="440" height="150" rx="3" fill="white" stroke="#222" stroke-width="5"/>
+      <rect x="60" y="65" width="78" height="150" fill="var(--partSoft)"/>
+      <rect x="259" y="65" width="103" height="150" fill="var(--partSoft)"/>
+      <rect x="138" y="65" width="121" height="150" fill="${r?'#FFE0DC':'white'}" class="${r?'highlight':''}"/>
+      <line x1="138" y1="65" x2="138" y2="215" stroke="#222" stroke-width="4"/>
+      <line x1="259" y1="65" x2="259" y2="215" stroke="#222" stroke-width="4"/>
+      <line x1="362" y1="65" x2="362" y2="215" stroke="#222" stroke-width="4"/>
+      <rect x="60" y="65" width="440" height="150" rx="3" fill="none" stroke="#222" stroke-width="5"/>
+      ${r?'<path d="M138 48 L259 48" stroke="#D84635" stroke-width="6" stroke-linecap="round"/><text x="198.5" y="36" text-anchor="middle" font-size="21" font-weight="700" fill="#A63225">plus large</text>':''}
+    </svg>`;
+  }
+}
+];
+
+function cur(){return figs[order[current]]}
+
+function hud(){
+  el("progress").textContent="Question "+(current+1)+" / 8";
+  el("score").textContent="Score : "+score+" / 8";
+  el("bar").style.width=(((current+1)/8)*100)+"%";
+}
+
+function show(){
+  answered=false;
+  hud();
+
+  el("figureWrap").innerHTML=cur().s(false);
+
+  el("feedback").className="";
+  el("feedback").style.display="none";
+  el("feedback").textContent="";
+
+  el("yesBtn").disabled=false;
+  el("noBtn").disabled=false;
+  el("yesBtn").className="choice";
+  el("noBtn").className="choice";
+
+  el("nextBtn").style.display="none";
+}
+
+function answer(v){
+  if(answered)return;
+  answered=true;
+
+  var q=cur(),ok=v===q.a;
+
+  if(ok)score++;
+
+  el("yesBtn").disabled=true;
+  el("noBtn").disabled=true;
+
+  (v?el("yesBtn"):el("noBtn")).classList.add("chosen");
+
+  el("figureWrap").innerHTML=q.s(true);
+  hud();
+
+  var f=el("feedback");
+  f.className=ok?"success":"error";
+  f.innerHTML=(ok?"<strong>Bravo !</strong>":"<strong>Ce n’est pas la bonne réponse.</strong>")+"<div>"+q.c+"</div>";
+
+  el("nextBtn").style.display="inline-flex";
+}
+
+function next(){
+  if(current<7){
+    current++;
+    show();
+  }else{
+    final();
+  }
+}
+
+function final(){
+  el("game").style.display="none";
+  el("final").style.display="grid";
+  el("finalScore").textContent=score+" / 8";
+
+  el("advice").textContent=
+    score<=3
+    ?"Reprends le temps d'observer chaque découpage : pour représenter une fraction, les parts doivent être égales."
+    :score<=5
+      ?"C'est en bonne voie. Vérifie toujours la taille ou l'aire de toutes les parts avant de répondre."
+      :score<=7
+        ?"Très bon travail ! Tu sais presque toujours reconnaître un partage en parts égales."
+        :"Excellent ! Tu reconnais parfaitement les figures partagées en parts égales.";
+}
+
+function restart(){
+  current=0;
+  score=0;
+  answered=false;
+  order=shuffle(figs.map(function(_,i){return i}));
+
+  el("final").style.display="none";
+  el("game").style.display="flex";
+
+  show();
+}
+
+el("yesBtn").onclick=function(){answer(true)};
+el("noBtn").onclick=function(){answer(false)};
+el("nextBtn").onclick=next;
+el("restartBtn").onclick=restart;
+
+restart();
+})();
+</script>
+</body>
+</html>
