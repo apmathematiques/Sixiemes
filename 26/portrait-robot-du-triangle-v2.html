@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="color-scheme" content="light">
+<title>Portrait-robot du triangle</title>
+
+<style>
+:root{
+  --b:#1769aa;
+  --bd:#0d4778;
+  --bs:#eaf4fc;
+
+  --g:#20864b;
+  --gs:#e9f7ef;
+  --gline:#a9ddbd;
+
+  --r:#c63d3d;
+  --rs:#fff0f0;
+  --rline:#efbcbc;
+
+  --o:#9a5a11;
+  --os:#fff6e9;
+  --oline:#e3ad6e;
+
+  --i:#17212b;
+  --m:#5f6d79;
+  --softline:#dce9f3;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+
+html,body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:transparent;
+  color:var(--i);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  display:grid;
+  place-items:center;
+  padding:8px;
+  overscroll-behavior:none;
+}
+
+button{font:inherit}
+
+.app{
+  width:min(100%,1080px);
+  aspect-ratio:16/9;
+  min-height:540px;
+  max-height:calc(100vh - 16px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(23,105,170,.14);
+  border-radius:22px;
+  box-shadow:0 14px 35px rgba(17,63,103,.14);
+}
+
+/* ---------- En-tête ---------- */
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 20px 7px;
+}
+
+.track{
+  height:12px;
+  overflow:hidden;
+  background:#dceaf5;
+  border-radius:999px;
+}
+
+.bar{
+  width:12.5%;
+  height:100%;
+  background:linear-gradient(90deg,var(--b),#4f9ed8);
+  border-radius:inherit;
+  transition:width 260ms ease;
+}
+
+.pill{
+  min-width:120px;
+  padding:7px 12px;
+  color:var(--bd);
+  font-weight:700;
+  text-align:center;
+  white-space:nowrap;
+  background:var(--bs);
+  border-radius:999px;
+}
+
+/* ---------- Contenu ---------- */
+
+.main{
+  flex:1;
+  min-height:0;
+  padding:0 12px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.instruction{
+  min-height:50px;
+  margin:0;
+  padding:0 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(1.06rem,2vw,1.28rem);
+  font-weight:750;
+  line-height:1.25;
+  text-align:center;
+}
+
+.instruction strong{
+  color:var(--bd);
+  font-weight:850;
+}
+
+/* ---------- Situation ---------- */
+
+.problem{
+  flex:1;
+  min-height:275px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:24px;
+  padding:20px;
+  background:linear-gradient(180deg,#fff,#f8fbfe);
+  border:1px solid var(--softline);
+  border-radius:18px;
+}
+
+.angles{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  flex-wrap:nowrap;
+}
+
+.angle-card{
+  min-width:150px;
+  min-height:100px;
+  padding:14px 20px;
+  display:grid;
+  place-items:center;
+  color:var(--bd);
+  background:#fff;
+  border:3px solid #b9d4e8;
+  border-radius:18px;
+  box-shadow:0 5px 14px rgba(17,63,103,.07);
+  font-size:clamp(2rem,4.4vw,3rem);
+  font-weight:850;
+}
+
+.choice-grid{
+  width:min(760px,100%);
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.choice{
+  min-height:58px;
+  padding:8px 16px;
+  border:3px solid #c4d9e8;
+  border-radius:15px;
+  color:var(--bd);
+  background:#fff;
+  font-size:1.04rem;
+  font-weight:820;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,background 120ms ease,border-color 120ms ease;
+}
+
+.choice:hover:not(:disabled){
+  background:#f7fbfe;
+}
+
+.choice:active:not(:disabled){
+  transform:scale(.985);
+}
+
+.choice.selected{
+  color:var(--bd);
+  background:var(--bs);
+  border-color:var(--b);
+  box-shadow:0 0 0 3px rgba(23,105,170,.10);
+}
+
+.choice.correct-choice{
+  color:#165e36;
+  background:var(--gs);
+  border-color:#79c798;
+}
+
+.choice.wrong-choice{
+  color:#8f2727;
+  background:var(--rs);
+  border-color:#df8585;
+}
+
+.choice.missed-choice{
+  color:var(--o);
+  background:var(--os);
+  border-color:#d8a25e;
+}
+
+.choice:disabled{
+  cursor:default;
+}
+
+/* ---------- Feedback ---------- */
+
+.attempt{
+  min-height:18px;
+  margin:0;
+  color:var(--m);
+  font-size:.88rem;
+  font-weight:700;
+  text-align:center;
+}
+
+.feedback{
+  min-height:50px;
+  padding:10px 14px;
+  display:block;
+  align-content:center;
+  color:var(--m);
+  font-weight:650;
+  line-height:1.4;
+  text-align:center;
+  background:#f4f7fb;
+  border-radius:14px;
+}
+
+.feedback.success{
+  color:#165e36;
+  background:var(--gs);
+  border:1px solid var(--gline);
+}
+
+.feedback.correction{
+  color:var(--o);
+  background:var(--os);
+  border:1px solid var(--oline);
+}
+
+/* ---------- Boutons ---------- */
+
+.controls{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+}
+
+button.action{
+  min-height:46px;
+  min-width:125px;
+  padding:0 16px;
+  border:0;
+  border-radius:13px;
+  font-size:.95rem;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
+  transition:transform 120ms ease,filter 120ms ease;
+}
+
+button.action:hover:not(:disabled){filter:brightness(1.03)}
+button.action:active:not(:disabled){transform:scale(.98)}
+button.action:disabled{opacity:.46;cursor:default}
+button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
+
+.primary{color:#fff;background:var(--b)}
+.secondary{color:var(--bd);background:var(--bs)}
+
+/* ---------- Fin ---------- */
+
+.final{
+  flex:1;
+  padding:18px;
+  display:none;
+  place-items:center;
+  text-align:center;
+}
+
+.final.show{
+  display:grid;
+  animation:reveal 220ms ease both;
+}
+
+.final-card{
+  width:min(570px,92%);
+  padding:24px 22px;
+  background:#fff;
+  border:1px solid var(--softline);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(17,63,103,.08);
+}
+
+.final h2{
+  margin:0 0 18px;
+  color:var(--bd);
+  font-size:clamp(1.35rem,3vw,1.75rem);
+}
+
+.final-score-badge{
+  display:inline-block;
+  margin:0 0 13px;
+  padding:10px 18px;
+  color:var(--bd);
+  background:var(--bs);
+  border-radius:999px;
+  font-size:1.35rem;
+  font-weight:850;
+}
+
+.final-hint{
+  margin:0 0 20px;
+  color:var(--m);
+  font-size:1.04rem;
+  font-weight:650;
+  line-height:1.45;
+}
+
+@keyframes reveal{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
+
+@media(max-width:760px),(max-height:700px){
+  body{padding:4px}
+
+  .app{
+    min-height:0;
+    max-height:calc(100vh - 8px);
+    border-radius:15px;
+  }
+
+  .top{
+    grid-template-columns:1fr auto;
+    padding:6px 8px 3px;
+    gap:5px;
+  }
+
+  .track{grid-column:1/-1}
+
+  .pill{
+    min-width:0;
+    padding:5px 8px;
+    font-size:.82rem;
+  }
+
+  .main{
+    padding:0 6px 6px;
+    gap:4px;
+  }
+
+  .instruction{
+    min-height:40px;
+    font-size:.91rem;
+  }
+
+  .problem{
+    min-height:230px;
+    gap:14px;
+    padding:12px;
+  }
+
+  .angles{gap:10px}
+
+  .angle-card{
+    min-width:94px;
+    min-height:70px;
+    padding:8px 10px;
+    border-radius:14px;
+    font-size:1.65rem;
+  }
+
+  .choice-grid{
+    gap:8px;
+  }
+
+  .choice{
+    min-height:47px;
+    padding:5px 8px;
+    font-size:.86rem;
+  }
+
+  .attempt{font-size:.75rem}
+
+  .feedback{
+    min-height:41px;
+    padding:4px 7px;
+    font-size:.77rem;
+  }
+
+  .controls{min-height:42px}
+
+  button.action{
+    min-height:42px;
+    min-width:104px;
+    padding:0 10px;
+    font-size:.84rem;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:1ms!important;
+    transition-duration:1ms!important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="app" aria-live="polite">
+
+  <header class="top">
+    <div class="track" aria-label="Progression">
+      <div class="bar" id="bar"></div>
+    </div>
+    <div class="pill" id="counter">Question 1 / 8</div>
+    <div class="pill" id="score">Score : 0 / 8</div>
+  </header>
+
+  <section class="main" id="exercise">
+
+    <p class="instruction">
+      Sélectionne <strong>&nbsp;toutes les affirmations vraies&nbsp;</strong> pour ce triangle.
+    </p>
+
+    <div class="problem">
+
+      <div class="angles" id="angles"></div>
+
+      <div class="choice-grid" id="choiceGrid">
+        <button class="choice" data-value="quelconque" type="button">Triangle quelconque</button>
+        <button class="choice" data-value="isocele" type="button">Triangle isocèle</button>
+        <button class="choice" data-value="equilateral" type="button">Triangle équilatéral</button>
+        <button class="choice" data-value="rectangle" type="button">Triangle rectangle</button>
+      </div>
+
+    </div>
+
+    <p class="attempt" id="attempt">Tu as 1 essai.</p>
+
+    <div class="feedback" id="feedback" role="status">
+      Plusieurs réponses peuvent être correctes.
+    </div>
+
+    <div class="controls">
+      <button class="action primary" id="validate" type="button" disabled>
+        Valider
+      </button>
+
+      <button class="action secondary" id="next" type="button" hidden>
+        Question suivante
+      </button>
+    </div>
+
+  </section>
+
+  <section class="final" id="final">
+    <div class="final-card">
+      <h2>Activité terminée</h2>
+      <div class="final-score-badge" id="finalScore"></div>
+      <p class="final-hint" id="finalHint"></p>
+      <button class="action primary" id="restart" type="button">Rejouer</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(()=>{
+'use strict';
+
+const TOTAL = 8;
+const $ = id => document.getElementById(id);
+
+const anglesBox  = $('angles');
+const choiceGrid = $('choiceGrid');
+const choices    = [...choiceGrid.querySelectorAll('.choice')];
+const attempt    = $('attempt');
+const feedback   = $('feedback');
+const validate   = $('validate');
+const next       = $('next');
+const counter    = $('counter');
+const scoreBox   = $('score');
+const bar        = $('bar');
+const exercise   = $('exercise');
+const final      = $('final');
+const finalScore = $('finalScore');
+const finalHint  = $('finalHint');
+const restart    = $('restart');
+
+let questions = [];
+let index = 0;
+let score = 0;
+let locked = false;
+
+/* ---------- Outils ---------- */
+
+function ri(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pick(array){
+  return array[Math.floor(Math.random()*array.length)];
+}
+
+function shuffle(array){
+  const copy = [...array];
+
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+
+  return copy;
+}
+
+/* ---------- Génération ---------- */
+
+function makeScalene(){
+  for(let tries=0;tries<2000;tries++){
+    const a = ri(24,120);
+    const b = ri(24,120);
+    const c = 180-a-b;
+
+    if(c<20 || c>130) continue;
+    if(a===b || a===c || b===c) continue;
+    if(a===90 || b===90 || c===90) continue;
+    if(a===60 && b===60 && c===60) continue;
+
+    return {
+      angles:shuffle([a,b,c]),
+      answers:['quelconque']
+    };
+  }
+
+  return {
+    angles:[47,68,65],
+    answers:['quelconque']
+  };
+}
+
+function makeIsosceles(){
+  const equalPool = [
+    32,34,36,38,40,42,44,46,48,50,52,54,56,58,62,64,66,68,70,72,74
+  ];
+
+  for(let tries=0;tries<1000;tries++){
+    const equal = pick(equalPool);
+    const third = 180-2*equal;
+
+    if(third<=0 || third===90 || equal===45) continue;
+    if(equal===60) continue;
+
+    return {
+      angles:shuffle([equal,equal,third]),
+      answers:['isocele']
+    };
+  }
+
+  return {
+    angles:[70,70,40],
+    answers:['isocele']
+  };
+}
+
+function makeRectangle(){
+  const a = ri(24,66);
+  const b = 90-a;
+
+  if(a===45){
+    return makeRectangle();
+  }
+
+  return {
+    angles:shuffle([90,a,b]),
+    answers:['rectangle']
+  };
+}
+
+function makeRightIsosceles(){
+  return {
+    angles:shuffle([45,45,90]),
+    answers:['isocele','rectangle']
+  };
+}
+
+function makeEquilateral(){
+  return {
+    angles:[60,60,60],
+    /*
+     * Convention retenue pour le projet :
+     * on coche uniquement "équilatéral".
+     */
+    answers:['equilateral']
+  };
+}
+
+function makeQuestions(){
+  const result = [
+    makeScalene(),
+    makeScalene(),
+    makeIsosceles(),
+    makeIsosceles(),
+    makeRectangle(),
+    makeRectangle(),
+    makeRightIsosceles(),
+    makeEquilateral()
+  ];
+
+  return shuffle(result);
+}
+
+/* ---------- Affichage ---------- */
+
+function updateHeader(){
+  counter.textContent = `Question ${index+1} / ${TOTAL}`;
+  scoreBox.textContent = `Score : ${score} / ${TOTAL}`;
+  bar.style.width = `${((index+1)/TOTAL)*100}%`;
+}
+
+function renderAngles(values){
+  anglesBox.innerHTML = '';
+
+  values.forEach(value=>{
+    const card = document.createElement('div');
+    card.className = 'angle-card';
+    card.textContent = `${value}°`;
+    anglesBox.appendChild(card);
+  });
+}
+
+function resetChoices(){
+  choices.forEach(button=>{
+    button.disabled = false;
+    button.className = 'choice';
+    button.setAttribute('aria-pressed','false');
+  });
+}
+
+function render(){
+  locked = false;
+
+  const q = questions[index];
+
+  exercise.hidden = false;
+  final.classList.remove('show');
+
+  renderAngles(q.angles);
+  resetChoices();
+
+  validate.hidden = false;
+  validate.disabled = true;
+
+  next.hidden = true;
+  next.textContent =
+    index===TOTAL-1
+      ? 'Voir le résultat'
+      : 'Question suivante';
+
+  attempt.textContent = 'Tu as 1 essai.';
+
+  feedback.className = 'feedback';
+  feedback.textContent = 'Plusieurs réponses peuvent être correctes.';
+
+  updateHeader();
+}
+
+/* ---------- Choix ---------- */
+
+function selectedValues(){
+  return choices
+    .filter(button=>button.classList.contains('selected'))
+    .map(button=>button.dataset.value);
+}
+
+function sameSet(a,b){
+  if(a.length!==b.length) return false;
+
+  const aa = [...a].sort();
+  const bb = [...b].sort();
+
+  return aa.every((value,i)=>value===bb[i]);
+}
+
+function labelFor(value){
+  const labels = {
+    quelconque:'triangle quelconque',
+    isocele:'triangle isocèle',
+    equilateral:'triangle équilatéral',
+    rectangle:'triangle rectangle'
+  };
+
+  return labels[value];
+}
+
+/* ---------- Explications ---------- */
+
+function explanation(q){
+  const a = [...q.angles].sort((x,y)=>x-y);
+
+  if(q.answers.includes('equilateral')){
+    return 'Les trois angles mesurent 60°&nbsp;: le triangle est <strong>équilatéral</strong>.';
+  }
+
+  if(
+    q.answers.includes('isocele') &&
+    q.answers.includes('rectangle')
+  ){
+    return 'Deux angles mesurent 45° et le troisième 90°&nbsp;: le triangle est <strong>isocèle et rectangle</strong>.';
+  }
+
+  if(q.answers.includes('isocele')){
+    return `Deux angles ont la même mesure&nbsp;(${a[0]}° et ${a[1]}°)&nbsp;: le triangle est <strong>isocèle</strong>.`;
+  }
+
+  if(q.answers.includes('rectangle')){
+    return 'Un angle mesure 90°&nbsp;: le triangle est <strong>rectangle</strong>.';
+  }
+
+  return 'Les trois angles ont des mesures différentes et aucun ne mesure 90°&nbsp;: le triangle est <strong>quelconque</strong>.';
+}
+
+/* ---------- Validation ---------- */
+
+function check(){
+  if(locked) return;
+
+  const q = questions[index];
+  const selected = selectedValues();
+
+  if(selected.length===0) return;
+
+  locked = true;
+
+  choices.forEach(button=>{
+    const value = button.dataset.value;
+    const wasSelected = button.classList.contains('selected');
+    const isCorrect = q.answers.includes(value);
+
+    button.disabled = true;
+
+    if(isCorrect && wasSelected){
+      button.className = 'choice correct-choice';
+    }
+    else if(!isCorrect && wasSelected){
+      button.className = 'choice wrong-choice';
+    }
+    else if(isCorrect && !wasSelected){
+      button.className = 'choice missed-choice';
+    }
+    else{
+      button.className = 'choice';
+    }
+  });
+
+  validate.hidden = true;
+  next.hidden = false;
+
+  if(sameSet(selected,q.answers)){
+    score += 1;
+
+    attempt.textContent = 'Réussi : +1 point.';
+
+    feedback.className = 'feedback success';
+    feedback.innerHTML =
+      `<span>Bravo&nbsp;! ${explanation(q)}</span>`;
+  }
+  else{
+    const names = q.answers
+      .map(labelFor)
+      .join(q.answers.length>1 ? '&nbsp;et&nbsp;' : '');
+
+    attempt.textContent = 'Correction affichée.';
+
+    feedback.className = 'feedback correction';
+    feedback.innerHTML =
+      `<span>La bonne réponse était&nbsp;: <strong>${names}</strong>.<br>${explanation(q)}</span>`;
+  }
+
+  updateHeader();
+}
+
+/* ---------- Navigation ---------- */
+
+function nextQuestion(){
+  if(index<TOTAL-1){
+    index++;
+    render();
+  }
+  else{
+    showFinal();
+  }
+}
+
+/* ---------- Fin ---------- */
+
+function showFinal(){
+  exercise.hidden = true;
+  final.classList.add('show');
+
+  bar.style.width = '100%';
+  scoreBox.textContent = `Score : ${score} / ${TOTAL}`;
+  finalScore.textContent = `${score} / ${TOTAL}`;
+
+  if(score===8){
+    finalHint.textContent =
+      'Bravo ! Tu reconnais très bien les triangles particuliers à partir de leurs angles.';
+  }
+  else if(score>=6){
+    finalHint.textContent =
+      'Très bon travail ! Rejoue une fois pour essayer d’obtenir le sans-faute.';
+  }
+  else if(score>=4){
+    finalHint.textContent =
+      'Tu progresses bien. Rejoue pour mieux distinguer triangle isocèle, rectangle et équilatéral.';
+  }
+  else{
+    finalHint.textContent =
+      'Continue à t’entraîner : compare les angles entre eux et repère en priorité 90° et les angles égaux.';
+  }
+}
+
+/* ---------- Rejouer ---------- */
+
+function restartGame(){
+  questions = makeQuestions();
+  index = 0;
+  score = 0;
+  locked = false;
+  render();
+}
+
+/* ---------- Événements ---------- */
+
+choices.forEach(button=>{
+  button.addEventListener('click',()=>{
+    if(locked) return;
+
+    button.classList.toggle('selected');
+
+    button.setAttribute(
+      'aria-pressed',
+      button.classList.contains('selected')
+        ? 'true'
+        : 'false'
+    );
+
+    validate.disabled = selectedValues().length===0;
+  });
+});
+
+validate.addEventListener('click',check);
+next.addEventListener('click',nextQuestion);
+restart.addEventListener('click',restartGame);
+
+/* ---------- Démarrage ---------- */
+
+restartGame();
+
+})();
+</script>
+
+</body>
+</html>
