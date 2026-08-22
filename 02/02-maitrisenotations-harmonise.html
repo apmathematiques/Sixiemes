@@ -433,6 +433,17 @@ button{font:inherit}
   .action{min-height:54px;font-size:1.08rem}
 }
 
+/* Une tablette peut recevoir une largeur logique inférieure à 761 px dans Genially. */
+@media(pointer:coarse) and (min-width:600px){
+  .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+  .title{font-size:clamp(1.5rem,2.65vw,1.95rem)}
+  .instruction{font-size:clamp(1.45rem,2.5vw,1.85rem)}
+  .answer.empty:after{font-size:clamp(1.08rem,1.9vw,1.28rem)}
+  .tile{min-height:56px;font-size:clamp(1.55rem,3vw,2.15rem)}
+  #feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
+  .action{min-height:54px;font-size:1.08rem}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
     animation-duration:1ms!important;
