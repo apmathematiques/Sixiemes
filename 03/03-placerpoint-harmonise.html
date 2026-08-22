@@ -482,6 +482,8 @@ function choice(a){return a[rand(0,a.length-1)]}
 function gcd(a,b){while(b){var t=b;b=a%b;a=t}return Math.abs(a)}
 
 function formatFraction(n,d){
+  if(d===1)return String(n);
+
   return '<span class="stacked-fraction" role="img" aria-label="'+n+' sur '+d+'">'+
     '<span class="numerator" aria-hidden="true">'+n+'</span>'+
     '<span class="denominator" aria-hidden="true">'+d+'</span>'+
