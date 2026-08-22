@@ -304,7 +304,8 @@ button{font:inherit}
   to{filter:drop-shadow(0 0 8px rgba(216,70,53,.55))}
 }
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur. */
+@media(max-width:760px){
   body{padding:4px}
 
   #app{
@@ -365,6 +366,23 @@ button{font:inherit}
   }
 }
 
+/* Sur une vraie tablette, on garde des textes et des commandes confortables. */
+.tablet-device .card{gap:8px}
+.tablet-device .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+.tablet-device .question{font-size:clamp(1.58rem,2.85vw,2.05rem)}
+.tablet-device .choice{min-height:58px;font-size:clamp(1.4rem,2.4vw,1.75rem)}
+.tablet-device #feedback{min-height:58px;font-size:clamp(1.08rem,1.75vw,1.24rem)}
+.tablet-device .action{min-height:54px;font-size:1.08rem}
+
+.card.correction-mode{gap:4px;padding-top:6px;padding-bottom:6px}
+.card.correction-mode .question{min-height:38px;padding:3px 6px;font-size:clamp(1.18rem,2.2vw,1.55rem)}
+.card.correction-mode .figure-wrap{min-height:145px;max-height:165px;padding:4px 7px}
+.card.correction-mode .figure-wrap svg{max-height:155px}
+.card.correction-mode .choice-row{min-height:44px;gap:8px}
+.card.correction-mode .choice{min-height:44px}
+.card.correction-mode #feedback{min-height:44px;padding:6px 10px}
+.card.correction-mode .action{min-height:44px}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
     animation-duration:1ms!important;
@@ -412,6 +430,10 @@ button{font:inherit}
 <script>
 (function(){
 "use strict";
+
+var isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+  Math.min(screen.width || 0, screen.height || 0) >= 600;
+document.documentElement.classList.toggle("tablet-device", isTabletDevice);
 
 var current=0,score=0,answered=false,order=[];
 
@@ -579,6 +601,7 @@ function show(){
   el("feedback").className="";
   el("feedback").style.display="none";
   el("feedback").textContent="";
+  document.querySelector(".card").classList.remove("correction-mode");
 
   el("yesBtn").disabled=false;
   el("noBtn").disabled=false;
@@ -591,6 +614,7 @@ function show(){
 function answer(v){
   if(answered)return;
   answered=true;
+  document.querySelector(".card").classList.add("correction-mode");
 
   var q=cur(),ok=v===q.a;
 

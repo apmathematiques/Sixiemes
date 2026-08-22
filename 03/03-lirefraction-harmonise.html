@@ -299,7 +299,8 @@ button,input{font:inherit}
 
 #restartBtn{display:inline-flex}
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur. */
+@media(max-width:760px){
   body{padding:4px}
 
   #app{
@@ -366,6 +367,25 @@ button,input{font:inherit}
   }
 }
 
+/* Sur une vraie tablette, on garde des textes et des commandes confortables. */
+.tablet-device .card{gap:7px}
+.tablet-device .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+.tablet-device .question{font-size:clamp(1.5rem,2.65vw,1.95rem)}
+.tablet-device .fraction-input input{width:132px;height:56px;font-size:clamp(1.65rem,3vw,2.1rem)}
+.tablet-device #feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
+.tablet-device .action{min-height:54px;font-size:1.08rem}
+
+.card.correction-mode{gap:4px;padding-top:6px;padding-bottom:6px}
+.card.correction-mode .question{min-height:38px;padding:3px 6px;font-size:clamp(1.18rem,2.2vw,1.55rem)}
+.card.correction-mode .figure-wrap{min-height:145px;max-height:165px;padding:4px 7px}
+.card.correction-mode .figure-wrap svg{max-height:155px}
+.card.correction-mode .fraction-input{gap:3px;grid-template-rows:auto 4px auto}
+.card.correction-mode .fraction-input input{height:42px}
+.card.correction-mode .fraction-bar{height:4px}
+.card.correction-mode #feedback{min-height:44px;padding:6px 10px}
+.card.correction-mode .actions{min-height:44px}
+.card.correction-mode .action{min-height:44px}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
     animation-duration:1ms!important;
@@ -419,6 +439,10 @@ button,input{font:inherit}
 <script>
 (function(){
 "use strict";
+
+var isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+  Math.min(screen.width || 0, screen.height || 0) >= 600;
+document.documentElement.classList.toggle("tablet-device", isTabletDevice);
 
 var current=0, score=0, questions=[], answered=false;
 var TYPES=["band","rectangle","grid","circle"];
@@ -598,12 +622,14 @@ function showQuestion(){
   el("feedback").className="";
   el("feedback").style.display="none";
   el("feedback").textContent="";
+  document.querySelector(".card").classList.remove("correction-mode");
 
   setTimeout(function(){el("numInput").focus()},0);
 }
 
 function validate(){
   if(answered)return;
+  document.querySelector(".card").classList.add("correction-mode");
 
   var a=Number(el("numInput").value);
   var b=Number(el("denInput").value);
