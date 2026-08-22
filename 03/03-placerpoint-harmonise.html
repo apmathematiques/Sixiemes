@@ -159,6 +159,25 @@ button{font:inherit}
   line-height:1;
 }
 
+.stacked-fraction{
+  display:inline-grid;
+  grid-template-rows:auto auto;
+  align-items:center;
+  justify-items:center;
+  vertical-align:middle;
+  line-height:.86;
+}
+
+.stacked-fraction .numerator{
+  min-width:1.15em;
+  padding:0 .18em .08em;
+  border-bottom:.09em solid currentColor;
+}
+
+.stacked-fraction .denominator{padding:.08em .18em 0}
+.target .stacked-fraction{font-size:.78em}
+#feedback .stacked-fraction{margin:0 .12em;font-size:1.05em}
+
 .figure-wrap{
   width:min(940px,100%);
   min-height:215px;
@@ -463,7 +482,12 @@ function choice(a){return a[rand(0,a.length-1)]}
 function gcd(a,b){while(b){var t=b;b=a%b;a=t}return Math.abs(a)}
 
 function formatFraction(n,d){
-  return d===1?String(n):n+"/"+d;
+  if(d===1)return String(n);
+
+  return '<span class="stacked-fraction" role="img" aria-label="'+n+' sur '+d+'">'+
+    '<span class="numerator" aria-hidden="true">'+n+'</span>'+
+    '<span class="denominator" aria-hidden="true">'+d+'</span>'+
+  '</span>';
 }
 
 function makeQuestion(mode){
@@ -662,7 +686,7 @@ function showQuestion(){
 
   var q=questions[current];
 
-  el("target").textContent=formatFraction(q.targetNum,q.targetDen);
+  el("target").innerHTML=formatFraction(q.targetNum,q.targetDen);
   el("figureWrap").innerHTML=drawAxis(q,false);
   bindTicks();
 
