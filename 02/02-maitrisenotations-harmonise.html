@@ -433,6 +433,14 @@ button{font:inherit}
 .tablet-device #feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
 .tablet-device .action{min-height:54px;font-size:1.08rem}
 
+.card.correction-mode{gap:4px;padding-top:6px;padding-bottom:6px}
+.card.correction-mode .title{display:none}
+.card.correction-mode .workspace{min-height:130px;padding:8px 10px}
+.card.correction-mode .answer{min-height:48px}
+.card.correction-mode .tiles{min-height:50px;margin-top:6px}
+.card.correction-mode #feedback{min-height:44px;padding:6px 10px}
+.card.correction-mode .action{min-height:44px}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
     animation-duration:1ms!important;
@@ -590,6 +598,7 @@ function show(){
  E("feedback").className="";
  E("feedback").style.display="none";
  E("feedback").textContent="";
+ document.querySelector(".card").classList.remove("correction-mode");
 
  E("validateBtn").style.display="inline-flex";
  E("clearBtn").style.display="inline-flex";
@@ -616,6 +625,7 @@ function validate(){
  var s=answer.join("");
  var ok=q.valid.indexOf(s)>=0;
  var f=E("feedback");
+ document.querySelector(".card").classList.add("correction-mode");
 
  if(ok){
   resolved=true;

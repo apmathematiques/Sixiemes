@@ -372,6 +372,14 @@ button{font:inherit}
 .tablet-device #feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
 .tablet-device .action{min-height:54px;font-size:1.08rem}
 
+.card.correction-mode{gap:4px;padding-top:6px;padding-bottom:6px}
+.card.correction-mode .title{display:none}
+.card.correction-mode .figure{min-height:145px;max-height:165px}
+.card.correction-mode .answers{min-height:76px;gap:5px}
+.card.correction-mode .choice{min-height:38px}
+.card.correction-mode #feedback{min-height:44px;padding:6px 10px}
+.card.correction-mode .action{min-height:44px}
+
 @media(max-width:560px){
   .answers{
     grid-template-columns:1fr;
@@ -551,12 +559,14 @@ function show(){
   E("feedback").className="";
   E("feedback").style.display="none";
   E("feedback").textContent="";
+  document.querySelector(".card").classList.remove("correction-mode");
   E("nextBtn").style.display="none";
 }
 
 function choose(btn){
   if(answered)return;
   answered=true;
+  document.querySelector(".card").classList.add("correction-mode");
 
   var q=qs[current];
   var ok=btn.dataset.t===q.type;
