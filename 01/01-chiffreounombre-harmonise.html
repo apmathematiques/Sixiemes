@@ -310,7 +310,8 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   button{min-height:44px;min-width:145px;font-size:.9rem}
 }
 
-@media(pointer:coarse) and (min-width:761px){
+/* Échelle lisible commune aux tablettes paysage et aux ordinateurs. */
+@media(min-width:761px){
   .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
   .instruction{font-size:clamp(1.5rem,2.5vw,1.75rem)}
   .instruction .note{font-size:.8em}

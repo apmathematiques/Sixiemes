@@ -312,7 +312,8 @@ input:disabled{
   }
 }
 
-@media(pointer:coarse) and (min-width:761px){
+/* Échelle lisible commune aux tablettes paysage et aux ordinateurs. */
+@media(min-width:761px){
   .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
   .mode{font-size:1.05rem}
   .prompt{font-size:clamp(1.45rem,2.45vw,1.7rem)}
