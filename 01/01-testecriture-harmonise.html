@@ -305,7 +305,9 @@ button{font:inherit}
   line-height:1.4;
 }
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur
+   d'une tablette utilisée en paysage. */
+@media(max-width:760px){
   body{padding:4px}
 
   #app{
@@ -354,6 +356,15 @@ button{font:inherit}
     padding:0 11px;
     font-size:.9rem;
   }
+}
+
+@media(pointer:coarse) and (min-width:761px){
+  .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+  .title{font-size:clamp(1.95rem,3.4vw,2.45rem)}
+  .prompt{font-size:clamp(1.4rem,2.35vw,1.65rem)}
+  .choice{min-height:140px;padding:20px;font-size:clamp(1.5rem,2.55vw,1.85rem)}
+  #feedback{min-height:62px;font-size:clamp(1.12rem,1.85vw,1.28rem)}
+  .action{min-height:54px;min-width:165px;font-size:1.08rem}
 }
 
 @media(max-width:560px){

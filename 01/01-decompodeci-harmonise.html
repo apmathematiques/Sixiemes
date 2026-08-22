@@ -327,7 +327,9 @@ button{font:inherit}
   line-height:1.4;
 }
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur
+   d'une tablette utilisée en paysage. */
+@media(max-width:760px){
   body{padding:4px}
   #app{
     min-height:0;
@@ -374,6 +376,18 @@ button{font:inherit}
   }
   .actions{min-height:41px;gap:6px}
   .action{min-height:40px;min-width:105px;padding:0 10px;font-size:.8rem}
+}
+
+@media(pointer:coarse) and (min-width:761px){
+  .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+  .question{font-size:clamp(1.4rem,2.35vw,1.65rem)}
+  .help{font-size:clamp(.93rem,1.48vw,1.05rem)}
+  .block{min-height:48px;padding:0 13px;font-size:clamp(.96rem,1.58vw,1.1rem)}
+  .answer-zone{min-height:70px}
+  .answer-zone.empty:after{font-size:clamp(.93rem,1.48vw,1.05rem)}
+  .term{font-size:clamp(.96rem,1.58vw,1.1rem)}
+  #feedback{min-height:56px;font-size:clamp(1rem,1.55vw,1.1rem)}
+  .action{min-height:52px;min-width:145px;font-size:1.05rem}
 }
 
 @media(prefers-reduced-motion:reduce){
