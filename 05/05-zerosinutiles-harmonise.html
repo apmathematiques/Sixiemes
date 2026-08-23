@@ -569,24 +569,36 @@ button{font:inherit}
     return Math.floor(Math.random()*(max-min+1))+min;
   }
 
+  function removeUselessZeros(value){
+    const [rawInteger,rawDecimal] = value.split(",");
+    const integer = rawInteger.replace(/^0+(?=\d)/,"") || "0";
+    if(rawDecimal === undefined) return integer;
+
+    const decimal = rawDecimal.replace(/0+$/,"");
+    return decimal ? `${integer},${decimal}` : integer;
+  }
+
   function makeSimpleChangedQuestion(){
     const templates = [
       () => {
         const n = randomInt(1,99);
         const zeros = "0".repeat(randomInt(1,3));
-        return {shown:`${zeros}${n}`, expected:String(n)};
+        const shown = `${zeros}${n}`;
+        return {shown, expected:removeUselessZeros(shown)};
       },
       () => {
         const intPart = randomInt(1,99);
         const digit = randomInt(1,9);
         const zeros = "0".repeat(randomInt(1,3));
-        return {shown:`${intPart},${digit}${zeros}`, expected:`${intPart},${digit}`};
+        const shown = `${intPart},${digit}${zeros}`;
+        return {shown, expected:removeUselessZeros(shown)};
       },
       () => {
         const intPart = randomInt(1,99);
         const dec = `${randomInt(1,9)}${randomInt(0,9)}`;
         const zeros = "0".repeat(randomInt(1,2));
-        return {shown:`${intPart},${dec}${zeros}`, expected:`${intPart},${dec}`};
+        const shown = `${intPart},${dec}${zeros}`;
+        return {shown, expected:removeUselessZeros(shown)};
       }
     ];
     const item = templates[randomInt(0,templates.length-1)]();
@@ -594,7 +606,7 @@ button{font:inherit}
       shown:item.shown,
       expected:item.expected,
       unchanged:false,
-      correction:`${item.shown}&nbsp;=&nbsp;<strong>${item.expected}</strong>. On enlève seulement les zéros placés au début ou à la fin.`
+      correction:`${item.shown}&nbsp;=&nbsp;<strong>${item.expected}</strong>. On enlève les zéros placés au début de la partie entière ou à la fin de la partie décimale.`
     };
   }
 
@@ -610,12 +622,12 @@ button{font:inherit}
     const leading = "0".repeat(randomInt(0,2));
     const trailing = "0".repeat(randomInt(1,3));
     const shown = `${leading}${intPart},${dec}${trailing}`;
-    const expected = `${intPart},${dec}`;
+    const expected = removeUselessZeros(shown);
     return {
       shown,
       expected,
       unchanged:false,
-      correction:`${shown}&nbsp;=&nbsp;<strong>${expected}</strong>. Les zéros intérieurs restent, seuls ceux des extrémités disparaissent.`
+      correction:`${shown}&nbsp;=&nbsp;<strong>${expected}</strong>. Les zéros intérieurs restent ; seuls ceux du début de la partie entière ou de la fin de la partie décimale disparaissent.`
     };
   }
 
@@ -623,7 +635,7 @@ button{font:inherit}
     const intPart = randomInt(1,99);
     const dec = `00${randomInt(1,9)}${randomInt(0,9)}`;
     const shown = `${"0".repeat(randomInt(2,4))}${intPart},${dec}${"0".repeat(randomInt(1,3))}`;
-    const expected = `${intPart},${dec}`;
+    const expected = removeUselessZeros(shown);
     return {
       shown,
       expected,
@@ -793,7 +805,7 @@ button{font:inherit}
       attempt = 2;
       answer = "";
       feedback.className = "feedback show hint";
-      feedback.innerHTML = `<strong>Indice</strong><div>Enlève seulement les zéros placés tout au début ou tout à la fin.</div>`;
+      feedback.innerHTML = `<strong>Indice</strong><div>Enlève seulement les zéros placés au début de la partie entière ou à la fin de la partie décimale.</div>`;
       mainButton.textContent = "Valider le 2ᵉ essai";
       updateAnswerDisplay();
     }else{
