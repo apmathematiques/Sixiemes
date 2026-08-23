@@ -250,7 +250,7 @@
       font-size: 1.08rem;
     }
 
-    @media (max-width: 700px), (max-height: 620px) {
+    @media (max-width: 700px) {
       body { padding: 6px; }
       .app {
         min-height: 0;
@@ -269,6 +269,17 @@
       .feedback { min-height: 50px; padding: 8px 12px; }
       button, #answer { min-height: 48px; height: 48px; }
     }
+    .tablet-device .counter, .tablet-device .score { font-size: 1.15rem; }
+    .tablet-device .instruction { font-size: clamp(1.75rem, 3vw, 2.2rem); }
+    .tablet-device #answer { height: 56px; font-size: 1.35rem; }
+    .tablet-device button { min-height: 54px; font-size: 1.08rem; }
+    .tablet-device .feedback { min-height: 58px; font-size: 1.08rem; }
+    .main.correction-mode { gap: 6px; padding-bottom: 10px; }
+    .main.correction-mode .instruction { font-size: clamp(1.28rem, 2.25vw, 1.58rem); line-height: 1.25; }
+    .main.correction-mode .figure-card { min-height: 145px; padding: 6px; }
+    .main.correction-mode #numberLine { min-height: 135px; }
+    .main.correction-mode button, .main.correction-mode #answer { min-height: 44px; height: 44px; }
+    .main.correction-mode .feedback { min-height: 44px; padding: 6px 10px; }
   </style>
 </head>
 <body>
@@ -324,6 +335,10 @@
   <script>
     (() => {
       "use strict";
+
+      const isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+        Math.min(screen.width || 0, screen.height || 0) >= 600;
+      document.documentElement.classList.toggle("tablet-device", isTabletDevice);
 
       const TOTAL_QUESTIONS = 10;
       const VALUES = [1, 2, 5, 0.5, 0.25, 0.2, 0.1];
@@ -533,6 +548,7 @@
         const question = questions[currentIndex];
         locked = false;
         currentMistakes = 0;
+        exercise.classList.remove("correction-mode");
 
         counter.textContent = `Question ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
         progressFill.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
@@ -563,6 +579,8 @@
           input.focus();
           return;
         }
+
+        exercise.classList.add("correction-mode");
 
         if (isCorrect(answer, question.step)) {
           locked = true;

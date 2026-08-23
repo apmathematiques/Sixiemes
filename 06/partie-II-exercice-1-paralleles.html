@@ -46,6 +46,15 @@
   .result h2{margin:0;font-size:clamp(1.45rem,3vw,2rem)}
   .result p{margin:0;color:var(--muted);font-size:1.05rem;max-width:620px}
   @media(max-width:650px){body{padding:5px}.app{padding:10px;gap:8px;border-radius:14px;min-height:500px}.scene-card{min-height:155px}.answer{min-width:145px;padding:10px 13px}.feedback{font-size:.92rem}.line-label{font-size:27px}}
+  .tablet-device .counter,.tablet-device .score{font-size:1.15rem}
+  .tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}
+  .tablet-device .answer,.tablet-device .btn{min-height:52px;font-size:1.08rem}
+  .tablet-device .feedback{min-height:58px;font-size:1.08rem}
+  #exercise.correction-mode{gap:5px}
+  #exercise.correction-mode .instruction{font-size:clamp(1.35rem,2.4vw,1.7rem)}
+  #exercise.correction-mode .scene-card{min-height:145px}
+  #exercise.correction-mode .answer,#exercise.correction-mode .btn{min-height:42px;padding:7px 11px}
+  #exercise.correction-mode .feedback{min-height:44px;padding:6px 10px}
 </style>
 </head>
 <body>
@@ -77,6 +86,8 @@
 <script>
 (() => {
   'use strict';
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle('tablet-device',isTabletDevice);
   const W=900,H=360,N=8,NS='http://www.w3.org/2000/svg';
   const $=s=>document.querySelector(s), svg=$('#scene');
   const rand=(a,b)=>Math.random()*(b-a)+a;
@@ -164,6 +175,7 @@
 
   function showQuestion(){
     attempt=0;locked=false;
+    $('#exercise').classList.remove('correction-mode');
     $('#counter').textContent=`${index+1} / ${N}`;$('#progress').style.width=`${(index+1)/N*100}%`;$('#score').textContent=`Score : ${score.toLocaleString('fr-FR')}`;
     $('#feedback').className='feedback';$('#feedback').textContent='Observe attentivement la direction des deux droites.';
     $('#next').classList.add('hidden');document.querySelectorAll('.answer').forEach(b=>{b.classList.remove('hidden');b.disabled=false});
@@ -190,6 +202,7 @@
 
   function answer(value){
     if(locked)return;attempt++;
+    $('#exercise').classList.add('correction-mode');
     const q=questions[index],ok=value===q.parallel,fb=$('#feedback');
     if(ok){
       score+=attempt===1?1:.5;locked=true;fb.className='feedback correct';fb.textContent=`✓ Bonne réponse ! ${explicitAnswer(q)} ${explanation(q)}`;finishQuestion();return;

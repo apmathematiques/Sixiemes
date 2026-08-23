@@ -98,6 +98,14 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
   .feedback{height:40px;min-height:40px;padding:6px 9px}
   .main-button{height:40px}
 }
+.tablet-device .progress-label,.tablet-device .score{font-size:1.15rem}
+.tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}
+.tablet-device .feedback{min-height:58px;height:auto;font-size:1.08rem;white-space:normal;overflow:visible}
+.tablet-device .main-button{min-height:52px;height:52px;font-size:1.08rem}
+.content.correction-mode{gap:5px;padding-top:7px;padding-bottom:7px;grid-template-rows:auto 1fr 44px 42px}
+.content.correction-mode .instruction{font-size:clamp(1.35rem,2.4vw,1.7rem)}
+.content.correction-mode .feedback{min-height:44px;height:auto;padding:6px 10px}
+.content.correction-mode .main-button{min-height:42px;height:42px}
 </style>
 </head>
 <body>
@@ -140,6 +148,8 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
 
 <script>
 (() => {
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle("tablet-device",isTabletDevice);
   const TOTAL=6;
   const NAMES=["A","B","C","D"];
 
@@ -302,6 +312,7 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
     attempt=1;
     finishedQuestion=false;
     choosingEdge=false;
+    document.querySelector(".content").classList.remove("correction-mode");
 
     instruction.innerHTML=
       `Trace la droite perpendiculaire à <strong>(d)</strong> passant par le point <strong>${question.targetName}</strong>.`;
@@ -385,6 +396,7 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
         pointTolerance:10,
         angleTolerance:2
       });
+      document.querySelector(".content").classList.add("correction-mode");
 
       const question=questions[index];
 

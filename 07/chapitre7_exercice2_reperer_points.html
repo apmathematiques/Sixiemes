@@ -269,7 +269,7 @@
       line-height: 1.5;
     }
 
-    @media (max-width: 700px), (max-height: 620px) {
+    @media (max-width: 700px) {
       body { padding: 6px; }
       .app {
         min-height: 0;
@@ -290,6 +290,18 @@
       .answer-wrap input, button { min-height: 45px; height: 45px; }
       .feedback { min-height: 48px; padding: 7px 10px; }
     }
+    .tablet-device .counter, .tablet-device .score { font-size: 1.15rem; }
+    .tablet-device .instruction { min-height: 64px; font-size: clamp(1.75rem, 3vw, 2.2rem); }
+    .tablet-device .answer-wrap label { font-size: 1rem; }
+    .tablet-device .answer-wrap input { height: 54px; font-size: 1.25rem; }
+    .tablet-device button { min-height: 54px; font-size: 1.08rem; }
+    .tablet-device .feedback { min-height: 58px; font-size: 1.08rem; }
+    .main.correction-mode { gap: 5px; padding-top: 3px; padding-bottom: 9px; }
+    .main.correction-mode .instruction { min-height: 42px; font-size: clamp(1.28rem, 2.25vw, 1.58rem); }
+    .main.correction-mode .figure-card { min-height: 140px; padding: 4px 7px; }
+    .main.correction-mode #numberLine { min-height: 130px; }
+    .main.correction-mode .answer-wrap input, .main.correction-mode button { min-height: 42px; height: 42px; }
+    .main.correction-mode .feedback { min-height: 44px; padding: 6px 10px; }
   </style>
 </head>
 <body>
@@ -331,6 +343,10 @@
   <script>
     (() => {
       "use strict";
+
+      const isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+        Math.min(screen.width || 0, screen.height || 0) >= 600;
+      document.documentElement.classList.toggle("tablet-device", isTabletDevice);
 
       const TOTAL_QUESTIONS = 10;
       const DECIMAL_STEPS = [0.1, 0.2, 0.25, 0.5];
@@ -659,6 +675,7 @@
         const question = questions[currentIndex];
         locked = false;
         currentMistakes = 0;
+        exercise.classList.remove("correction-mode");
         counter.textContent = `Question ${currentIndex + 1} / ${TOTAL_QUESTIONS}`;
         progressFill.style.width = `${(currentIndex / TOTAL_QUESTIONS) * 100}%`;
         updateScoreDisplay();
@@ -701,6 +718,8 @@
           parsed.find(item => item.value === null)?.input.focus();
           return;
         }
+
+        exercise.classList.add("correction-mode");
 
         let allCorrect = true;
         for (const item of parsed) {
