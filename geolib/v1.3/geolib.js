@@ -85,7 +85,8 @@
       const angles=this.edgeAngles(),candidates=["horizontal","vertical"].map(edge=>({edge,diff:Utils.angleDifference(angles[edge],ruler.angle)})).sort((a,b)=>a.diff-b.diff),best=candidates[0],guide=ruler.guideLine(),signed=Utils.signedDistancePointToLine({x:this.x,y:this.y},guide);
       if(best.diff>angleTolerance||Math.abs(signed)>distanceTolerance)return{success:false,aligned:best.diff<=angleTolerance,close:Math.abs(signed)<=distanceTolerance,angleDifference:best.diff,distance:Math.abs(signed)};
       const side=signed>=0?1:-1,offset=side*(ruler.thickness/2+2),projection=Utils.projectPointToLine({x:this.x,y:this.y},guide),normal=guide.normal();
-      this.setAngle(best.edge==="horizontal"?ruler.angle:ruler.angle-90);this.setPosition(projection.x+normal.x*offset,projection.y+normal.y*offset);this._rulerConstraint={ruler,edge:best.edge,offset};ruler.setLocked(true);if(this.group)this.group.classList.add("sliding");return{success:true,edge:best.edge}
+      const baseAngle=Utils.normalizeAngle(best.edge==="horizontal"?ruler.angle:ruler.angle-90),oppositeAngle=Utils.normalizeAngle(baseAngle+180),turnDistance=angle=>Math.abs((angle-this.angle+540)%360-180),preservedAngle=turnDistance(baseAngle)<=turnDistance(oppositeAngle)?baseAngle:oppositeAngle;
+      this.setAngle(preservedAngle);this.setPosition(projection.x+normal.x*offset,projection.y+normal.y*offset);this._rulerConstraint={ruler,edge:best.edge,offset};ruler.setLocked(true);if(this.group)this.group.classList.add("sliding");return{success:true,edge:best.edge}
     }
     releaseRuler(){if(this._rulerConstraint)this._rulerConstraint.ruler.setLocked(false);this._rulerConstraint=null;if(this.group)this.group.classList.remove("sliding")}
     render(scene){
