@@ -477,7 +477,7 @@ var isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
   Math.min(screen.width || 0, screen.height || 0) >= 600;
 document.documentElement.classList.toggle("tablet-device", isTabletDevice);
 
-var current=0,score=0,attempts=0,resolved=false,questions=[];
+var current=0,score=0,resolved=false,questions=[];
 
 function el(id){return document.getElementById(id)}
 function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
@@ -588,7 +588,6 @@ function updateHud(){
 }
 
 function showQuestion(){
-  attempts=0;
   resolved=false;
   updateHud();
 
@@ -618,6 +617,7 @@ function showQuestion(){
 
 function answer(value){
   if(resolved)return;
+  resolved=true;
   document.querySelector(".card").classList.add("correction-mode");
 
   var q=questions[current];
@@ -627,37 +627,15 @@ function answer(value){
   (value?el("yesBtn"):el("noBtn")).classList.add("chosen");
 
   if(ok){
-    resolved=true;
-
-    if(attempts===0){
-      score+=1;
-      fb.className="success";
-      fb.textContent="Bravo ! "+correctionText(q);
-    }else{
-      score+=0.5;
-      fb.className="success";
-      fb.textContent="Bonne réponse ! Tu gagnes 0,5 point. "+correctionText(q);
-    }
-
-    finish();
-    return;
-  }
-
-  attempts++;
-
-  if(attempts===1){
-    fb.className="hint";
-    fb.textContent="Indice : compare la distance OA au rayon.";
-    fb.style.display="flex";
-
-    el("yesBtn").className="choice";
-    el("noBtn").className="choice";
+    score++;
+    fb.className="success";
+    fb.textContent="Bravo ! "+correctionText(q);
   }else{
-    resolved=true;
     fb.className="error";
     fb.innerHTML="<strong>Correction :</strong><div>"+correctionText(q)+"</div>";
-    finish();
   }
+
+  finish();
 }
 
 function finish(){
@@ -685,11 +663,11 @@ function showFinal(){
 
   el("finalScore").textContent=String(score).replace(".",",")+"/10";
 
-  var advice=score<=4.5
+  var advice=score<=4
     ?"Revois la différence entre cercle et disque, puis recommence."
-    :score<=7.5
+    :score<=7
       ?"C’est en bonne voie ! Compare toujours OA au rayon."
-      :score<=9.5
+      :score<=9
         ?"Très bon travail !"
         :"Excellent ! Tu maîtrises l’appartenance au cercle et au disque.";
 
