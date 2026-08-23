@@ -46,9 +46,9 @@ body{
 button{font:inherit}
 
 .app{
-  width:min(100%,1080px);
+  width:min(100%,1080px,calc(177.777778vh - 28.444444px));
   aspect-ratio:16/9;
-  min-height:540px;
+  min-height:0;
   max-height:calc(100vh - 16px);
   overflow:hidden;
 
@@ -451,7 +451,7 @@ button{font:inherit}
 .tablet-device .feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
 .tablet-device #actionButton{min-height:54px;font-size:1.08rem}
 
-.content.correction-mode{gap:5px;padding-top:6px;padding-bottom:6px}
+.content.correction-mode{grid-template-rows:42px minmax(0,1fr) auto 42px;gap:5px;padding-top:6px;padding-bottom:6px}
 .content.correction-mode .instruction{min-height:42px;padding:3px 6px;font-size:clamp(1.4rem,2.45vw,1.75rem)}
 .content.correction-mode .fractions-grid{gap:6px}
 .content.correction-mode .fraction-card{padding:6px}
