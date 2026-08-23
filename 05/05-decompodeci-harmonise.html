@@ -125,7 +125,7 @@ button{font:inherit}
   justify-content:center;
 
   color:var(--i);
-  font-size:clamp(1.35rem,2.5vw,1.8rem);
+  font-size:clamp(1.65rem,2.9vw,2.1rem);
   font-weight:900;
   line-height:1.2;
   text-align:center;
@@ -444,7 +444,8 @@ button{font:inherit}
   line-height:1.4;
 }
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur. */
+@media(max-width:760px){
   body{padding:4px}
 
   .app{
@@ -551,6 +552,29 @@ button{font:inherit}
     font-size:.86rem;
   }
 }
+/* Sur une vraie tablette, on garde des textes et des commandes confortables. */
+.tablet-device .progress-label,.tablet-device .score{padding:9px 14px;font-size:1.15rem}
+.tablet-device .instruction{font-size:clamp(1.8rem,3vw,2.25rem)}
+.tablet-device .prompt-card.decomp{font-size:clamp(1.35rem,2.25vw,1.7rem)}
+.tablet-device .key{min-height:48px;font-size:clamp(1.3rem,2.3vw,1.65rem)}
+.tablet-device .choice{font-size:clamp(1.08rem,1.8vw,1.25rem)}
+.tablet-device .feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
+.tablet-device .main-button{min-height:54px;font-size:1.08rem}
+
+.content.correction-mode{gap:5px;padding-top:6px;padding-bottom:6px}
+.content.correction-mode .instruction{min-height:42px;padding:3px 6px;font-size:clamp(1.4rem,2.45vw,1.75rem)}
+.content.correction-mode .workspace{gap:6px}
+.content.correction-mode .prompt-card{padding:8px}
+.content.correction-mode .prompt-card.number{min-height:64px;font-size:2.2rem}
+.content.correction-mode .prompt-card.decomp{font-size:1.05rem;line-height:1.35}
+.content.correction-mode .right-panel{grid-template-rows:54px 1fr;gap:5px}
+.content.correction-mode .answer-display{height:54px}
+.content.correction-mode .key{min-height:34px}
+.content.correction-mode .choices{gap:6px}
+.content.correction-mode .choice{padding:6px 8px;font-size:.96rem;line-height:1.3}
+.content.correction-mode .feedback{min-height:44px;padding:6px 10px}
+.content.correction-mode .actions{min-height:42px}
+.content.correction-mode .main-button{min-height:42px}
 </style>
 </head>
 
@@ -613,6 +637,10 @@ button{font:inherit}
 
 <script>
 (() => {
+  const isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+    Math.min(screen.width || 0, screen.height || 0) >= 600;
+  document.documentElement.classList.toggle('tablet-device',isTabletDevice);
+
   const TOTAL = 10;
   const PLACE_VALUES = [
     {name:"milliers", factor:1000, label:"1 000"},
@@ -833,6 +861,7 @@ button{font:inherit}
     answer="";
     selectedIndex=null;
     locked=false;
+    document.querySelector('.content').classList.remove('correction-mode');
     instruction.textContent=q.instruction;
     feedback.className="feedback";
     feedback.innerHTML="";
@@ -902,6 +931,7 @@ button{font:inherit}
 
   function validate(){
     if(locked) return;
+    document.querySelector('.content').classList.add('correction-mode');
     const q=currentQuestion();
     let correct=false;
 
