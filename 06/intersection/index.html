@@ -4,6 +4,10 @@
 .tablet-device .pl,.tablet-device .score{font-size:1.15rem}.tablet-device .inst{font-size:clamp(1.7rem,3vw,2.15rem)}.tablet-device .main{min-height:52px;height:52px;font-size:1.08rem}.tablet-device .fb{min-height:58px;height:auto;font-size:1.08rem;white-space:normal;overflow:visible}
 .content.correction-mode{gap:5px;padding-top:7px;padding-bottom:7px;grid-template-rows:auto 1fr 44px 42px}.content.correction-mode .inst{font-size:clamp(1.35rem,2.4vw,1.7rem)}.content.correction-mode .fb{min-height:44px;height:auto;padding:6px 10px}.content.correction-mode .main{min-height:42px;height:42px}
 @media(max-width:760px){body{padding:4px}.app{max-height:calc(100vh - 8px)}.content{gap:7px;padding:10px 12px 12px;grid-template-rows:auto 1fr 40px 40px}.fb{height:40px}}
+.app{width:min(100%,960px,calc(177.777778vh - 28.444444px))}
+.actions{display:flex;align-items:center;justify-content:center}
+.tablet-device .content:not(.correction-mode){grid-template-rows:auto minmax(0,1fr) 0 54px;gap:8px}
+.tablet-device .content:not(.correction-mode) .fb:empty{height:0;min-height:0;padding:0;border:0}
 </style></head><body><main class="app"><section id="quiz" class="quiz"><div class="top"><div class="pw"><div class="pt"><div id="pf" class="pf"></div></div><div id="pl" class="pl">Question 1 / 8</div></div><div id="score" class="score">Score : 0 / 8</div></div><div class="content"><p class="inst">Clique sur le point d’intersection des deux droites.</p><div id="fig" class="fig"><svg id="svg" viewBox="0 0 900 330" preserveAspectRatio="none"></svg></div><div id="fb" class="fb"></div><div class="actions"><button id="main" class="main" disabled>Question suivante</button></div></div></section><section id="final" class="final"><div>Exercice terminé</div><div id="fs" class="fs"></div><p id="ft" class="ft"></p><button id="restart" class="main">Recommencer</button></section></main>
 <script>
 (()=>{const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;document.documentElement.classList.toggle("tablet-device",isTabletDevice);const T=8,W=900,H=330,M=28,TOL=14;const r=(a,b)=>Math.random()*(b-a)+a,rad=d=>d*Math.PI/180;

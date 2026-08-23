@@ -28,7 +28,7 @@ html,body{
 }
 body{display:flex;align-items:center;justify-content:center;padding:8px}
 .app{
-  width:min(100%,960px);
+  width:min(100%,960px,calc(177.777778vh - 28.444444px));
   aspect-ratio:16/9;
   max-height:calc(100vh - 16px);
   background:rgba(255,255,255,.96);
@@ -102,6 +102,8 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
 .tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}
 .tablet-device .feedback{min-height:58px;height:auto;font-size:1.08rem;white-space:normal;overflow:visible}
 .tablet-device .main-button{min-height:52px;height:52px;font-size:1.08rem}
+.tablet-device .content:not(.correction-mode){grid-template-rows:auto minmax(0,1fr) 0 54px;gap:8px}
+.tablet-device .content:not(.correction-mode) .feedback:empty{height:0;min-height:0;padding:0;border:0}
 .content.correction-mode{gap:5px;padding-top:7px;padding-bottom:7px;grid-template-rows:auto 1fr 44px 42px}
 .content.correction-mode .instruction{font-size:clamp(1.35rem,2.4vw,1.7rem)}
 .content.correction-mode .feedback{min-height:44px;height:auto;padding:6px 10px}
@@ -377,6 +379,7 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
 
     choosingEdge=true;
     mainButton.disabled=true;
+    document.querySelector(".content").classList.add("correction-mode");
 
     feedback.className="feedback hint";
     feedback.innerHTML=
@@ -396,8 +399,6 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
         pointTolerance:10,
         angleTolerance:2
       });
-      document.querySelector(".content").classList.add("correction-mode");
-
       const question=questions[index];
 
       if(result.success){
