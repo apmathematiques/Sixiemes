@@ -58,6 +58,11 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
   font-size:clamp(.98rem,1.8vw,1.18rem);
   font-weight:700;line-height:1.2;
 }
+.instruction .method-hint{
+  display:block;margin-top:4px;
+  color:#536071;font-size:clamp(.78rem,1.25vw,.95rem);
+  font-weight:600;line-height:1.25;
+}
 .scene-wrap{min-height:0;position:relative}
 #scene{width:100%;height:100%}
 .feedback{
@@ -100,6 +105,7 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
 }
 .tablet-device .progress-label,.tablet-device .score{font-size:1.15rem}
 .tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}
+.tablet-device .instruction .method-hint{font-size:clamp(1rem,1.7vw,1.18rem)}
 .tablet-device .feedback{min-height:58px;height:auto;font-size:1.08rem;white-space:normal;overflow:visible}
 .tablet-device .main-button{min-height:52px;height:52px;font-size:1.08rem}
 .tablet-device .content:not(.correction-mode){grid-template-rows:auto minmax(0,1fr) 0 54px;gap:8px}
@@ -176,6 +182,28 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
     const targetIndex=GeoLib.Random.integer(0,3);
     const points=[];
 
+    function pointAwayFromLineWithinReach(){
+      const minLineDistance=58;
+      const maxLineDistance=105;
+
+      for(let attempt=0;attempt<800;attempt++){
+        const candidate=GeoLib.Random.pointForTool(toolTemplate,{
+          width:900,
+          height:330,
+          existingPoints:points,
+          minDistance:78,
+          attempts:80
+        });
+        const distance=line.distanceToPoint(candidate);
+
+        if(distance>=minLineDistance&&distance<=maxLineDistance){
+          return candidate;
+        }
+      }
+
+      return null;
+    }
+
     for(let i=0;i<4;i++){
       let p;
 
@@ -188,14 +216,11 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
               existingPoints:points,
               minDistance:78
             })
-          : GeoLib.Random.pointAwayFromLine(line,{
-              tool:toolTemplate,
-              width:900,
-              height:330,
-              existingPoints:points,
-              minDistance:78,
-              minLineDistance:58
-            });
+          : pointAwayFromLineWithinReach();
+
+        if(!p){
+          return makeQuestion(targetOnLine);
+        }
       }else{
         const putOnLine=Math.random()<0.22;
         p=putOnLine
@@ -299,8 +324,8 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
 
     setSquare=scene.add(
       new GeoLib.SetSquare({
-        x:700,
-        y:235,
+        x:640,
+        y:180,
         angle:-20,
         allowMove:true,
         allowRotate:true
@@ -317,7 +342,8 @@ body{display:flex;align-items:center;justify-content:center;padding:8px}
     document.querySelector(".content").classList.remove("correction-mode");
 
     instruction.innerHTML=
-      `Trace la droite perpendiculaire à <strong>(d)</strong> passant par le point <strong>${question.targetName}</strong>.`;
+      `Trace la perpendiculaire à <strong>(d)</strong> passant par <strong>${question.targetName}</strong>.`+
+      `<span class="method-hint">Pose un bord de l’équerre sur (d), puis fais passer l’autre bord par ${question.targetName}. Fais-la glisser et tourne-la avec la poignée ronde. Appuie ensuite sur « Tracer », puis touche le bord choisi.</span>`;
 
     feedback.className="feedback";
     feedback.innerHTML="";
