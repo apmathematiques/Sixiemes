@@ -457,7 +457,10 @@ button{font:inherit}
 .content.correction-mode .fraction-card{padding:6px}
 .content.correction-mode .fractions-grid .fraction{min-width:68px;font-size:1.55rem;grid-template-rows:auto 3px auto}
 .content.correction-mode .fractions-grid .fraction .bar{min-width:62px;height:3px;margin:4px 0}
-.content.correction-mode .feedback{min-height:44px;padding:6px 10px}
+.content.correction-mode .feedback{min-height:44px;padding:6px 10px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;text-align:left;font-size:clamp(.9rem,1.35vw,1.05rem);line-height:1.25}
+.content.correction-mode .feedback>strong{display:inline-flex;align-items:center;justify-content:center;margin:0}
+.content.correction-mode .feedback>div{min-width:0;text-align:left}
+.content.correction-mode .feedback>div strong{display:inline}
 .content.correction-mode .actions{min-height:42px}
 .content.correction-mode #actionButton{min-height:42px}
 </style>

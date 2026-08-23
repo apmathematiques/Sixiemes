@@ -51,9 +51,9 @@ body{
 button{font:inherit}
 
 .app{
-  width:min(100%,1080px);
+  width:min(100%,1080px,calc(177.777778vh - 28.444444px));
   aspect-ratio:16/9;
-  min-height:540px;
+  min-height:0;
   max-height:calc(100vh - 16px);
   overflow:hidden;
 
@@ -481,12 +481,15 @@ button{font:inherit}
 .tablet-device .feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
 .tablet-device .main-button{min-height:54px;font-size:1.08rem}
 
-.content.correction-mode{gap:5px 8px;padding-top:6px;padding-bottom:6px}
+.content.correction-mode{grid-template-rows:42px minmax(0,1fr) auto 42px;gap:5px 8px;padding-top:6px;padding-bottom:6px}
 .content.correction-mode .instruction{min-height:42px;padding:3px 6px;font-size:clamp(1.4rem,2.45vw,1.75rem)}
 .content.correction-mode .question-panel{grid-template-rows:1fr 58px;gap:6px}
 .content.correction-mode .answer-display{min-height:58px}
 .content.correction-mode .key{min-height:36px}
-.content.correction-mode .feedback{min-height:44px;padding:6px 10px}
+.content.correction-mode .feedback{min-height:44px;padding:6px 10px;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;text-align:left;font-size:clamp(.9rem,1.35vw,1.05rem);line-height:1.25}
+.content.correction-mode .feedback>strong{display:inline-flex;align-items:center;justify-content:center;margin:0}
+.content.correction-mode .feedback>div{min-width:0;text-align:left}
+.content.correction-mode .feedback>div strong{display:inline}
 .content.correction-mode .actions{min-height:42px}
 .content.correction-mode .main-button{min-height:42px}
 </style>
@@ -779,7 +782,7 @@ button{font:inherit}
       locked = true;
       score += attempt === 1 ? 1 : 0.5;
       feedback.className = "feedback show success";
-      feedback.innerHTML = `<strong>✓</strong>&nbsp;${q.correction}`;
+      feedback.innerHTML = `<strong>✓</strong><div>${q.correction}</div>`;
       scoreLabel.textContent = `Score : ${formatScore(score)} / ${TOTAL}`;
       mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
       mainButton.disabled = false;
@@ -790,13 +793,13 @@ button{font:inherit}
       attempt = 2;
       answer = "";
       feedback.className = "feedback show hint";
-      feedback.innerHTML = `<strong>Indice</strong>&nbsp;Enlève seulement les zéros placés tout au début ou tout à la fin.`;
+      feedback.innerHTML = `<strong>Indice</strong><div>Enlève seulement les zéros placés tout au début ou tout à la fin.</div>`;
       mainButton.textContent = "Valider le 2ᵉ essai";
       updateAnswerDisplay();
     }else{
       locked = true;
       feedback.className = "feedback show error";
-      feedback.innerHTML = `<strong>✗</strong>&nbsp;${q.correction}`;
+      feedback.innerHTML = `<strong>✗</strong><div>${q.correction}</div>`;
       mainButton.textContent = index === TOTAL-1 ? "Voir le bilan" : "Question suivante";
       mainButton.disabled = false;
     }
