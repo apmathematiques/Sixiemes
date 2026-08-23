@@ -13,9 +13,10 @@
 .geolib-set-square-right-angle{fill:none;stroke:var(--geolib-blue-dark);stroke-width:3;vector-effect:non-scaling-stroke;pointer-events:none}
 .geolib-set-square-hit{fill:rgba(0,0,0,.001);pointer-events:all}
 .geolib-tool-rotate-arm{stroke:var(--geolib-blue-dark);stroke-width:2;stroke-dasharray:5 4;vector-effect:non-scaling-stroke;pointer-events:none}
-.geolib-tool-rotate-handle{fill:#fff;stroke:var(--geolib-blue-dark);stroke-width:3;vector-effect:non-scaling-stroke;cursor:grab}
+.geolib-tool-rotate-handle-hit{fill:rgba(0,0,0,.001);pointer-events:all;cursor:grab}
+.geolib-tool-rotate-handle{fill:#fff;stroke:var(--geolib-blue-dark);stroke-width:3;vector-effect:non-scaling-stroke;pointer-events:none}
 .geolib-set-square.sliding .geolib-set-square-shape{fill:rgba(37,99,235,.22)}
-.geolib-set-square.sliding .geolib-tool-rotate-arm,.geolib-set-square.sliding .geolib-tool-rotate-handle{opacity:.25;pointer-events:none}
+.geolib-set-square.sliding .geolib-tool-rotate-arm,.geolib-set-square.sliding .geolib-tool-rotate-handle{opacity:.25}.geolib-set-square.sliding .geolib-tool-rotate-handle-hit{pointer-events:none}
 .geolib-edge-hit{fill:none;stroke:rgba(0,0,0,.001);stroke-width:30;stroke-linecap:round;pointer-events:none;cursor:pointer}
 .geolib-set-square.selecting-edge .geolib-edge-hit{pointer-events:stroke}
 .geolib-set-square.selecting-edge .geolib-set-square-shape{fill:rgba(37,99,235,.24)}
@@ -28,4 +29,4 @@
 .geolib-ruler-tick{stroke:#a16207;stroke-width:1.5;vector-effect:non-scaling-stroke;pointer-events:none}
 .geolib-straightedge.locked{cursor:not-allowed}
 .geolib-straightedge.locked .geolib-straightedge-shape{fill:rgba(250,204,21,.34);stroke:#15803d;stroke-width:3}
-.geolib-straightedge.locked .geolib-tool-rotate-arm,.geolib-straightedge.locked .geolib-tool-rotate-handle{opacity:.2;pointer-events:none}
+.geolib-straightedge.locked .geolib-tool-rotate-arm,.geolib-straightedge.locked .geolib-tool-rotate-handle{opacity:.2}.geolib-straightedge.locked .geolib-tool-rotate-handle-hit{pointer-events:none}

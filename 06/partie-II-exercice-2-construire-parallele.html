@@ -2,18 +2,18 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="../geolib/v1.3/geolib.css">
+<link rel="stylesheet" href="../geolib/v1.3/geolib.css?v=2">
 <style>
 :root{--blue:#2563eb;--blue-dark:#1746a2;--blue-soft:#eff6ff;--green:#15803d;--green-soft:#ecfdf3;--red:#c62828;--red-soft:#fff1f2;--amber:#a16207;--ink:#172033;--muted:#5d6677}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:transparent}body{display:flex;align-items:center;justify-content:center;padding:8px}button{font:inherit}
 .app{width:min(100%,980px,calc(177.777778vh - 28.444444px));aspect-ratio:16/9;min-height:0;max-height:calc(100vh - 16px);padding:14px;background:rgba(255,255,255,.97);border:1px solid #dce6f5;border-radius:20px;box-shadow:0 12px 32px #18355c20;overflow:hidden}
 #exercise{height:100%;display:flex;flex-direction:column;gap:8px;min-height:0}.topbar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px}.progress-wrap{display:flex;align-items:center;gap:9px}.track{height:10px;flex:1;background:#e6edf7;border-radius:999px;overflow:hidden}.progress{height:100%;background:linear-gradient(90deg,#60a5fa,var(--blue));transition:width .3s}.counter,.score{font-weight:800;color:var(--blue-dark);white-space:nowrap}.score{background:var(--blue-soft);padding:7px 11px;border-radius:11px}
-.instruction{text-align:center;font-weight:800;font-size:clamp(1rem,2.1vw,1.22rem);margin:0}.instruction .target{color:var(--blue-dark)}#scene{flex:1 1 0;min-height:0}
+.instruction{text-align:center;font-weight:800;font-size:clamp(1rem,2.1vw,1.22rem);margin:0}.instruction .target{color:var(--blue-dark)}.instruction .method-hint{display:block;margin-top:4px;color:#536071;font-size:clamp(.76rem,1.25vw,.92rem);font-weight:600;line-height:1.25}#scene{flex:1 1 0;min-height:0}
 .tools,.next-row{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:11px;min-height:41px;padding:9px 14px;font-weight:800;cursor:pointer;transition:transform .12s,filter .12s}.btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(.97)}.btn:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}.btn:disabled{opacity:.5;cursor:default}.primary{background:var(--blue);color:#fff}.secondary{background:#e8eef7;color:#334155}.lock{background:#fef3c7;color:#854d0e}.trace{background:#0f766e;color:#fff}.next{background:var(--blue);color:#fff;min-width:175px}
 .feedback{min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:8px 12px;background:#f4f7fb;color:var(--muted);font-weight:700;line-height:1.3}.feedback.hint{background:#fff8e7;color:#854d0e}.feedback.correct{background:var(--green-soft);color:var(--green)}.feedback.wrong{background:var(--red-soft);color:var(--red)}.hidden{display:none!important}
 .result{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:15px;padding:24px}.result-icon{width:78px;height:78px;display:grid;place-items:center;border-radius:50%;background:var(--blue-soft);font-size:2.4rem}.result h2{margin:0;font-size:clamp(1.45rem,3vw,2rem)}.result p{margin:0;max-width:620px;color:var(--muted);font-size:1.06rem}
 @media(max-width:650px){body{padding:4px}.app{padding:9px;border-radius:14px}#exercise{gap:6px}#scene{min-height:0}.btn{padding:8px 10px;font-size:.91rem}.feedback{font-size:.9rem;min-height:48px}.geolib-point-label,.geolib-line-label{font-size:23px}}
-.tablet-device .counter,.tablet-device .score{font-size:1.15rem}.tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}.tablet-device .btn{min-height:52px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}.tablet-device .geolib-point-label,.tablet-device .geolib-line-label{font-size:25px}
+.tablet-device .counter,.tablet-device .score{font-size:1.15rem}.tablet-device .instruction{font-size:clamp(1.7rem,3vw,2.15rem)}.tablet-device .instruction .method-hint{font-size:clamp(1rem,1.65vw,1.14rem)}.tablet-device .btn{min-height:52px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}.tablet-device .geolib-point-label,.tablet-device .geolib-line-label{font-size:25px}.tablet-device .geolib-tool-rotate-handle{stroke-width:4}.tablet-device .geolib-edge-hit{stroke-width:84}
 .tablet-device #exercise:not(.correction-mode){gap:6px}
 #exercise.correction-mode{gap:5px}#exercise.correction-mode .instruction{font-size:clamp(1.35rem,2.4vw,1.7rem)}#exercise.correction-mode #scene{min-height:0}#exercise.correction-mode .btn{min-height:42px;padding:7px 11px}#exercise.correction-mode .feedback{min-height:44px;padding:6px 10px}
 </style>
@@ -29,7 +29,7 @@
 </section>
 <section id="result" class="result hidden"><div class="result-icon">✓</div><h2 id="resultTitle"></h2><p id="resultText"></p><button id="restart" class="btn primary" type="button">Rejouer avec de nouvelles figures</button></section>
 </main>
-<script src="../geolib/v1.3/geolib.js"></script>
+<script src="../geolib/v1.3/geolib.js?v=2"></script>
 <script>
 (()=>{
 'use strict';
@@ -42,7 +42,7 @@ function angleOf(a,b){return GeoLib.Utils.normalizeAngle(GeoLib.Utils.radToDeg(M
 function generatedSituation(targetName){
   const angle=choice([rand(10,31),rand(149,170)]),line=new GeoLib.Line({x:450,y:292},angle,{name:'(d)'}),data=[];
   for(let tries=0;data.length<3&&tries<3000;tries++){
-    const p={x:rand(135,690),y:rand(75,220),name:names[data.length]};
+    const p={x:rand(135,570),y:rand(75,220),name:names[data.length]};
     const farFromLine=line.distanceToPoint(p)>=62,farFromOthers=data.every(o=>GeoLib.Utils.distance(p,o)>=120),noSharedParallel=data.every(o=>GeoLib.Utils.angleDifference(angleOf(o,p),angle)>=9);
     if(farFromLine&&farFromOthers&&noSharedParallel)data.push(p);
   }
@@ -50,32 +50,42 @@ function generatedSituation(targetName){
   return{line,data,targetName};
 }
 function addTools(){
-  setSquare=scene.add(new GeoLib.SetSquare({x:675,y:190,angle:choice([24,122,205,302]),width:170,height:122}));
-  ruler=scene.add(new GeoLib.Straightedge({x:700,y:82,angle:choice([8,72,151]),length:270,thickness:40}));
+  setSquare=scene.add(new GeoLib.SetSquare({x:690,y:200,angle:0,width:190,height:138}));
+  ruler=scene.add(new GeoLib.Straightedge({x:635,y:175,angle:90,length:285,thickness:50}));
+
+  if(isTabletDevice){
+    setSquare.handle.setAttribute('r','42');
+    ruler.handle.setAttribute('r','42');
+    setSquare.handleVisual.setAttribute('r','22');
+    ruler.handleVisual.setAttribute('r','22');
+    ruler.hit.setAttribute('y',String(-ruler.thickness/2-18));
+    ruler.hit.setAttribute('height',String(ruler.thickness+36));
+  }
 }
 function renderQuestion(){
   if(scene)scene.destroy();attempt=0;lockedQuestion=false;
   $('#exercise').classList.remove('correction-mode');
   const s=generatedSituation(targetOrder[index]);scene=new GeoLib.Scene('#scene',{width:W,height:H});baseLine=scene.add(s.line);points=s.data.map(p=>scene.add(new GeoLib.Point(p.x,p.y,{name:p.name})));target=points.find(p=>p.name===s.targetName);addTools();
-  $('#instruction').innerHTML=`Trace la droite parallèle à <strong>(d)</strong> passant par le point <span class="target">${target.name}</span>.`;
+  $('#instruction').innerHTML=`Trace la droite parallèle à <strong>(d)</strong> passant par le point <span class="target">${target.name}</span>.`+
+    `<span class="method-hint">1. Aligne un bord de l’équerre sur (d). 2. Place la règle contre l’autre bord et bloque-la. 3. Fais coulisser l’équerre jusqu’à ${target.name}, puis trace.</span>`;
   $('#counter').textContent=`${index+1} / ${N}`;$('#progress').style.width=`${(index+1)/N*100}%`;$('#score').textContent=`Score : ${score.toLocaleString('fr-FR')}`;
-  $('#feedback').className='feedback';$('#feedback').textContent='Manipule librement la règle et l’équerre.';$('#next').classList.add('hidden');$('#tools').classList.remove('hidden');$('#lock').textContent='Bloquer la règle';setButtons(false);
+  $('#feedback').className='feedback';$('#feedback').textContent='Fais glisser les instruments par leur surface et tourne-les avec la grande poignée ronde.';$('#next').classList.add('hidden');$('#tools').classList.remove('hidden');$('#lock').textContent='Bloquer la règle';setButtons(false);
 }
 function setButtons(disabled){['lock','trace','resetTools'].forEach(id=>$('#'+id).disabled=disabled)}
 function resetTools(){if(lockedQuestion)return;setSquare.releaseRuler();scene.layers.tools.innerHTML='';scene.objects=scene.objects.filter(o=>!(o instanceof GeoLib.SetSquare)&&!(o instanceof GeoLib.Straightedge));addTools();scene.clearLayer('drawings');$('#lock').textContent='Bloquer la règle';$('#feedback').className='feedback';$('#feedback').textContent='Les instruments ont été replacés.'}
 function toggleLock(){
   if(setSquare._rulerConstraint){setSquare.releaseRuler();$('#lock').textContent='Bloquer la règle';$('#feedback').className='feedback';$('#feedback').textContent='Les instruments sont de nouveau libres.';return}
-  const r=setSquare.attachToRuler(ruler);
-  if(r.success){$('#lock').textContent='Libérer les instruments';$('#feedback').className='feedback';$('#feedback').textContent='La règle est bloquée. L’équerre peut maintenant coulisser sans tourner.'}
+  const r=setSquare.attachToRuler(ruler,{angleTolerance:isTabletDevice?10:7,distanceTolerance:isTabletDevice?58:42});
+  if(r.success){$('#lock').textContent='Libérer les instruments';$('#feedback').className='feedback';$('#feedback').textContent=`La règle est bloquée. Fais coulisser l’équerre jusqu’au point ${target.name}, puis trace.`}
   else{$('#feedback').className='feedback hint';$('#feedback').textContent=!r.aligned?'La règle doit être parallèle à l’un des côtés de l’angle droit de l’équerre.':'Rapproche la règle du côté de l’équerre avant de la bloquer.'}
 }
 async function trace(){
   if(lockedQuestion)return;
   if(!setSquare._rulerConstraint){$('#feedback').className='feedback hint';$('#feedback').textContent='Place puis bloque la règle avant de tracer.';return}
-  setButtons(true);scene.clearLayer('drawings');$('#feedback').className='feedback';$('#feedback').textContent='Clique sur le bord de l’équerre que tu veux utiliser.';
+  setButtons(true);scene.clearLayer('drawings');$('#feedback').className='feedback';$('#feedback').textContent='Touche le bord de l’équerre que tu veux utiliser.';
   let c;try{c=await setSquare.trace({className:''})}catch(e){setButtons(false);return}attempt++;
   $('#exercise').classList.add('correction-mode');
-  const others=points.filter(p=>p!==target),r=GeoLib.Check.parallelConstruction({baseLine,point:target,drawnLine:c.line,otherPoints:others,pointTolerance:10,angleTolerance:2});
+  const others=points.filter(p=>p!==target),r=GeoLib.Check.parallelConstruction({baseLine,point:target,drawnLine:c.line,otherPoints:others,pointTolerance:isTabletDevice?18:10,angleTolerance:isTabletDevice?4:2});
   if(r.success){c.drawnLine.setClass('geolib-line-correct');score+=attempt===1?1:.5;$('#feedback').className='feedback correct';$('#feedback').textContent=`✓ Bonne construction : la droite est parallèle à (d) et passe par ${target.name}.`;finish();return}
   c.drawnLine.setClass('geolib-line-wrong');
   if(attempt===1){$('#feedback').className='feedback hint';$('#feedback').textContent=errorText(r,true);setButtons(false);return}

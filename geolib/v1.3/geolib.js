@@ -46,7 +46,7 @@
 
   class Straightedge{
     constructor({x=630,y=245,angle=-12,length=290,thickness=42,allowMove=true,allowRotate=true}={}){
-      this.x=x;this.y=y;this.angle=Utils.normalizeAngle(angle);this.length=length;this.thickness=thickness;this.allowMove=allowMove;this.allowRotate=allowRotate;this.locked=false;this.scene=null;this.group=null;this.hit=null;this.handle=null;this._interaction=null
+      this.x=x;this.y=y;this.angle=Utils.normalizeAngle(angle);this.length=length;this.thickness=thickness;this.allowMove=allowMove;this.allowRotate=allowRotate;this.locked=false;this.scene=null;this.group=null;this.hit=null;this.handle=null;this.handleVisual=null;this._interaction=null
     }
     guideLine(){return new Line({x:this.x,y:this.y},this.angle)}
     setPosition(x,y){this.x=x;this.y=y;this.updateTransform()}
@@ -54,9 +54,9 @@
     setLocked(locked=true){this.locked=locked;if(this.group)this.group.classList.toggle("locked",locked);return this}
     updateTransform(){if(this.group)this.group.setAttribute("transform",`translate(${this.x} ${this.y}) rotate(${this.angle})`)}
     render(scene){
-      this.scene=scene;const half=this.length/2,g=Utils.createSvg("g",{class:"geolib-straightedge"}),body=Utils.createSvg("rect",{x:-half,y:-this.thickness/2,width:this.length,height:this.thickness,rx:8,class:"geolib-straightedge-shape"}),edge1=Utils.createSvg("line",{x1:-half,y1:-this.thickness/2,x2:half,y2:-this.thickness/2,class:"geolib-straightedge-edge"}),edge2=Utils.createSvg("line",{x1:-half,y1:this.thickness/2,x2:half,y2:this.thickness/2,class:"geolib-straightedge-edge"}),hit=Utils.createSvg("rect",{x:-half,y:-this.thickness/2,width:this.length,height:this.thickness,rx:8,class:"geolib-straightedge-hit"}),arm=Utils.createSvg("line",{x1:0,y1:-this.thickness/2-3,x2:0,y2:-this.thickness/2-38,class:"geolib-tool-rotate-arm"}),handle=Utils.createSvg("circle",{cx:0,cy:-this.thickness/2-48,r:11,class:"geolib-tool-rotate-handle"});
+      this.scene=scene;const half=this.length/2,g=Utils.createSvg("g",{class:"geolib-straightedge"}),body=Utils.createSvg("rect",{x:-half,y:-this.thickness/2,width:this.length,height:this.thickness,rx:8,class:"geolib-straightedge-shape"}),edge1=Utils.createSvg("line",{x1:-half,y1:-this.thickness/2,x2:half,y2:-this.thickness/2,class:"geolib-straightedge-edge"}),edge2=Utils.createSvg("line",{x1:-half,y1:this.thickness/2,x2:half,y2:this.thickness/2,class:"geolib-straightedge-edge"}),hit=Utils.createSvg("rect",{x:-half,y:-this.thickness/2,width:this.length,height:this.thickness,rx:8,class:"geolib-straightedge-hit"}),arm=Utils.createSvg("line",{x1:0,y1:-this.thickness/2-3,x2:0,y2:-this.thickness/2-38,class:"geolib-tool-rotate-arm"}),handleHit=Utils.createSvg("circle",{cx:0,cy:-this.thickness/2-48,r:24,class:"geolib-tool-rotate-handle-hit"}),handle=Utils.createSvg("circle",{cx:0,cy:-this.thickness/2-48,r:11,class:"geolib-tool-rotate-handle"});
       for(let x=-half+24;x<half-12;x+=24)g.appendChild(Utils.createSvg("line",{x1:x,y1:-this.thickness/2,x2:x,y2:-this.thickness/2+9,class:"geolib-ruler-tick"}));
-      g.append(body,edge1,edge2,hit,arm,handle);scene.layers.tools.appendChild(g);this.group=g;this.hit=hit;this.handle=handle;this.updateTransform();this._bind();return this
+      g.append(body,edge1,edge2,hit,arm,handleHit,handle);scene.layers.tools.appendChild(g);this.group=g;this.hit=hit;this.handle=handleHit;this.handleVisual=handle;this.updateTransform();this._bind();return this
     }
     _bind(){
       const toScene=e=>Utils.pointerToScene(e,this.scene.svg,this.scene.width,this.scene.height),end=()=>{this._interaction=null;this.group.classList.remove("dragging")};
@@ -71,7 +71,7 @@
 
   class SetSquare{
     constructor({x=650,y=210,angle=0,width=180,height=130,allowMove=true,allowRotate=true}={}){
-      this.x=x;this.y=y;this.angle=Utils.normalizeAngle(angle);this.width=width;this.height=height;this.allowMove=allowMove;this.allowRotate=allowRotate;this.scene=null;this.group=null;this.hit=null;this.handle=null;this.edgeElements={};this.edgeHits={};this._interaction=null;this._edgeSelection=null;this._rulerConstraint=null
+      this.x=x;this.y=y;this.angle=Utils.normalizeAngle(angle);this.width=width;this.height=height;this.allowMove=allowMove;this.allowRotate=allowRotate;this.scene=null;this.group=null;this.hit=null;this.handle=null;this.handleVisual=null;this.edgeElements={};this.edgeHits={};this._interaction=null;this._edgeSelection=null;this._rulerConstraint=null
     }
     edgeAngles(){return{horizontal:Utils.normalizeAngle(this.angle),vertical:Utils.normalizeAngle(this.angle+90)}}
     edgeLine(edge="vertical"){if(!["horizontal","vertical"].includes(edge))throw new Error("GeoLib.SetSquare.edgeLine : bord inconnu.");return new Line({x:this.x,y:this.y},edge==="horizontal"?this.angle:this.angle+90)}
@@ -89,8 +89,8 @@
     }
     releaseRuler(){if(this._rulerConstraint)this._rulerConstraint.ruler.setLocked(false);this._rulerConstraint=null;if(this.group)this.group.classList.remove("sliding")}
     render(scene){
-      this.scene=scene;const g=Utils.createSvg("g",{class:"geolib-set-square"}),shape=Utils.createSvg("polygon",{points:`0,0 ${this.width},0 0,${this.height}`,class:"geolib-set-square-shape"}),hitH=Utils.createSvg("line",{x1:0,y1:0,x2:this.width,y2:0,class:"geolib-edge-hit","data-edge":"horizontal"}),edgeH=Utils.createSvg("line",{x1:0,y1:0,x2:this.width,y2:0,class:"geolib-set-square-edge"}),hitV=Utils.createSvg("line",{x1:0,y1:0,x2:0,y2:this.height,class:"geolib-edge-hit","data-edge":"vertical"}),edgeV=Utils.createSvg("line",{x1:0,y1:0,x2:0,y2:this.height,class:"geolib-set-square-edge"}),mark=Utils.createSvg("path",{d:"M18 0 L18 18 L0 18",class:"geolib-set-square-right-angle"}),bodyHit=Utils.createSvg("polygon",{points:`0,0 ${this.width},0 0,${this.height}`,class:"geolib-set-square-hit"}),handleX=this.width*.58,arm=Utils.createSvg("line",{x1:handleX,y1:-18,x2:handleX,y2:-48,class:"geolib-tool-rotate-arm"}),handle=Utils.createSvg("circle",{cx:handleX,cy:-58,r:11,class:"geolib-tool-rotate-handle"});
-      g.append(shape,hitH,edgeH,hitV,edgeV,mark,bodyHit,arm,handle);scene.layers.tools.appendChild(g);this.group=g;this.hit=bodyHit;this.handle=handle;this.edgeElements={horizontal:edgeH,vertical:edgeV};this.edgeHits={horizontal:hitH,vertical:hitV};this.updateTransform();this._bindInteractions();this._bindEdgeSelection();return this
+      this.scene=scene;const g=Utils.createSvg("g",{class:"geolib-set-square"}),shape=Utils.createSvg("polygon",{points:`0,0 ${this.width},0 0,${this.height}`,class:"geolib-set-square-shape"}),hitH=Utils.createSvg("line",{x1:0,y1:0,x2:this.width,y2:0,class:"geolib-edge-hit","data-edge":"horizontal"}),edgeH=Utils.createSvg("line",{x1:0,y1:0,x2:this.width,y2:0,class:"geolib-set-square-edge"}),hitV=Utils.createSvg("line",{x1:0,y1:0,x2:0,y2:this.height,class:"geolib-edge-hit","data-edge":"vertical"}),edgeV=Utils.createSvg("line",{x1:0,y1:0,x2:0,y2:this.height,class:"geolib-set-square-edge"}),mark=Utils.createSvg("path",{d:"M18 0 L18 18 L0 18",class:"geolib-set-square-right-angle"}),bodyHit=Utils.createSvg("polygon",{points:`0,0 ${this.width},0 0,${this.height}`,class:"geolib-set-square-hit"}),handleX=this.width*.58,arm=Utils.createSvg("line",{x1:handleX,y1:-18,x2:handleX,y2:-48,class:"geolib-tool-rotate-arm"}),handleHit=Utils.createSvg("circle",{cx:handleX,cy:-58,r:24,class:"geolib-tool-rotate-handle-hit"}),handle=Utils.createSvg("circle",{cx:handleX,cy:-58,r:11,class:"geolib-tool-rotate-handle"});
+      g.append(shape,hitH,edgeH,hitV,edgeV,mark,bodyHit,arm,handleHit,handle);scene.layers.tools.appendChild(g);this.group=g;this.hit=bodyHit;this.handle=handleHit;this.handleVisual=handle;this.edgeElements={horizontal:edgeH,vertical:edgeV};this.edgeHits={horizontal:hitH,vertical:hitV};this.updateTransform();this._bindInteractions();this._bindEdgeSelection();return this
     }
     _bindInteractions(){
       const toScene=e=>Utils.pointerToScene(e,this.scene.svg,this.scene.width,this.scene.height),end=()=>{this._interaction=null;if(this.group)this.group.classList.remove("dragging")};
