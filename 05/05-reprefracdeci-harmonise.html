@@ -139,7 +139,7 @@ button{font:inherit}
 }
 
 .exercise-area.tenths-layout{
-  grid-template-rows:1fr 126px;
+  grid-template-rows:1fr 174px;
 }
 
 .exercise-area.hundredths-layout{
@@ -311,6 +311,14 @@ button{font:inherit}
 .feedback:empty{visibility:hidden}
 .feedback.show{visibility:visible}
 
+/* Avant validation, le feedback vide ne doit pas prendre la place des réponses. */
+.content:not(.correction-mode) .feedback:empty{
+  min-height:0;
+  height:0;
+  padding:0;
+  border:0;
+}
+
 .feedback.success{
   color:#165e36;
   background:var(--gs);
@@ -474,7 +482,7 @@ button:focus-visible,.option:focus-visible{
   .exercise-area{gap:6px}
 
   .exercise-area.tenths-layout{
-    grid-template-rows:1fr 96px;
+    grid-template-rows:1fr 136px;
   }
 
   .exercise-area.hundredths-layout{
@@ -531,13 +539,20 @@ button:focus-visible,.option:focus-visible{
 .tablet-device .progress-label,.tablet-device .score{padding:9px 14px;font-size:1.15rem}
 .tablet-device .instruction{font-size:clamp(1.85rem,3.1vw,2.3rem)}
 .tablet-device .options .fraction{font-size:clamp(1.95rem,3.5vw,2.65rem)}
+.tablet-device .exercise-area.tenths-layout{grid-template-rows:minmax(72px,1fr) 224px}
+.tablet-device .tenths-layout .option{min-height:107px;padding:3px 8px}
+.tablet-device .hundredths-layout .options{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+}
+.tablet-device .hundredths-layout .option{padding:5px}
 .tablet-device .feedback{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
 .tablet-device .actions button{min-height:54px;font-size:1.08rem}
 
 .content.correction-mode{grid-template-rows:42px minmax(0,1fr) auto 42px;gap:5px;padding-top:6px;padding-bottom:6px}
 .content.correction-mode .instruction{min-height:42px;padding:3px 6px;font-size:clamp(1.4rem,2.45vw,1.75rem)}
 .content.correction-mode .exercise-area{gap:6px}
-.content.correction-mode .exercise-area.tenths-layout{grid-template-rows:1fr 96px}
+.content.correction-mode .exercise-area.tenths-layout{grid-template-rows:1fr 126px}
 .content.correction-mode .visual{padding:6px}
 .content.correction-mode .options{gap:5px}
 .content.correction-mode .option{padding:5px}
