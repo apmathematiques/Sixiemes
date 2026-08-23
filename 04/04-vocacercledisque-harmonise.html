@@ -139,7 +139,7 @@ button{font:inherit}
   justify-content:center;
 
   color:var(--i);
-  font-size:clamp(1.5rem,2.8vw,2rem);
+  font-size:clamp(1.7rem,3vw,2.2rem);
   font-weight:900;
   line-height:1.2;
 }
@@ -310,7 +310,8 @@ button{font:inherit}
 
 #restart{display:inline-flex}
 
-@media(max-width:760px),(max-height:700px){
+/* Le mode compact dépend de la largeur, jamais de la faible hauteur. */
+@media(max-width:760px){
   body{padding:4px}
 
   #app{
@@ -364,6 +365,22 @@ button{font:inherit}
   }
 }
 
+/* Sur une vraie tablette, on garde des textes et des commandes confortables. */
+.tablet-device .card{gap:7px}
+.tablet-device .pill{padding:9px 14px;font-size:1.15rem;font-weight:800}
+.tablet-device .question{font-size:clamp(1.85rem,3.1vw,2.3rem)}
+.tablet-device .note{font-size:clamp(1rem,1.6vw,1.14rem)}
+.tablet-device #fb{min-height:58px;font-size:clamp(1.06rem,1.7vw,1.2rem)}
+.tablet-device .action{min-height:54px;font-size:1.08rem}
+
+.card.correction-mode{gap:4px;padding-top:6px;padding-bottom:6px}
+.card.correction-mode .question{min-height:42px;padding:3px 6px;font-size:clamp(1.4rem,2.45vw,1.75rem)}
+.card.correction-mode .figure{min-height:190px;max-height:210px;padding:4px 7px}
+.card.correction-mode .figure svg{max-height:200px}
+.card.correction-mode .note{display:none}
+.card.correction-mode #fb{min-height:44px;padding:6px 10px}
+.card.correction-mode .action{min-height:44px}
+
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{
     animation-duration:1ms!important;
@@ -406,6 +423,10 @@ button{font:inherit}
 <script>
 (()=>{
 "use strict";
+
+const isTabletDevice = (navigator.maxTouchPoints || 0) > 0 &&
+  Math.min(screen.width || 0, screen.height || 0) >= 600;
+document.documentElement.classList.toggle('tablet-device',isTabletDevice);
 
 let cur=0,score=0,tries=0,done=false,qs=[],F=null;
 
@@ -611,11 +632,13 @@ function show(){
   $('fb').className='';
   $('fb').style.display='none';
   $('fb').textContent='';
+  document.querySelector('.card').classList.remove('correction-mode');
 
   $('next').style.display='none';
 }
 
 function click(k,id){
+  document.querySelector('.card').classList.add('correction-mode');
   let t=qs[cur],
       ok=correct(k,t[0]);
 
