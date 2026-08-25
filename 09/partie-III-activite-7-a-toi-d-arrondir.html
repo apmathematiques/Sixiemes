@@ -132,6 +132,7 @@ button.action:disabled{opacity:.48;cursor:default}
   .controls{min-height:41px}
   button.action{min-height:40px;height:40px}
 }
+.tablet-device .pill{font-size:1.15rem}.tablet-device .instruction{min-height:64px;font-size:clamp(1.65rem,3vw,2rem)}.tablet-device .precision{font-size:1rem}.tablet-device .prompt-number{font-size:clamp(2.6rem,4.8vw,3.5rem)}.tablet-device .answer-label,.tablet-device .hintline{font-size:1rem}.tablet-device .answer{height:78px;font-size:clamp(1.8rem,3.5vw,2.5rem)}.tablet-device button.action{min-height:54px;height:54px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}
 </style>
 </head>
 <body>
@@ -182,6 +183,9 @@ button.action:disabled{opacity:.48;cursor:default}
 <script>
 (() => {
   'use strict';
+
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle('tablet-device',isTabletDevice);
 
   const TOTAL=10;
   const $=id=>document.getElementById(id);

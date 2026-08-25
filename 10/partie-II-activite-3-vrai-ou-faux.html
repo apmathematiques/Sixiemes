@@ -30,10 +30,10 @@ body{display:grid;place-items:center;padding:12px}
   font-size:clamp(1.15rem,2.15vw,1.48rem);font-weight:650;line-height:1.25;text-align:center
 }
 .figure{
-  position:relative;flex:1;min-height:190px;padding:4px 12px;display:grid;place-items:center;
+  position:relative;flex:1;min-height:165px;padding:4px 12px;display:grid;place-items:center;
   background:linear-gradient(180deg,#fff,#f8fbfe);border:1px solid #dce9f3;border-radius:18px;overflow:hidden
 }
-svg{width:100%;height:100%;min-height:180px;overflow:visible}
+svg{width:100%;height:100%;min-height:155px;overflow:visible}
 .side-visible{fill:none;stroke:var(--line);stroke-width:5;stroke-linecap:round}
 .right-mark{fill:none;stroke:var(--b);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 .point-label{
@@ -91,6 +91,7 @@ button.action:disabled{opacity:.48;cursor:default}
   .statement{min-height:52px;padding:7px 10px;font-size:1.03rem}.choice-row{min-height:48px;gap:9px}.choice-btn{min-width:116px;height:43px;padding:0 14px;font-size:1rem}
   .feedback{min-height:44px;padding:6px 9px;font-size:.86rem}.controls{min-height:40px}button.action{min-height:40px;height:40px}
 }
+.tablet-device .pill{font-size:1.15rem}.tablet-device .instruction{min-height:58px;font-size:clamp(1.45rem,2.7vw,1.8rem)}.tablet-device .statement{min-height:64px;font-size:1.25rem}.tablet-device .choice-btn{min-width:150px;height:56px;font-size:1.15rem}.tablet-device button.action{min-height:54px;height:54px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}
 </style>
 </head>
 <body>
@@ -137,6 +138,9 @@ button.action:disabled{opacity:.48;cursor:default}
 <script>
 (() => {
   'use strict';
+
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle('tablet-device',isTabletDevice);
 
   const TOTAL = 10;
   const NS = 'http://www.w3.org/2000/svg';

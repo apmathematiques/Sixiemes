@@ -264,6 +264,8 @@ button:disabled{cursor:default;opacity:.65}
 @media(prefers-reduced-motion:reduce){
   *{transition-duration:1ms!important}
 }
+.tablet-device .counter,.tablet-device .score{font-size:1.15rem}.tablet-device .instruction{min-height:62px;font-size:clamp(1.45rem,2.7vw,1.85rem)}.tablet-device .data{font-size:1.18rem}.tablet-device .figure-card{min-height:205px}.tablet-device button{min-height:54px;font-size:1.08rem}.tablet-device .feedback{min-height:62px;font-size:1.08rem}
+.tablet-device .main.correction-mode{gap:4px}.tablet-device .main.correction-mode .instruction{min-height:52px;font-size:1.35rem}.tablet-device .main.correction-mode .data{font-size:1.05rem}.tablet-device .main.correction-mode .figure-card{min-height:170px}.tablet-device .main.correction-mode svg{min-height:165px}
 </style>
 </head>
 <body>
@@ -309,6 +311,9 @@ button:disabled{cursor:default;opacity:.65}
 <script>
 (() => {
   "use strict";
+
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle("tablet-device",isTabletDevice);
 
   const TOTAL = 8;
   const LETTERS = ["A","B","C","D","E","F","G","H","K","L","M","N","P","R","S","T","U","V"];
@@ -510,6 +515,7 @@ button:disabled{cursor:default;opacity:.65}
 
   function showQuestion(){
     locked=false;
+    exercise.classList.remove("correction-mode");
     nextBtn.classList.add("hidden");
     answers.forEach(b=>{
       b.disabled=false;
@@ -529,6 +535,7 @@ button:disabled{cursor:default;opacity:.65}
   function answer(value){
     if(locked) return;
     locked=true;
+    exercise.classList.add("correction-mode");
     const q=questions[index];
     const correct = value===q.possible;
     if(correct) score++;

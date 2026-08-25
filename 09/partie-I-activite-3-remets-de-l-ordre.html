@@ -110,6 +110,7 @@ button.action:disabled{opacity:.48;cursor:default}
   .pool-label,.order-label{font-size:.72rem}.feedback{min-height:46px;padding:6px 9px;font-size:.86rem}
   .controls{min-height:41px}button.action{min-height:40px;height:40px}
 }
+.tablet-device .pill{font-size:1.15rem}.tablet-device .instruction{min-height:64px;font-size:clamp(1.65rem,3vw,2rem)}.tablet-device .pool-label,.tablet-device .order-label{font-size:1rem}.tablet-device .tile,.tablet-device .slot{min-height:78px}.tablet-device .tile{font-size:clamp(1.6rem,3vw,2.35rem)}.tablet-device .slot .tile{min-height:64px}.tablet-device button.action{min-height:54px;height:54px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}
 </style>
 </head>
 <body>
@@ -153,6 +154,9 @@ button.action:disabled{opacity:.48;cursor:default}
 <script>
 (() => {
   'use strict';
+
+  const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+  document.documentElement.classList.toggle('tablet-device',isTabletDevice);
 
   const TOTAL = 8;
   const $ = id => document.getElementById(id);

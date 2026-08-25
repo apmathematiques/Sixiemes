@@ -20,6 +20,7 @@ body{display:grid;place-items:center;padding:12px}
 .final{flex:1;padding:22px;display:none;place-items:center;text-align:center}.final.show{display:grid;animation:reveal 280ms ease both}.final-card{width:min(650px,100%);padding:28px;background:#fff;border:1px solid #dce9f3;border-radius:20px;box-shadow:0 12px 30px rgba(17,63,103,.1)}.final-icon{margin-bottom:5px;font-size:3rem}.final h2{margin:0 0 8px;color:var(--bd);font-size:clamp(1.45rem,3vw,1.9rem)}.final-score{margin:8px 0;font-size:1.25rem;font-weight:700}.final-message{margin:8px 0 20px;color:var(--m);font-size:1.05rem;line-height:1.45}@keyframes reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:1ms!important;transition-duration:1ms!important}}
 @media(max-width:700px){body{padding:6px}.app{min-height:0;max-height:calc(100vh - 12px);border-radius:16px}.top{grid-template-columns:1fr auto;padding:10px 14px 6px;gap:8px}.track{grid-column:1/-1}.pill{min-width:0;padding:7px 10px}.main{padding:2px 9px 9px;gap:5px}.instruction{width:calc(100% + 18px);min-height:42px;margin:0 -9px;padding:2px 6px 0;font-size:1rem;line-height:1.18}.figure{min-height:145px;padding:4px 5px}.prompt-card{padding:8px 10px}.prompt-card .given{font-size:1.08rem}.options{gap:6px;min-height:38px}.option-btn{min-height:42px;padding:0 10px;font-size:.95rem;white-space:normal}.sketches{gap:5px}.sketch-card{min-height:135px;padding:2px}.sketch-card svg{min-height:125px}.sketch-label{width:26px;height:26px;top:4px;left:5px;font-size:.9rem}.feedback{min-height:43px;padding:6px 8px;font-size:.95rem}.controls{min-height:40px}button.action{min-height:43px;height:43px;font-size:1rem}.vlabel{font-size:28px}.len{font-size:42px}}
+.tablet-device .pill{font-size:1.15rem}.tablet-device .instruction{min-height:60px;font-size:clamp(1.45rem,2.7vw,1.8rem)}.tablet-device .prompt-card .given{font-size:clamp(1.3rem,2.35vw,1.6rem)}.tablet-device .option-btn{min-height:54px;padding:0 18px;font-size:1.08rem}.tablet-device .sketch-card{min-height:160px}.tablet-device .sketch-label{width:38px;height:38px;font-size:1.15rem}.tablet-device button.action{min-height:54px;height:54px;font-size:1.08rem}.tablet-device .feedback{min-height:58px;font-size:1.08rem}
 </style>
 </head>
 <body>
@@ -55,6 +56,8 @@ body{display:grid;place-items:center;padding:12px}
 <script>
 (() => {
 'use strict';
+const isTabletDevice=(navigator.maxTouchPoints||0)>0&&Math.min(screen.width||0,screen.height||0)>=600;
+document.documentElement.classList.toggle('tablet-device',isTabletDevice);
 const TOTAL=8,NS='http://www.w3.org/2000/svg';
 const LETTERS=['A','B','C','D','E','F','G','H','K','L','M','N','P','R','S','T','U','V','W','Z'];
 const SHAPES=[
