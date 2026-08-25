@@ -1,0 +1,153 @@
+/* Harmonisation commune des activités sur tablette en paysage. */
+html:not(.tablet-device) .app .main{
+  gap:6px!important;
+  padding-bottom:10px!important;
+}
+
+html:not(.tablet-device) .app .question-zone,
+html:not(.tablet-device) .app .figure,
+html:not(.tablet-device) .app .figure-zone,
+html:not(.tablet-device) .app .figure-wrap,
+html:not(.tablet-device) .app .workspace,
+html:not(.tablet-device) .app .card{
+  min-height:0!important;
+}
+
+html:not(.tablet-device) .app .controls{
+  flex-shrink:0!important;
+}
+
+html:not(.tablet-device) body.elapsed-duration .instruction{
+  min-height:48px!important;
+  font-size:1.5rem!important;
+}
+
+html:not(.tablet-device) body.elapsed-duration .question-zone{
+  padding:10px 18px!important;
+  justify-content:center!important;
+  gap:10px!important;
+}
+
+html:not(.tablet-device) body.elapsed-duration .problem{
+  padding:10px 16px!important;
+  font-size:1.25rem!important;
+  line-height:1.25!important;
+}
+
+html:not(.tablet-device) body.elapsed-duration .answer-line{
+  font-size:2rem!important;
+}
+
+html.tablet-device body{
+  padding:6px!important;
+}
+
+html.tablet-device .app{
+  width:min(100%,1000px)!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:calc(100vh - 12px)!important;
+  aspect-ratio:16/9!important;
+}
+
+html.tablet-device .pill,
+html.tablet-device .counter,
+html.tablet-device .score{
+  font-size:1.15rem!important;
+}
+
+html.tablet-device .instruction{
+  min-height:60px!important;
+  height:auto!important;
+  font-size:clamp(1.5rem,2.8vw,1.95rem)!important;
+  line-height:1.2!important;
+  white-space:normal!important;
+  overflow:visible!important;
+}
+
+html.tablet-device .feedback{
+  min-height:58px!important;
+  height:auto!important;
+  padding:7px 11px!important;
+  font-size:1.06rem!important;
+  line-height:1.3!important;
+  white-space:normal!important;
+  overflow:visible!important;
+}
+
+html.tablet-device .attempt,
+html.tablet-device .hint,
+html.tablet-device .hintline,
+html.tablet-device .note,
+html.tablet-device .help,
+html.tablet-device .answer-label{
+  font-size:1rem!important;
+}
+
+html.tablet-device button,
+html.tablet-device input,
+html.tablet-device select{
+  touch-action:manipulation;
+}
+
+html.tablet-device button.action,
+html.tablet-device .controls button,
+html.tablet-device .choice,
+html.tablet-device .choice-btn,
+html.tablet-device .choice-button,
+html.tablet-device .answer-button,
+html.tablet-device .answer-btn,
+html.tablet-device button.answer,
+html.tablet-device .strategy-button,
+html.tablet-device .operation-button,
+html.tablet-device .sign-button,
+html.tablet-device .binary-btn,
+html.tablet-device .assoc-btn,
+html.tablet-device .side-btn,
+html.tablet-device button.validate{
+  min-height:54px!important;
+  font-size:1.08rem!important;
+}
+
+html.tablet-device input,
+html.tablet-device select,
+html.tablet-device .answer-input{
+  min-height:54px!important;
+  font-size:1.2rem!important;
+}
+
+html.tablet-device .point-label,
+html.tablet-device .vertex-label{
+  font-size:30px!important;
+}
+
+html.tablet-device .click-target,
+html.tablet-device .side-hit{
+  stroke-width:48!important;
+}
+
+html.tablet-device .point-hit{
+  stroke:transparent!important;
+  stroke-width:22!important;
+  pointer-events:all!important;
+}
+
+html.tablet-device .main.tablet-correction-mode{
+  gap:5px!important;
+}
+
+html.tablet-device .main.tablet-correction-mode .instruction{
+  min-height:42px!important;
+  font-size:clamp(1.22rem,2.2vw,1.5rem)!important;
+  line-height:1.18!important;
+}
+
+html.tablet-device .main.tablet-correction-mode .feedback{
+  min-height:58px!important;
+}
+
+@media (max-width:700px){
+  html.tablet-device .app{
+    width:min(100%,calc((100vh - 12px) * 16 / 9))!important;
+  }
+}
