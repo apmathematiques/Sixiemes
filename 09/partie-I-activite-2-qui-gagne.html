@@ -413,8 +413,8 @@ button.action:disabled{opacity:.48;cursor:default}
       revealCorrection(q);
       feedback.className='feedback success';
       feedback.innerHTML=attempts===1
-        ? `Bravo !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.`
-        : `Oui !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.`;
+        ? `<span>Bravo !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.</span>`
+        : `<span>Oui !&nbsp;<strong>${q.values[q.answerIndex]}</strong>&nbsp;est bien le ${q.mode==='max'?'plus grand':'plus petit'} nombre.</span>`;
       validateBtn.hidden=true;nextBtn.hidden=false;
       nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
       return;
@@ -440,7 +440,7 @@ button.action:disabled{opacity:.48;cursor:default}
     locked=true;
     revealCorrection(q,selectedIndex);
     feedback.className='feedback error';
-    feedback.innerHTML=correctionFor(q);
+    feedback.innerHTML=`<span>${correctionFor(q)}</span>`;
     validateBtn.hidden=true;nextBtn.hidden=false;
     nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
   }

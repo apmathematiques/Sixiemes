@@ -442,8 +442,8 @@ button.action:disabled{opacity:.48;cursor:default}
       markCorrection(q,null);
       feedback.className='feedback success';
       feedback.innerHTML=attempts===1
-        ? `Bravo ! <strong>${q.left} ${q.answer} ${q.right}</strong>.`
-        : `Oui ! <strong>${q.left} ${q.answer} ${q.right}</strong>. Bonne correction au deuxième essai.`;
+        ? `<span>Bravo ! <strong>${q.left} ${q.answer} ${q.right}</strong>.</span>`
+        : `<span>Oui ! <strong>${q.left} ${q.answer} ${q.right}</strong>. Bonne correction au deuxième essai.</span>`;
       validateBtn.hidden=true;
       nextBtn.hidden=false;
       nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
@@ -471,7 +471,7 @@ button.action:disabled{opacity:.48;cursor:default}
     locked=true;
     markCorrection(q,selected);
     feedback.className='feedback error';
-    feedback.innerHTML=correctionFor(q);
+    feedback.innerHTML=`<span>${correctionFor(q)}</span>`;
     validateBtn.hidden=true;
     nextBtn.hidden=false;
     nextBtn.textContent=index===TOTAL-1?'Voir mon bilan':'Question suivante';
