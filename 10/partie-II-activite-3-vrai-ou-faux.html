@@ -45,6 +45,14 @@ svg{width:100%;height:100%;min-height:155px;overflow:visible}
   color:var(--i);font-size:clamp(1.18rem,2.25vw,1.5rem);font-weight:700;line-height:1.25;text-align:center;
   background:#f4f7fb;border:1px solid #dce9f3;border-radius:15px
 }
+.angle-name{
+  position:relative;display:inline-flex;align-items:flex-end;justify-content:center;
+  min-width:3.25em;padding:.28em .12em 0;font-weight:800;line-height:1;letter-spacing:.06em
+}
+.angle-name::before{
+  content:"⌢";position:absolute;top:-.42em;left:50%;transform:translateX(-50%);
+  color:currentColor;font-size:1.05em;line-height:1
+}
 .choice-row{min-height:58px;display:flex;align-items:center;justify-content:center;gap:16px}
 .choice-btn{
   min-width:150px;height:50px;padding:0 22px;color:var(--bd);font-size:1.08rem;font-weight:800;
@@ -227,6 +235,9 @@ button.action:disabled{opacity:.48;cursor:default}
     const ends=[0,1,2].filter(i=>i!==q.rightIndex);
     return `${q.labels[ends[0]]}${q.labels[q.rightIndex]}${q.labels[ends[1]]}`;
   }
+  function angleMarkup(name){
+    return `<span class="angle-name" aria-label="${name.split('').join(' ')}">${name}</span>`;
+  }
 
   function makeAssertion(q,family,isTrue){
     const others=[0,1,2].filter(i=>i!==q.rightIndex);
@@ -255,10 +266,13 @@ button.action:disabled{opacity:.48;cursor:default}
     if(family==='angle'){
       const claimedVertex=isTrue ? q.rightIndex : wrongVertex;
       const shown=angleName(q,claimedVertex);
+      const rightAngle=canonicalRightAngle(q);
       return {
         text:`L'angle ${shown} est droit.`,
+        html:`L'angle ${angleMarkup(shown)} est droit.`,
         truth:isTrue,
-        correction:`L'angle ${canonicalRightAngle(q)} est droit.`
+        correction:`L'angle ${rightAngle} est droit.`,
+        correctionHtml:`L'angle ${angleMarkup(rightAngle)} est droit.`
       };
     }
 
@@ -367,7 +381,8 @@ button.action:disabled{opacity:.48;cursor:default}
     counter.textContent=`Question ${index+1} / ${TOTAL}`;
     scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
     bar.style.width=`${((index+1)/TOTAL)*100}%`;
-    statement.textContent=q.assertion.text;
+    if(q.assertion.html) statement.innerHTML=q.assertion.html;
+    else statement.textContent=q.assertion.text;
     feedback.className='feedback';
     feedback.textContent='Choisis Vrai ou Faux puis valide ta réponse.';
     validateBtn.disabled=true;
@@ -396,10 +411,12 @@ button.action:disabled{opacity:.48;cursor:default}
     if(correct){
       score++;
       feedback.className='feedback success';
-      feedback.textContent=`Bravo ! ${q.assertion.correction}`;
+      if(q.assertion.correctionHtml) feedback.innerHTML=`<span>Bravo ! ${q.assertion.correctionHtml}</span>`;
+      else feedback.textContent=`Bravo ! ${q.assertion.correction}`;
     }else{
       feedback.className='feedback error';
-      feedback.textContent=q.assertion.correction;
+      if(q.assertion.correctionHtml) feedback.innerHTML=`<span>${q.assertion.correctionHtml}</span>`;
+      else feedback.textContent=q.assertion.correction;
     }
 
     scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
