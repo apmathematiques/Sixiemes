@@ -44,7 +44,7 @@ body{
 button{font:inherit}
 
 .app{
-  width:min(100%,1080px);
+  width:min(100%,1320px);
   aspect-ratio:16/9;
   min-height:540px;
   max-height:calc(100vh - 16px);
@@ -84,6 +84,7 @@ button{font:inherit}
   min-width:120px;
   padding:7px 12px;
   color:var(--bd);
+  font-size:1.05rem;
   font-weight:700;
   text-align:center;
   white-space:nowrap;
@@ -101,14 +102,14 @@ button{font:inherit}
 }
 
 .instruction{
-  min-height:42px;
+  min-height:50px;
   margin:0;
   padding:0 7px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:clamp(1.02rem,1.9vw,1.28rem);
-  font-weight:600;
+  font-size:clamp(1.25rem,2vw,1.58rem);
+  font-weight:700;
   line-height:1.25;
   text-align:center
 }
@@ -172,7 +173,7 @@ button{font:inherit}
 
 .point-label{
   fill:var(--line);
-  font:700 24px Arial,Helvetica,sans-serif;
+  font:700 30px Arial,Helvetica,sans-serif;
   paint-order:stroke;
   stroke:#fff;
   stroke-width:7px;
@@ -212,12 +213,13 @@ button{font:inherit}
 }
 
 .feedback{
-  min-height:46px;
-  padding:6px 12px;
+  min-height:52px;
+  padding:8px 14px;
   display:flex;
   align-items:center;
   justify-content:center;
   color:var(--m);
+  font-size:1rem;
   font-weight:650;
   line-height:1.3;
   text-align:center;
@@ -238,18 +240,59 @@ button{font:inherit}
 }
 
 .controls{
-  min-height:50px;
+  min-height:58px;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:9px
+  gap:9px;
+  flex-wrap:wrap
+}
+
+.zoom-box{
+  min-height:54px;
+  padding:0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:var(--bd);
+  font-weight:800;
+  background:#f3f8fc;
+  border:2px solid #c8dfef;
+  border-radius:13px
+}
+
+.zoom-label{font-size:1rem;white-space:nowrap}
+
+.zoom-btn{
+  width:44px;
+  height:44px;
+  padding:0;
+  color:#fff;
+  font-size:1.5rem;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+  background:var(--b);
+  border:0;
+  border-radius:10px;
+  touch-action:manipulation
+}
+
+.zoom-btn:disabled{opacity:.38;cursor:default}
+
+.zoom-value{
+  min-width:52px;
+  font-size:1rem;
+  text-align:center;
+  white-space:nowrap
 }
 
 button.action{
-  min-height:48px;
-  min-width:118px;
+  min-height:52px;
+  min-width:122px;
   padding:0 15px;
-  font-size:.94rem;
+  font-size:1.02rem;
   font-weight:800;
   cursor:pointer;
   border:0;
@@ -297,7 +340,9 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
 /* Activité de construction : graduations volontairement plus lisibles
    que dans les activités précédentes. */
 .geolib-protractor .protractor-number{
-  font-size:15px
+  font-size:15px;
+  font-weight:800;
+  stroke-width:4px
 }
 
 .geolib-protractor .protractor-tick.major{
@@ -372,7 +417,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   }
 }
 
-@media(max-width:760px),(max-height:700px){
+@media(max-width:760px){
   body{padding:4px}
 
   .app{
@@ -396,8 +441,8 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   }
 
   .instruction{
-    min-height:36px;
-    font-size:.93rem
+    min-height:42px;
+    font-size:1.1rem
   }
 
   .figure,
@@ -408,26 +453,42 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   .feedback{
     min-height:40px;
     padding:4px 7px;
-    font-size:.79rem
+    font-size:.94rem
   }
 
   .controls{
     min-height:46px
   }
 
+  .zoom-box{min-height:48px;padding:0 7px}
+  .zoom-label{display:none}
+  .zoom-btn{width:40px;height:40px;font-size:1.35rem}
+  .zoom-value{min-width:46px;font-size:.92rem}
+
   button.action{
     min-height:50px;
     min-width:104px;
     padding:0 10px;
-    font-size:.85rem
+    font-size:.98rem
   }
 }
 
 @media(pointer:coarse){
-  button.action{min-height:52px}
+  .geolib-protractor .protractor-number{font-size:16.5px;stroke-width:4.25px}
+  .geolib-protractor .protractor-tick.minor{stroke-width:1.5}
+  .geolib-protractor .protractor-tick.medium{stroke-width:2.1}
+  .geolib-protractor .protractor-tick.major{stroke-width:3}
+  .zoom-btn{width:54px;height:54px;font-size:1.7rem}
+  button.action{min-height:54px}
 }
 </style>
 <link rel="stylesheet" href="../tablet-harmonisation.css">
+<style>
+html.tablet-device .app{
+  width:min(100%,calc((100vh - 12px) * 16 / 9),1200px)!important
+}
+html.tablet-device button.action{font-size:1.1rem!important}
+</style>
 <script src="../tablet-harmonisation.js"></script>
 </head>
 
@@ -453,10 +514,17 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
     </div>
 
     <div class="feedback" id="feedback" role="status">
-      Place le centre du rapporteur sur le sommet et aligne son 0° avec le premier côté.
+      Place le centre du rapporteur sur le sommet et aligne son 0° avec le premier côté. Utilise + pour agrandir les graduations.
     </div>
 
     <div class="controls">
+      <div class="zoom-box" role="group" aria-label="Zoom du rapporteur">
+        <span class="zoom-label">Zoom rapporteur</span>
+        <button class="zoom-btn" type="button" id="zoomOut" aria-label="Réduire le rapporteur">−</button>
+        <span class="zoom-value" id="zoomValue" aria-live="polite">135 %</span>
+        <button class="zoom-btn" type="button" id="zoomIn" aria-label="Agrandir le rapporteur">+</button>
+      </div>
+
       <button class="action secondary" type="button" id="resetTool">
         Replacer
       </button>
@@ -529,6 +597,9 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   const validateBtn=$("validate");
   const nextBtn=$("next");
   const resetToolBtn=$("resetTool");
+  const zoomOutBtn=$("zoomOut");
+  const zoomInBtn=$("zoomIn");
+  const zoomValue=$("zoomValue");
   const counter=$("counter");
   const scoreBox=$("score");
   const bar=$("bar");
@@ -545,6 +616,8 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   let scene=null;
   let protractor=null;
   let correctionProtractor=null;
+  const ZOOM_FACTORS=[1,1.35,1.65];
+  let zoomIndex=1;
 
   let candidate=null;
   let candidateElements=[];
@@ -612,7 +685,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
       origin:{...VERTICES[i]},
       a1:norm(choice(BASE_ANGLES)),
       start:{...TOOL_STARTS[i]},
-      radius:195
+      radius:155
     };
 
     const tooClose=
@@ -633,6 +706,44 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
   function setFeedback(text,type=""){
     feedback.className="feedback"+(type?" "+type:"");
     feedback.textContent=text;
+  }
+
+  function zoomPercent(){
+    return Math.round(ZOOM_FACTORS[zoomIndex]*100);
+  }
+
+  function zoomRadius(q=questions[index]){
+    return Math.min(260,q.radius*ZOOM_FACTORS[zoomIndex]);
+  }
+
+  function refreshZoomControls(){
+    zoomValue.textContent=`${zoomPercent()} %`;
+    zoomOutBtn.disabled=zoomIndex===0;
+    zoomInBtn.disabled=zoomIndex===ZOOM_FACTORS.length-1;
+  }
+
+  function changeZoom(direction){
+    const next=Math.max(0,Math.min(ZOOM_FACTORS.length-1,zoomIndex+direction));
+    if(next===zoomIndex)return;
+
+    zoomIndex=next;
+    const radius=zoomRadius();
+
+    if(candidate)clearCandidate();
+
+    if(protractor){
+      protractor.setRadius(radius);
+      keepRotationHandleAccessible();
+      installGraduationHitZones();
+    }
+
+    if(correctionProtractor)correctionProtractor.setRadius(radius);
+
+    refreshZoomControls();
+
+    if(!locked){
+      setFeedback(`Zoom du rapporteur : ${zoomPercent()} %. Replace-le si nécessaire, puis touche la graduation demandée.`);
+    }
   }
 
   function drawCross(layer,p,className="point-cross",size=8){
@@ -1006,7 +1117,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
       x:q.start.x,
       y:q.start.y,
       angle:q.start.angle,
-      radius:q.radius,
+      radius:zoomRadius(q),
 
       allowMove:true,
       allowRotate:true,
@@ -1043,9 +1154,10 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
     validateBtn.disabled=true;
     nextBtn.hidden=true;
     resetToolBtn.disabled=false;
+    refreshZoomControls();
 
     setFeedback(
-      "Place le centre du rapporteur sur le sommet et aligne son 0° avec le premier côté."
+      "Place le centre du rapporteur sur le sommet et aligne son 0° avec le premier côté. Utilise + pour agrandir les graduations."
     );
   }
 
@@ -1107,7 +1219,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
       x:q.origin.x,
       y:q.origin.y,
       angle:placement.angle,
-      radius:q.radius,
+      radius:zoomRadius(q),
 
       allowMove:false,
       allowRotate:false,
@@ -1208,6 +1320,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
     if(locked)return;
 
     protractor.reset();
+    protractor.setRadius(zoomRadius());
     clearCandidate();
     keepRotationHandleAccessible();
     installGraduationHitZones();
@@ -1260,6 +1373,8 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
 
   validateBtn.addEventListener("click",validate);
   resetToolBtn.addEventListener("click",resetTool);
+  zoomOutBtn.addEventListener("click",()=>changeZoom(-1));
+  zoomInBtn.addEventListener("click",()=>changeZoom(1));
   nextBtn.addEventListener("click",next);
   restartBtn.addEventListener("click",restart);
 
@@ -1270,6 +1385,8 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
     );
     validateBtn.disabled=true;
     resetToolBtn.disabled=true;
+    zoomOutBtn.disabled=true;
+    zoomInBtn.disabled=true;
     return;
   }
 
