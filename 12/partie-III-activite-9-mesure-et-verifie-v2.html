@@ -166,6 +166,46 @@ button,input{font:inherit}
   flex-wrap:wrap
 }
 
+.zoom-box{
+  min-height:62px;
+  padding:0 11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:var(--bd);
+  font-weight:800;
+  background:#f3f8fc;
+  border:2px solid #c8dfef;
+  border-radius:14px
+}
+
+.zoom-label{font-size:1rem;white-space:nowrap}
+
+.zoom-btn{
+  width:46px;
+  height:46px;
+  padding:0;
+  color:#fff;
+  font-size:1.55rem;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+  background:var(--b);
+  border:0;
+  border-radius:11px;
+  touch-action:manipulation
+}
+
+.zoom-btn:disabled{opacity:.38;cursor:default}
+
+.zoom-value{
+  min-width:52px;
+  font-size:1rem;
+  text-align:center;
+  white-space:nowrap
+}
+
 .answer-box{
   min-height:62px;
   padding:0 18px;
@@ -349,7 +389,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
 
 /* Les graduations doivent rester lisibles après la mise à l’échelle du SVG. */
 #scene .protractor-number{
-  font-size:17px;
+  font-size:15px;
   font-weight:800;
   stroke-width:4px
 }
@@ -414,6 +454,11 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
     padding:0 9px
   }
 
+  .zoom-box{min-height:50px;padding:0 7px}
+  .zoom-label{display:none}
+  .zoom-btn{width:42px;height:42px;font-size:1.4rem}
+  .zoom-value{min-width:46px;font-size:.92rem}
+
   .answer-input{
     width:88px;
     height:44px;
@@ -435,10 +480,11 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
 }
 
 @media(pointer:coarse){
-  #scene .protractor-number{font-size:20px;stroke-width:4.5px}
+  #scene .protractor-number{font-size:16.5px;stroke-width:4.25px}
   #scene .protractor-tick.minor{stroke-width:1.5}
   #scene .protractor-tick.medium{stroke-width:2.1}
   #scene .protractor-tick.major{stroke-width:3}
+  .zoom-btn{width:56px;height:56px;font-size:1.75rem}
   button.action{min-height:56px}
   .answer-input{min-height:52px}
 }
@@ -477,6 +523,13 @@ html.tablet-device button.action{font-size:1.12rem!important}
     </div>
 
     <div class="response-row">
+      <div class="zoom-box" role="group" aria-label="Zoom du rapporteur">
+        <span class="zoom-label">Zoom rapporteur</span>
+        <button class="zoom-btn" type="button" id="zoomOut" aria-label="Réduire le rapporteur">−</button>
+        <span class="zoom-value" id="zoomValue" aria-live="polite">135 %</span>
+        <button class="zoom-btn" type="button" id="zoomIn" aria-label="Agrandir le rapporteur">+</button>
+      </div>
+
       <div class="answer-box">
         <span class="answer-label">Mesure :</span>
         <input
@@ -505,7 +558,7 @@ html.tablet-device button.action{font-size:1.12rem!important}
     </div>
 
     <div class="feedback" id="feedback" role="status">
-      Place d’abord correctement le rapporteur, puis lis la mesure. Un écart d’1° est accepté.
+      Place d’abord correctement le rapporteur, puis lis la mesure. Utilise + pour agrandir les graduations.
     </div>
 
   </section>
@@ -569,6 +622,9 @@ html.tablet-device button.action{font-size:1.12rem!important}
   const validateBtn=$("validate");
   const nextBtn=$("next");
   const resetToolBtn=$("resetTool");
+  const zoomOutBtn=$("zoomOut");
+  const zoomInBtn=$("zoomIn");
+  const zoomValue=$("zoomValue");
   const counter=$("counter");
   const scoreBox=$("score");
   const bar=$("bar");
@@ -587,6 +643,8 @@ html.tablet-device button.action{font-size:1.12rem!important}
   let protractor=null;
   let correctionProtractor=null;
   let previousSignature="";
+  const ZOOM_FACTORS=[1,1.35,1.65];
+  let zoomIndex=1;
 
   function shuffle(array){
     const a=array.slice();
@@ -757,6 +815,37 @@ html.tablet-device button.action{font-size:1.12rem!important}
     return `${value-MEASURE_TOLERANCE}° à ${value+MEASURE_TOLERANCE}°`;
   }
 
+  function zoomPercent(){
+    return Math.round(ZOOM_FACTORS[zoomIndex]*100);
+  }
+
+  function zoomRadius(q=questions[index]){
+    return Math.min(260,q.radius*ZOOM_FACTORS[zoomIndex]);
+  }
+
+  function refreshZoomControls(){
+    zoomValue.textContent=`${zoomPercent()} %`;
+    zoomOutBtn.disabled=zoomIndex===0;
+    zoomInBtn.disabled=zoomIndex===ZOOM_FACTORS.length-1;
+  }
+
+  function changeZoom(direction){
+    const next=Math.max(0,Math.min(ZOOM_FACTORS.length-1,zoomIndex+direction));
+    if(next===zoomIndex)return;
+
+    zoomIndex=next;
+    const radius=zoomRadius();
+
+    if(protractor)protractor.setRadius(radius);
+    if(correctionProtractor)correctionProtractor.setRadius(radius);
+
+    refreshZoomControls();
+
+    if(!locked){
+      setFeedback(`Zoom du rapporteur : ${zoomPercent()} %. Déplace-le ensuite sur l’angle pour lire la mesure.`);
+    }
+  }
+
   function setFeedback(text,type=""){
     feedback.className="feedback"+(type?" "+type:"");
     feedback.textContent=text;
@@ -844,7 +933,7 @@ html.tablet-device button.action{font-size:1.12rem!important}
       x:q.start.x,
       y:q.start.y,
       angle:q.start.angle,
-      radius:q.radius,
+      radius:zoomRadius(q),
 
       allowMove:true,
       allowRotate:true,
@@ -874,9 +963,10 @@ html.tablet-device button.action{font-size:1.12rem!important}
     nextBtn.hidden=true;
     resetToolBtn.hidden=false;
     resetToolBtn.disabled=false;
+    refreshZoomControls();
 
     refreshValidateState();
-    setFeedback("Place d’abord correctement le rapporteur, puis lis la mesure.");
+    setFeedback("Place d’abord correctement le rapporteur, puis lis la mesure. Utilise + pour agrandir les graduations.");
   }
 
   function refreshValidateState(){
@@ -924,7 +1014,7 @@ html.tablet-device button.action{font-size:1.12rem!important}
       x:q.vertex.x,
       y:q.vertex.y,
       angle:placement.angle,
-      radius:q.radius,
+      radius:zoomRadius(q),
 
       allowMove:false,
       allowRotate:false,
@@ -1053,6 +1143,7 @@ html.tablet-device button.action{font-size:1.12rem!important}
     if(locked)return;
 
     protractor.reset();
+    protractor.setRadius(zoomRadius());
     manipulated=false;
     refreshValidateState();
 
@@ -1113,6 +1204,8 @@ html.tablet-device button.action{font-size:1.12rem!important}
 
   validateBtn.addEventListener("click",validate);
   resetToolBtn.addEventListener("click",resetTool);
+  zoomOutBtn.addEventListener("click",()=>changeZoom(-1));
+  zoomInBtn.addEventListener("click",()=>changeZoom(1));
   nextBtn.addEventListener("click",next);
   restartBtn.addEventListener("click",restart);
 
@@ -1123,6 +1216,8 @@ html.tablet-device button.action{font-size:1.12rem!important}
     );
     validateBtn.disabled=true;
     resetToolBtn.disabled=true;
+    zoomOutBtn.disabled=true;
+    zoomInBtn.disabled=true;
     answer.disabled=true;
     return;
   }
