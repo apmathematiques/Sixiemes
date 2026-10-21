@@ -47,7 +47,7 @@ svg{width:100%;height:100%;min-height:155px;overflow:visible}
 }
 .angle-name{
   position:relative;display:inline-block;vertical-align:.18em;
-  margin:0 .24em;font-weight:800;line-height:1;letter-spacing:.01em;
+  margin:0;font-weight:800;line-height:1;letter-spacing:.01em;
   white-space:nowrap;text-align:center
 }
 .angle-name::before{
@@ -241,6 +241,10 @@ button.action:disabled{opacity:.48;cursor:default}
     return `<span class="angle-name" aria-label="${name.split('').join(' ')}">${name}</span>`;
   }
 
+  function angleSentence(name){
+    return `<span>L'angle&nbsp;${angleMarkup(name)}&nbsp;est droit.</span>`;
+  }
+
   function makeAssertion(q,family,isTrue){
     const others=[0,1,2].filter(i=>i!==q.rightIndex);
     const hyp=others;
@@ -271,10 +275,10 @@ button.action:disabled{opacity:.48;cursor:default}
       const rightAngle=canonicalRightAngle(q);
       return {
         text:`L'angle ${shown} est droit.`,
-        html:`L'angle ${angleMarkup(shown)} est droit.`,
+        html:angleSentence(shown),
         truth:isTrue,
         correction:`L'angle ${rightAngle} est droit.`,
-        correctionHtml:`L'angle ${angleMarkup(rightAngle)} est droit.`
+        correctionHtml:angleSentence(rightAngle)
       };
     }
 
