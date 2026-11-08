@@ -104,12 +104,13 @@ const TOTAL=10;
 const $=id=>document.getElementById(id);
 const counter=$('counter'),scoreBox=$('score'),bar=$('bar'),situation=$('situation'),feedback=$('feedback'),nextBtn=$('next'),exercise=$('exercise'),final=$('final'),finalScore=$('finalScore'),finalMessage=$('finalMessage'),restartBtn=$('restart');
 const choiceButtons=[...document.querySelectorAll('.choice-button')];
-let questions=[],index=0,score=0,attempts=0,locked=false;
+let questions=[],index=0,score=0,locked=false;
 
 function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function shuffle(a){const c=a.slice();for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
 function money(n){return n.toFixed(2).replace('.',',').replace(',00','')}
+function capitalize(text){return text.charAt(0).toUpperCase()+text.slice(1)}
 
 const proportionalFamilies=[
   ()=>{
@@ -254,11 +255,11 @@ function generate(){
 
 function render(){
   const q=questions[index];
-  attempts=0;locked=false;
+  locked=false;
   counter.textContent=`Question ${index+1} / ${TOTAL}`;
   scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
   bar.style.width=`${((index+1)/TOTAL)*100}%`;
-  situation.textContent=q.text;
+  situation.textContent=capitalize(q.text);
   feedback.className='feedback';
   feedback.textContent='Lis bien toute la situation avant de répondre.';
   nextBtn.hidden=true;
@@ -270,11 +271,10 @@ function formatScore(n){return Number.isInteger(n)?String(n):n.toFixed(1).replac
 function choose(answer,button){
   if(locked)return;
   const q=questions[index];
-  attempts++;
 
   if(answer===q.answer){
     locked=true;
-    score+=attempts===1?1:0.5;
+    score+=1;
     scoreBox.textContent=`Score : ${formatScore(score)} / ${TOTAL}`;
     button.classList.add('correct');
     choiceButtons.forEach(b=>b.disabled=true);
@@ -285,14 +285,6 @@ function choose(answer,button){
   }
 
   button.classList.add('wrong');
-  button.disabled=true;
-
-  if(attempts===1){
-    feedback.className='feedback error';
-    feedback.textContent=`Ce n’est pas ça. Indice : ${q.hint}`;
-    return;
-  }
-
   locked=true;
   const good=choiceButtons.find(b=>b.dataset.answer===q.answer);
   good.classList.add('correct');
@@ -323,7 +315,7 @@ function showFinal(){
 }
 
 function restart(){
-  questions=generate();index=0;score=0;attempts=0;locked=false;
+  questions=generate();index=0;score=0;locked=false;
   final.classList.remove('show');exercise.style.display='';render();
 }
 
