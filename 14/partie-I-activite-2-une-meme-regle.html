@@ -180,7 +180,7 @@ const counter=$('counter'),scoreBox=$('score'),bar=$('bar'),
       restartBtn=$('restart'),
       answerButtons=[...document.querySelectorAll('.answer-button')];
 
-let questions=[],index=0,score=0,attempt=0,locked=false;
+let questions=[],index=0,score=0,locked=false;
 
 function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 function choice(arr){return arr[Math.floor(Math.random()*arr.length)]}
@@ -324,7 +324,6 @@ function pairHtml(p,c){
 
 function render(){
   const q=questions[index];
-  attempt=0;
   locked=false;
 
   counter.textContent=`Question ${index+1} / ${TOTAL}`;
@@ -345,25 +344,15 @@ function render(){
   });
 }
 
-function firstHint(q){
-  if(q.proportional){
-    const p=q.pairs[0];
-    return `Regarde par exemple ${fmt(p.x)} → ${fmt(p.y)}. Quel nombre permet de passer de ${fmt(p.x)} à ${fmt(p.y)} ? Vérifie ensuite les autres couples.`;
-  }
-  return `Teste une même multiplication sur plusieurs couples : il suffit qu'un seul couple ne respecte pas la règle pour que la situation ne soit pas proportionnelle.`;
-}
-
 function choose(answer,button){
   if(locked)return;
 
   const q=questions[index];
   const correctAnswer=q.proportional?'yes':'no';
-  attempt++;
 
   if(answer===correctAnswer){
     locked=true;
-    const points=attempt===1?1:0.5;
-    score+=points;
+    score+=1;
     scoreBox.textContent=`Score : ${fmt(score)} / ${TOTAL}`;
 
     answerButtons.forEach(b=>{
@@ -379,14 +368,6 @@ function choose(answer,button){
   }
 
   button.classList.add('wrong');
-
-  if(attempt===1){
-    button.disabled=true;
-    feedback.className='feedback error';
-    feedback.textContent=`Pas encore. ${firstHint(q)}`;
-    return;
-  }
-
   locked=true;
   answerButtons.forEach(b=>{
     b.disabled=true;
@@ -428,7 +409,6 @@ function restart(){
   questions=generate();
   index=0;
   score=0;
-  attempt=0;
   locked=false;
 
   final.classList.remove('show');
