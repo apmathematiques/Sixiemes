@@ -130,6 +130,11 @@ button,input{font:inherit}
   font-weight:850;
 }
 
+.instruction > span{
+  min-width:0;
+  max-width:100%;
+}
+
 .figure{
   flex:1;
   min-height:285px;
@@ -970,13 +975,13 @@ function renderStage(){
 
   if(stage==='missing'){
     instruction.innerHTML=
-      `Retrouve d’abord la&nbsp;<strong>hauteur droite</strong>&nbsp;de la partie rectangulaire.`;
+      `<span>Retrouve d’abord la <strong>hauteur droite</strong> de la partie rectangulaire.</span>`;
     answerLabel.textContent='Hauteur =';
     attempt.textContent='Étape 1 / 2 — Tu as 2 essais.';
     setFeedback('Utilise la hauteur totale et le rayon du demi-cercle.');
   }else{
     instruction.innerHTML=
-      `Calcule le&nbsp;<strong>périmètre de la figure</strong>&nbsp;et arrondis le résultat au centième.`;
+      `<span>Calcule le <strong>périmètre de la figure</strong> et arrondis le résultat au centième.</span>`;
     answerLabel.textContent='Périmètre ≈';
     attempt.textContent=q.kind==='missing-door'
       ? 'Étape 2 / 2 — Tu as 2 essais.'

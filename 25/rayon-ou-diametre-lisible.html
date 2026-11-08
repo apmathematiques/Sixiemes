@@ -134,6 +134,11 @@ button,input{font:inherit}
   font-weight:850;
 }
 
+.instruction > span{
+  min-width:0;
+  max-width:100%;
+}
+
 .figure{
   flex:1;
   min-height:290px;
@@ -1004,7 +1009,7 @@ function renderStage(){
 
   if(stage==='identify'){
     instruction.innerHTML=
-      `La longueur donnée correspond-elle au&nbsp;<strong>rayon</strong>&nbsp;ou au&nbsp;<strong>diamètre</strong>&nbsp;?`;
+      `<span>La longueur donnée correspond-elle au <strong>rayon</strong> ou au <strong>diamètre</strong> ?</span>`;
 
     choiceRow.classList.add('show');
     answerRow.classList.remove('show');
@@ -1016,7 +1021,7 @@ function renderStage(){
     setFeedback('');
   }else{
     instruction.innerHTML=
-      `Calcule maintenant le&nbsp;<strong>périmètre du cercle</strong>&nbsp;et arrondis le résultat au centième.`;
+      `<span>Calcule maintenant le <strong>périmètre du cercle</strong> et arrondis le résultat au centième.</span>`;
 
     choiceRow.classList.remove('show');
     answerRow.classList.add('show');
