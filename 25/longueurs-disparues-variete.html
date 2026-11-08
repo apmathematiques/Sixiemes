@@ -134,6 +134,11 @@ button,input{font:inherit}
   font-weight:850;
 }
 
+.instruction > span{
+  min-width:0;
+  max-width:100%;
+}
+
 .figure{
   flex:1;
   min-height:300px;
@@ -1095,14 +1100,14 @@ function renderStage(){
   if(stage.type==='missing'){
     const mark=missingDisplay(q,stage.item.key);
     instruction.innerHTML=
-      `Retrouve la longueur <strong>${mark}</strong>&nbsp;à partir des mesures indiquées.`;
+      `<span>Retrouve la longueur <strong>${mark}</strong> à partir des mesures indiquées.</span>`;
     answerLabel.textContent=`Longueur ${mark} =`;
     answerUnit.textContent=q.unit;
     attempt.textContent=`Étape ${stage.number} / ${stage.total} — Tu as 2 essais.`;
     setFeedback('Observe les longueurs qui composent la longueur totale.');
   }else{
     instruction.innerHTML=
-      `Toutes les longueurs sont maintenant connues. Calcule le <strong>périmètre</strong>&nbsp;de la figure.`;
+      `<span>Toutes les longueurs sont maintenant connues. Calcule le <strong>périmètre</strong> de la figure.</span>`;
     answerLabel.textContent='Périmètre =';
     answerUnit.textContent=q.unit;
     attempt.textContent=`Étape ${stage.number} / ${stage.total} — Tu as 2 essais.`;

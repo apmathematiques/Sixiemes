@@ -130,6 +130,11 @@ button,input{font:inherit}
   font-weight:850;
 }
 
+.instruction > span{
+  min-width:0;
+  max-width:100%;
+}
+
 .figure{
   flex:1;
   min-height:285px;
@@ -486,7 +491,7 @@ button:focus-visible{outline:4px solid rgba(23,105,170,.22)}
 
   <section class="main" id="exercise">
     <p class="instruction" id="instruction">
-      Calcule le&nbsp;<strong>périmètre de la figure</strong>&nbsp;et arrondis au centième si nécessaire.
+      <span>Calcule le <strong>périmètre de la figure</strong> et arrondis au centième si nécessaire.</span>
     </p>
 
     <div class="figure">

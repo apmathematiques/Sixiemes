@@ -134,6 +134,11 @@ button,input{font:inherit}
   font-weight:850;
 }
 
+.instruction > span{
+  min-width:0;
+  max-width:100%;
+}
+
 .figure{
   flex:1;
   min-height:330px;
@@ -837,12 +842,12 @@ function render(){
 
   if(q.mode==='select'){
     instruction.innerHTML=
-      `Clique uniquement sur les&nbsp;<strong>longueurs qui appartiennent au contour</strong>&nbsp;de la figure.`;
+      `<span>Clique uniquement sur les <strong>longueurs qui appartiennent au contour</strong> de la figure.</span>`;
     calcRow.classList.remove('show');
     setFeedback('Observe la figure avant de répondre.');
   }else{
     instruction.innerHTML=
-      `Calcule le&nbsp;<strong>périmètre</strong>&nbsp;de la figure. Attention : toutes les longueurs affichées ne sont pas forcément utiles.`;
+      `<span>Calcule le <strong>périmètre</strong> de la figure. Attention : toutes les longueurs affichées ne sont pas forcément utiles.</span>`;
     calcRow.classList.add('show');
     answerUnit.textContent=q.unit;
     setFeedback('Repère d’abord les longueurs du contour, puis additionne-les.');
