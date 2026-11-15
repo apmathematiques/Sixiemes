@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-15
+
+- Ajout de GeoLib 1.4.1, qui conserve la capture du pointeur pendant le déplacement et le réglage du compas sur écran tactile.
+- Mise à jour de l’activité du cercle circonscrit du chapitre 15 vers GeoLib 1.4.1.
+- Conservation de GeoLib 1.4 pour la compatibilité des activités existantes.
+
 ## 2026-08-15
 
 - Ajout au chapitre 15 de l’activité de construction du cercle circonscrit à un triangle.

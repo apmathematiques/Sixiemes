@@ -1,0 +1,20 @@
+.geolib-compass-v4{ touch-action:none; user-select:none; }
+.compass-leg{ fill:#d7d7df; pointer-events:none; }
+.compass-head,.compass-head-stem{ fill:#36323f; pointer-events:none; }
+.compass-head-screw{ fill:#dedde4; pointer-events:none; }
+.compass-needle-stem{ stroke:#34333b; stroke-width:4; stroke-linecap:round; vector-effect:non-scaling-stroke; pointer-events:none; }
+.compass-needle-tip{ fill:#171822; pointer-events:none; }
+.compass-pencil-body{ pointer-events:none; }
+.compass-pencil-stripe{ fill:#9a004e; pointer-events:none; }
+.compass-pencil-wood{ fill:#fff39b; pointer-events:none; }
+.compass-pencil-tip{ fill:#171822; pointer-events:none; }
+.compass-pencil-clamp{ stroke:#d8d8df; stroke-width:16; stroke-linecap:round; vector-effect:non-scaling-stroke; pointer-events:none; }
+.compass-clamp-screw{ fill:#3a3643; pointer-events:none; }
+.compass-hit{ fill:transparent; stroke:transparent; }
+.compass-head-hit{ cursor:grab; }
+.compass-pencil-hit{ cursor:ew-resize; }
+.geolib-compass-v4.is-dragging .compass-head-hit,
+.geolib-compass-v4.is-dragging .compass-pencil-hit{ cursor:grabbing; }
+.compass-opening-bg{ fill:rgba(255,255,255,.97); stroke:#d7dde5; stroke-width:1.5; }
+.compass-opening-text{ fill:#334155; font:700 14px Arial,Helvetica,sans-serif; text-anchor:middle; pointer-events:none; }
+.geolib-compass-circle{ fill:none; stroke:#0f766e; stroke-width:3; stroke-dasharray:7 6; vector-effect:non-scaling-stroke; }
