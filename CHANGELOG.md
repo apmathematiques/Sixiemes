@@ -2,6 +2,7 @@
 
 ## 2026-11-15
 
+- Agrandissement du contenu central et des feedbacks de « Prends-en une part », du calcul autonome et du bilan des pourcentages (chapitre 24) sur tablette.
 - Agrandissement de l’énoncé, de la saisie et des feedbacks du « Défi des problèmes » (chapitre 23) sur tablette.
 - Dans le chapitre 21, la correction de « Le mot “de” se transforme » affiche les deux ordres des facteurs, et les explications de « Quels problèmes correspondent ? » sont plus lisibles sur tablette.
 - Harmonisation des situations de « Trouve la durée écoulée » (chapitre 19) : libellés adaptés au contexte et scénarios cohérents avec la durée et le passage à minuit.

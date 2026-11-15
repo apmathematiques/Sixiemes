@@ -39,6 +39,10 @@ Versions conservées :
 
 - [ ] Activité « Le défi des problèmes » — contenu central et feedbacks agrandis sur tablette, à valider manuellement dans Genially
 
+## Chapitre 24 — Pourcentages
+
+- [ ] Activités « Prends-en une part », « À toi de calculer » et « Quelle mission ? » — contenu central et feedbacks agrandis sur tablette, à valider manuellement dans Genially
+
 ## Chapitre 5 — Nombres décimaux
 
 Chapitre développé avec notamment :
