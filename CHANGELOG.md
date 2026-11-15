@@ -2,6 +2,7 @@
 
 ## 2026-11-15
 
+- Dans le chapitre 21, la correction de « Le mot “de” se transforme » affiche les deux ordres des facteurs, et les explications de « Quels problèmes correspondent ? » sont plus lisibles sur tablette.
 - Harmonisation des situations de « Trouve la durée écoulée » (chapitre 19) : libellés adaptés au contexte et scénarios cohérents avec la durée et le passage à minuit.
 - Dans « Un dénominateur commun » et « Le calcul complet » (chapitre 18), l’élève choisit désormais la fraction à transformer ; les questions garantissent un choix unique.
 - Stabilisation du clavier virtuel dans « L'égalité cachée » et « Que faire du reste ? » (chapitre 16) : le champ conserve le focus afin que le clavier reste ouvert pendant la saisie sur tablette.

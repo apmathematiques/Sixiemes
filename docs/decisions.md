@@ -48,6 +48,10 @@
 - Dans « Un dénominateur commun » et « Le calcul complet », l’élève choisit lui-même la fraction à transformer.
 - Les questions sont générées de façon qu’une seule des deux fractions puisse prendre le dénominateur de l’autre avec un numérateur entier.
 
+## Chapitre 21 — Fraction d’une quantité
+
+- Pour traduire « une fraction de » par un produit, les deux ordres des facteurs sont acceptés conformément à la commutativité de la multiplication.
+
 ## Direction artistique
 
 - Les fonds Genially sont la référence.

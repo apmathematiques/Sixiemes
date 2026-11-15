@@ -25,7 +25,7 @@
   --orange-line:#e3ad6e;
 
   --ink:#17212b;
-  --muted:#5f6d79;
+  --muted:#40515f;
   --line:#dce9f3;
 }
 
@@ -332,13 +332,27 @@ body{
   display:none;
   margin-top:5px;
 
-  color:var(--muted);
-  font-size:clamp(.75rem,2.2vw,.9rem);
-  line-height:1.2;
-  font-weight:700;
+  color:#34495a;
+  font-size:clamp(.8rem,2.2vw,.94rem);
+  line-height:1.28;
+  font-weight:800;
 }
 
 .option.resolved .reason{
+  display:block;
+}
+
+.card.resolved .options{
+  grid-auto-rows:max-content;
+  align-content:start;
+}
+
+.option.resolved .option-text{
+  display:flex;
+  flex-direction:column;
+}
+
+.option.resolved .statement{
   display:block;
 }
 
@@ -572,7 +586,7 @@ button:disabled{
   }
 
   .reason{
-    font-size:.74rem;
+    font-size:.82rem;
   }
 
   .attempt{
@@ -638,6 +652,18 @@ button:disabled{
     min-height:31px;
     height:31px;
   }
+}
+
+html.tablet-device .reason{
+  color:#2f4353;
+  font-size:1rem;
+  line-height:1.3;
+  font-weight:800;
+}
+
+html.tablet-device .attempt{
+  color:#2f4353;
+  font-weight:800;
 }
 </style>
 <link rel="stylesheet" href="../tablet-harmonisation.css">

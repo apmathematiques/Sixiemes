@@ -31,6 +31,10 @@ Versions conservées :
 
 - [ ] Activité « Trouve la durée écoulée » — situations et libellés rendus cohérents, à valider manuellement dans Genially
 
+## Chapitre 21 — Fraction d’une quantité
+
+- [ ] Activités « Le mot “de” se transforme » et « Quels problèmes correspondent ? » — commutativité explicitée et feedbacks renforcés sur tablette, à valider manuellement dans Genially
+
 ## Chapitre 5 — Nombres décimaux
 
 Chapitre développé avec notamment :
