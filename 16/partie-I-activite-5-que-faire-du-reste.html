@@ -219,6 +219,18 @@ let index=0;
 let score=0;
 let attempts=0;
 let locked=false;
+const isTouchDevice=
+  (navigator.maxTouchPoints||0)>0 ||
+  window.matchMedia?.('(pointer:coarse)').matches;
+
+function focusAnswerInput(){
+  if(isTouchDevice){
+    answerInput.focus({preventScroll:true});
+    return;
+  }
+
+  requestAnimationFrame(()=>answerInput.focus({preventScroll:true}));
+}
 
 function randInt(min,max){
   return Math.floor(Math.random()*(max-min+1))+min;
@@ -402,7 +414,7 @@ function renderQuestion(){
   feedback.className='feedback hidden';
   updateTop();
 
-  setTimeout(()=>answerInput.focus(),0);
+  focusAnswerInput();
 }
 
 function readAnswer(){
@@ -466,7 +478,7 @@ function validate(){
       'Relis bien la question : que représente le quotient ? Et que faut-il faire du reste dans cette situation ?',
       'error'
     );
-    setTimeout(()=>answerInput.focus(),0);
+    focusAnswerInput();
     return;
   }
 

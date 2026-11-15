@@ -282,6 +282,21 @@ let score=0;
 let attempts=0;
 let locked=false;
 let inputs=[];
+const isTouchDevice=
+  (navigator.maxTouchPoints||0)>0 ||
+  window.matchMedia?.('(pointer:coarse)').matches;
+
+function focusFirstInput(){
+  const firstInput=inputs[0];
+  if(!firstInput) return;
+
+  if(isTouchDevice){
+    firstInput.focus({preventScroll:true});
+    return;
+  }
+
+  requestAnimationFrame(()=>firstInput.focus({preventScroll:true}));
+}
 
 function randInt(min,max){
   return Math.floor(Math.random()*(max-min+1))+min;
@@ -436,7 +451,7 @@ function renderQuestion(){
   setFeedback('Lis la division posée et complète les deux cases.');
   updateTop();
 
-  setTimeout(()=>inputs[0]?.focus(),0);
+  focusFirstInput();
 }
 
 function readInput(inp){
@@ -532,7 +547,7 @@ function validate(){
       'Vérifie le rôle de chaque nombre dans l’égalité de la division euclidienne.',
       'error'
     );
-    setTimeout(()=>inputs[0]?.focus(),0);
+    focusFirstInput();
     return;
   }
 
@@ -582,6 +597,9 @@ function restart(){
 }
 
 validateBtn.addEventListener('click',validate);
+validateBtn.addEventListener('pointerdown',e=>{
+  if(isTouchDevice && !locked) e.preventDefault();
+});
 nextBtn.addEventListener('click',nextQuestion);
 restartBtn.addEventListener('click',restart);
 
