@@ -4,7 +4,7 @@
 
 Version stable actuelle : **1.3**
 
-Extension complémentaire utilisée : **compas GeoLib 1.4**, compatible avec le noyau GeoLib 1.3 et testée dans `geolib/v1.4/demo-compass.html`.
+Extension complémentaire utilisée : **compas GeoLib 1.4.1**, compatible avec le noyau GeoLib 1.3 et testée dans `geolib/v1.4.1/demo-compass.html`. Cette version fiabilise la manipulation tactile du compas grâce à la capture du pointeur ; GeoLib 1.4 reste conservée pour les anciennes activités.
 
 Versions conservées :
 
@@ -12,6 +12,8 @@ Versions conservées :
 - `geolib/v1.1/`
 - `geolib/v1.2/`
 - `geolib/v1.3/`
+- `geolib/v1.4/`
+- `geolib/v1.4.1/`
 
 ## Chapitre 15 — Cercles
 
