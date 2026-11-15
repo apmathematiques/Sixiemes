@@ -33,7 +33,7 @@ Versions conservées :
 
 ## Chapitre 21 — Fraction d’une quantité
 
-- [ ] Activité « Le mot “de” se transforme » — commutativité acceptée et explicitée dans la correction, à valider manuellement dans Genially
+- [ ] Activités « Le mot “de” se transforme » et « Quels problèmes correspondent ? » — commutativité explicitée et feedbacks renforcés sur tablette, à valider manuellement dans Genially
 
 ## Chapitre 5 — Nombres décimaux
 
