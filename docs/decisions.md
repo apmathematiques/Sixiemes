@@ -43,6 +43,11 @@
 - Lorsque la règle est bloquée, l'équerre coulisse le long de celle-ci sans pouvoir tourner.
 - Une construction parallèle vérifie séparément le parallélisme et le passage par le point demandé.
 
+## Chapitre 18 — Calculs avec des fractions
+
+- Dans « Un dénominateur commun » et « Le calcul complet », l’élève choisit lui-même la fraction à transformer.
+- Les questions sont générées de façon qu’une seule des deux fractions puisse prendre le dénominateur de l’autre avec un numérateur entier.
+
 ## Direction artistique
 
 - Les fonds Genially sont la référence.

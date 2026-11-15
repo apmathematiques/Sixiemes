@@ -23,6 +23,10 @@ Versions conservées :
 
 - [ ] Activités « L'égalité cachée » et « Que faire du reste ? » — clavier virtuel maintenu ouvert pendant la saisie sur tablette, à valider manuellement dans Genially
 
+## Chapitre 18 — Calculs avec des fractions
+
+- [ ] Activités « Un dénominateur commun » et « Le calcul complet » — choix autonome de la fraction à transformer, à valider manuellement dans Genially
+
 ## Chapitre 5 — Nombres décimaux
 
 Chapitre développé avec notamment :
