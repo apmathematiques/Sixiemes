@@ -27,6 +27,10 @@ Versions conservées :
 
 - [ ] Activités « Un dénominateur commun » et « Le calcul complet » — choix autonome de la fraction à transformer, à valider manuellement dans Genially
 
+## Chapitre 19 — Durées
+
+- [ ] Activité « Trouve la durée écoulée » — situations et libellés rendus cohérents, à valider manuellement dans Genially
+
 ## Chapitre 5 — Nombres décimaux
 
 Chapitre développé avec notamment :

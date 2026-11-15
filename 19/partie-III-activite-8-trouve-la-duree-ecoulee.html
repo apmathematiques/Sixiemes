@@ -153,7 +153,7 @@ button.action:disabled{opacity:.55;cursor:default}
   </header>
 
   <section class="main" id="exercise">
-    <p class="instruction">Trouve la durée écoulée entre l’horaire de départ et l’horaire d’arrivée.</p>
+    <p class="instruction">Trouve la durée écoulée entre les deux horaires.</p>
 
     <div class="question-zone">
       <div class="problem" id="problem"></div>
@@ -236,16 +236,84 @@ function elapsed(startH,startM,endH,endM,nextDay){
   return {h:Math.floor(d/60),m:d%60};
 }
 
-const contexts=[
-  'Un train effectue un trajet.',
-  'Un film est projeté au cinéma.',
-  'Une randonnée est organisée.',
-  'Une visite de musée est prévue.',
-  'Un trajet en car est effectué.',
-  'Une activité sportive est organisée.',
-  'Un spectacle est programmé.',
-  'Un voyage en avion est effectué.'
-];
+const travel=(text)=>({
+  text,startLabel:'Départ',endLabel:'Arrivée',endTimeName:'l’heure d’arrivée'
+});
+const event=(text)=>({
+  text,startLabel:'Début',endLabel:'Fin',endTimeName:'l’heure de fin'
+});
+
+const contexts={
+  short:[
+    travel('Un train régional effectue un court trajet.'),
+    travel('Un trajet en car est effectué.'),
+    travel('Une traversée en bateau-bus est effectuée.'),
+    event('Un exercice sportif est chronométré.')
+  ],
+  standard:[
+    travel('Un train effectue un trajet.'),
+    event('Un film est projeté au cinéma.'),
+    travel('Une randonnée est organisée.'),
+    {
+      text:'Une visite de musée est prévue.',
+      startLabel:'Entrée',endLabel:'Sortie',endTimeName:'l’heure de sortie'
+    },
+    travel('Un trajet en car est effectué.'),
+    event('Une activité sportive est organisée.'),
+    event('Un spectacle est programmé.'),
+    {
+      text:'Un voyage en avion est effectué.',
+      startLabel:'Décollage',endLabel:'Atterrissage',endTimeName:'l’heure d’atterrissage'
+    }
+  ],
+  long:[
+    travel('Un train effectue un long trajet.'),
+    travel('Une randonnée est organisée.'),
+    travel('Un voyage en car est effectué.'),
+    travel('Un trajet à vélo est organisé.'),
+    {
+      text:'Un voyage en avion est effectué.',
+      startLabel:'Décollage',endLabel:'Atterrissage',endTimeName:'l’heure d’atterrissage'
+    }
+  ],
+  evening:[
+    event('Un film est projeté en soirée.'),
+    event('Un spectacle a lieu en soirée.'),
+    travel('Un train effectue un trajet en soirée.'),
+    travel('Un trajet en car est effectué en soirée.'),
+    {
+      text:'Un vol est programmé en soirée.',
+      startLabel:'Décollage',endLabel:'Atterrissage',endTimeName:'l’heure d’atterrissage'
+    }
+  ],
+  overnightShort:[
+    travel('Un train de nuit effectue un trajet.'),
+    event('Un film est projeté lors d’une séance de nuit.'),
+    event('Un spectacle se termine après minuit.'),
+    {
+      text:'Un vol de nuit est effectué.',
+      startLabel:'Décollage',endLabel:'Atterrissage',endTimeName:'l’heure d’atterrissage'
+    }
+  ],
+  overnightLong:[
+    travel('Un train de nuit effectue un long trajet.'),
+    travel('Un voyage de nuit en car est effectué.'),
+    travel('Une randonnée nocturne est organisée.'),
+    {
+      text:'Un vol de nuit est effectué.',
+      startLabel:'Décollage',endLabel:'Atterrissage',endTimeName:'l’heure d’atterrissage'
+    }
+  ]
+};
+
+function contextForLevel(level){
+  if(level<=2) return pick(contexts.short);
+  if(level===3 || level===6) return pick(contexts.standard);
+  if(level<=7) return pick(contexts.long);
+  if(level===8) return pick(contexts.evening);
+  if(level===9) return pick(contexts.overnightShort);
+  return pick(contexts.overnightLong);
+}
 
 function buildQuestion(level){
   let sh,sm,eh,em,nextDay=false;
@@ -284,22 +352,26 @@ function buildQuestion(level){
   }else if(level===9){
     nextDay=true;
     sh=randInt(22,23); sm=pick([10,20,30,40,50]);
-    const total=sh*60+sm+randInt(1,3)*60+randInt(20,55);
-    eh=Math.floor((total%1440)/60); em=total%60;
+    const untilMidnight=1440-(sh*60+sm);
+    const afterMidnight=randInt(Math.max(20,80-untilMidnight),180);
+    eh=Math.floor(afterMidnight/60); em=afterMidnight%60;
   }else{
     nextDay=true;
     sh=randInt(20,23); sm=pick([5,15,25,35,45,55]);
-    const total=sh*60+sm+randInt(3,8)*60+randInt(10,55);
-    eh=Math.floor((total%1440)/60); em=total%60;
+    const untilMidnight=1440-(sh*60+sm);
+    const afterMidnight=randInt(Math.max(30,190-untilMidnight),240);
+    eh=Math.floor(afterMidnight/60); em=afterMidnight%60;
   }
 
   const d=elapsed(sh,sm,eh,em,nextDay);
   const arrival=`${timeText(eh,em)}${nextDay?' le lendemain':''}`;
+  const context=contextForLevel(level);
 
   return{
-    html:`${pick(contexts)}<br><br>Départ : <strong>${timeText(sh,sm)}</strong><br>Arrivée : <strong>${arrival}</strong><br><br>Quelle est la durée écoulée ?`,
+    html:`${context.text}<br><br>${context.startLabel} : <strong>${timeText(sh,sm)}</strong><br>${context.endLabel} : <strong>${arrival}</strong><br><br>Quelle est la durée écoulée ?`,
     startH:sh,startM:sm,endH:eh,endM:em,nextDay,
-    answerH:d.h,answerM:d.m
+    answerH:d.h,answerM:d.m,
+    endTimeName:context.endTimeName
   };
 }
 
@@ -383,8 +455,8 @@ function validateAnswer(){
     minuteInput.classList.add('wrong');
     setFeedback(
       q.nextDay
-        ? 'Ce n’est pas encore juste. Pense au temps écoulé jusqu’à minuit, puis continue jusqu’à l’heure d’arrivée.'
-        : 'Ce n’est pas encore juste. Pense au temps écoulé jusqu’à l’heure suivante, puis continue jusqu’à l’heure d’arrivée.',
+        ? `Ce n’est pas encore juste. Pense au temps écoulé jusqu’à minuit, puis continue jusqu’à ${q.endTimeName}.`
+        : `Ce n’est pas encore juste. Pense au temps écoulé jusqu’à l’heure suivante, puis continue jusqu’à ${q.endTimeName}.`,
       'error'
     );
     setTimeout(()=>{

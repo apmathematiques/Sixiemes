@@ -2,6 +2,7 @@
 
 ## 2026-11-15
 
+- Harmonisation des situations de « Trouve la durée écoulée » (chapitre 19) : libellés adaptés au contexte et scénarios cohérents avec la durée et le passage à minuit.
 - Dans « Un dénominateur commun » et « Le calcul complet » (chapitre 18), l’élève choisit désormais la fraction à transformer ; les questions garantissent un choix unique.
 - Stabilisation du clavier virtuel dans « L'égalité cachée » et « Que faire du reste ? » (chapitre 16) : le champ conserve le focus afin que le clavier reste ouvert pendant la saisie sur tablette.
 - Ajout de GeoLib 1.4.1, qui conserve la capture du pointeur pendant le déplacement et le réglage du compas sur écran tactile.
