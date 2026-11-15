@@ -77,6 +77,17 @@ body{display:grid;place-items:center;padding:12px}
   font-size:clamp(2rem,4.7vw,3rem);
   font-weight:800;line-height:1.1;text-align:center
 }
+.fraction-choice{
+  min-width:1.8em;padding:.12em .18em;
+  border:3px solid transparent;border-radius:.32em;
+  color:inherit;background:transparent;font:inherit;line-height:inherit;
+  cursor:pointer;touch-action:manipulation
+}
+.fraction-choice:hover:not(:disabled){background:var(--bs)}
+.fraction-choice.selected{border-color:var(--b);background:var(--bs);color:var(--bd)}
+.fraction-choice.correct{border-color:#79c798;background:var(--gs);color:#165e36}
+.fraction-choice.wrong{border-color:#df8585;background:var(--rs);color:#8f2727}
+.fraction-choice:disabled{cursor:default}
 .arrow{
   font-size:2rem;color:var(--b);font-weight:800;line-height:1
 }
@@ -95,6 +106,10 @@ body{display:grid;place-items:center;padding:12px}
 .equality{
   display:flex;align-items:center;justify-content:center;gap:.42em;
   font-size:clamp(2rem,4.6vw,3rem);font-weight:800
+}
+.choice-prompt{
+  max-width:250px;color:var(--m);
+  font-size:clamp(.92rem,1.7vw,1.05rem);font-weight:700;line-height:1.3
 }
 .frac{
   display:inline-grid;grid-template-rows:auto 2px auto;
@@ -211,7 +226,7 @@ button.action:disabled{opacity:.45;cursor:default}
   </header>
 
   <section class="main" id="exercise">
-    <p class="instruction">Complète la fraction pour obtenir le même dénominateur que l’autre fraction.</p>
+    <p class="instruction">Choisis la fraction à transformer pour obtenir le même dénominateur, puis complète l’égalité.</p>
 
     <div class="question-zone">
       <div class="start-block">
@@ -220,7 +235,7 @@ button.action:disabled{opacity:.45;cursor:default}
       </div>
       <div class="arrow">→</div>
       <div class="task-card">
-        <div class="task-label">Fraction à transformer</div>
+        <div class="task-label">Ta transformation</div>
         <div class="equality" id="equality"></div>
       </div>
     </div>
@@ -269,6 +284,7 @@ let questions=[];
 let index=0;
 let score=0;
 let locked=false;
+let selectedSide=null;
 
 function randInt(min,max){
   return Math.floor(Math.random()*(max-min+1))+min;
@@ -289,6 +305,12 @@ function fractionHTML(n,d){
     <span class="num">${n}</span><span class="line"></span><span class="den">${d}</span>
   </span>`;
 }
+function fractionChoiceHTML(side,n,d){
+  return `<button type="button" class="fraction-choice" data-side="${side}"
+    aria-pressed="false" aria-label="Choisir la fraction ${n} sur ${d}">
+    ${fractionHTML(n,d)}
+  </button>`;
+}
 function answerFractionHTML(){
   return `<span class="answer-frac">
     <input id="answerNum" class="num-input" type="number" inputmode="numeric"
@@ -308,8 +330,14 @@ function makeQuestion(){
   const d1=firstIsSmall?small:big;
   const d2=firstIsSmall?big:small;
 
-  const n1=randInt(1,d1+2);
-  const n2=randInt(1,d2+2);
+  const smallN=randInt(1,small+2);
+  let bigN;
+  do{
+    bigN=randInt(1,big+2);
+  }while(bigN%factor===0);
+
+  const n1=firstIsSmall?smallN:bigN;
+  const n2=firstIsSmall?bigN:smallN;
   const op=Math.random()<.5?'+':'−';
 
   const sourceN=firstIsSmall?n1:n2;
@@ -317,7 +345,7 @@ function makeQuestion(){
   const targetD=big;
   const answerN=sourceN*factor;
 
-  return{n1,d1,n2,d2,op,sourceN,sourceD,targetD,factor,answerN};
+  return{n1,d1,n2,d2,op,firstIsSmall,sourceN,sourceD,targetD,factor,answerN};
 }
 
 function buildQuestions(){
@@ -338,16 +366,15 @@ function updateTop(){
 function renderQuestion(){
   const q=questions[index];
   locked=false;
+  selectedSide=null;
 
   original.innerHTML=
-    `${fractionHTML(q.n1,q.d1)}
+    `${fractionChoiceHTML('first',q.n1,q.d1)}
      <span class="op">${q.op}</span>
-     ${fractionHTML(q.n2,q.d2)}`;
+     ${fractionChoiceHTML('second',q.n2,q.d2)}`;
 
   equality.innerHTML=
-    `${fractionHTML(q.sourceN,q.sourceD)}
-     <span class="op">=</span>
-     ${answerFractionHTML()}`;
+    '<span class="choice-prompt">Sélectionne d’abord une fraction dans le calcul.</span>';
 
   feedback.textContent='';
   feedback.className='feedback';
@@ -356,6 +383,35 @@ function renderQuestion(){
   nextBtn.hidden=true;
 
   updateTop();
+
+  original.querySelectorAll('.fraction-choice').forEach(button=>{
+    button.addEventListener('click',()=>selectFraction(button.dataset.side));
+  });
+}
+
+function selectFraction(side){
+  if(locked) return;
+
+  const q=questions[index];
+  selectedSide=side;
+
+  original.querySelectorAll('.fraction-choice').forEach(button=>{
+    const selected=button.dataset.side===side;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  });
+
+  const chosen=side==='first'
+    ? {n:q.n1,d:q.d1}
+    : {n:q.n2,d:q.d2};
+
+  equality.innerHTML=
+    `${fractionHTML(chosen.n,chosen.d)}
+     <span class="op">=</span>
+     ${answerFractionHTML()}`;
+
+  feedback.textContent='';
+  feedback.className='feedback';
 
   const numInput=$('answerNum');
   const denInput=$('answerDen');
@@ -374,6 +430,11 @@ function validateAnswer(){
   if(locked) return;
 
   const q=questions[index];
+  if(!selectedSide){
+    setFeedback('Choisis d’abord la fraction que tu veux transformer.','error');
+    return;
+  }
+
   const numInput=$('answerNum');
   const denInput=$('answerDen');
 
@@ -393,10 +454,18 @@ function validateAnswer(){
   locked=true;
   numInput.disabled=true;
   denInput.disabled=true;
+  const expectedSide=q.firstIsSmall?'first':'second';
+  const choiceIsRight=selectedSide===expectedSide;
+  original.querySelectorAll('.fraction-choice').forEach(button=>{
+    button.disabled=true;
+    button.classList.remove('selected');
+    if(button.dataset.side===expectedSide) button.classList.add('correct');
+    if(button.dataset.side===selectedSide && !choiceIsRight) button.classList.add('wrong');
+  });
   validateBtn.hidden=true;
   nextBtn.hidden=false;
 
-  const isRight=(num===q.answerN && den===q.targetD);
+  const isRight=choiceIsRight && num===q.answerN && den===q.targetD;
 
   if(isRight){
     score++;
@@ -405,6 +474,13 @@ function validateAnswer(){
     setFeedback(
       `Bravo ! L’autre fraction a pour dénominateur ${q.targetD}. Pour passer de ${q.sourceD} à ${q.targetD}, on multiplie par ${q.factor}. On multiplie donc aussi ${q.sourceN} par ${q.factor}.`,
       'success'
+    );
+  }else if(!choiceIsRight){
+    numInput.classList.add('wrong');
+    denInput.classList.add('wrong');
+    setFeedback(
+      `Il fallait transformer la fraction de dénominateur ${q.sourceD} : ${q.targetD} est un multiple de ${q.sourceD}. On obtient ${q.answerN}/${q.targetD}.`,
+      'error'
     );
   }else{
     numInput.classList.add(num===q.answerN?'correct':'wrong');
@@ -424,13 +500,13 @@ function showFinal(){
   finalScore.textContent=`Score : ${score} / ${TOTAL}`;
 
   if(score===8){
-    finalMessage.textContent='Excellent ! Tu sais transformer une fraction pour obtenir le même dénominateur.';
+    finalMessage.textContent='Excellent ! Tu sais choisir puis transformer la fraction qui permet d’obtenir le même dénominateur.';
   }else if(score>=6){
     finalMessage.textContent='Très bien ! Tu maîtrises presque toujours les fractions équivalentes nécessaires.';
   }else if(score>=4){
     finalMessage.textContent='C’est en bonne voie. Pense à multiplier le numérateur par le même nombre que le dénominateur.';
   }else{
-    finalMessage.textContent='Rejoue pour t’entraîner : numérateur et dénominateur sont multipliés par le même nombre.';
+    finalMessage.textContent='Rejoue pour t’entraîner : choisis d’abord la fraction dont le dénominateur peut devenir celui de l’autre.';
   }
 }
 
