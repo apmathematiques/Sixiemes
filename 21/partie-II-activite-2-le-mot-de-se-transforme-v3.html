@@ -265,7 +265,7 @@ button:disabled{opacity:.45;cursor:default}
         <div class="correction-title">Correction</div>
         <div class="correction-calc" id="correctionCalc"></div>
         <div class="correction-note">
-          L'ordre inverse des deux facteurs est également correct.
+          Les deux produits sont égaux : la multiplication est commutative.
         </div>
       </div>
     </div>
@@ -486,10 +486,8 @@ function updateValidate(){
 }
 function isCorrect(){
   if(operator.value!=='x') return false;
-  return (
-    (left.value==='Q' && right.value==='F') ||
-    (left.value==='F' && right.value==='Q')
-  );
+  const operands=[left.value,right.value];
+  return operands.includes('Q') && operands.includes('F');
 }
 function showCorrection(q){
   correctionCalc.innerHTML=
@@ -499,7 +497,11 @@ function showCorrection(q){
      <span>=</span>
      <span>${q.q}</span>
      <span>×</span>
-     ${fracHTML(q.n,q.d)}`;
+     ${fracHTML(q.n,q.d)}
+     <span>=</span>
+     ${fracHTML(q.n,q.d)}
+     <span>×</span>
+     <span>${q.q}</span>`;
 
   correction.classList.add('show');
 }
@@ -510,7 +512,7 @@ function revealReference(q){
   clearStates();
   [left,operator,right].forEach(el=>el.classList.add('revealed'));
 }
-function resolveQuestion(wasCorrect){
+function resolveQuestion(wasCorrect,usedReverseOrder=false){
   const q=questions[index];
   resolved=true;
   left.disabled=true;
@@ -522,7 +524,9 @@ function resolveQuestion(wasCorrect){
   showCorrection(q);
 
   attempt.textContent=wasCorrect
-    ? 'Réponse validée.'
+    ? usedReverseOrder
+      ? 'Réponse validée : l’ordre des facteurs est correct.'
+      : 'Réponse validée.'
     : 'Les 2 essais sont terminés.';
 
   validateBtn.hidden=true;
@@ -564,11 +568,12 @@ function validate(){
   attempts++;
 
   if(isCorrect()){
+    const usedReverseOrder=left.value==='F' && right.value==='Q';
     score += (attempts === 1 ? 1 : 0.5);
     scoreBox.textContent=`Score : ${score} / ${TOTAL}`;
     clearStates();
     [left,operator,right].forEach(el=>el.classList.add('correct'));
-    resolveQuestion(true);
+    resolveQuestion(true,usedReverseOrder);
     return;
   }
 
