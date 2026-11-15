@@ -35,6 +35,10 @@ Versions conservées :
 
 - [ ] Activités « Le mot “de” se transforme » et « Quels problèmes correspondent ? » — commutativité explicitée et feedbacks renforcés sur tablette, à valider manuellement dans Genially
 
+## Chapitre 23 — Problèmes
+
+- [ ] Activité « Le défi des problèmes » — contenu central et feedbacks agrandis sur tablette, à valider manuellement dans Genially
+
 ## Chapitre 5 — Nombres décimaux
 
 Chapitre développé avec notamment :
